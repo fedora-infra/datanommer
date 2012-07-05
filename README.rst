@@ -12,7 +12,13 @@ Install mongodb::
 
   $ sudo yum -y install mongodb mongodb-server
 
-Install and use threebean's favorite python dev tool::
+You need to start mongod, normally this is done with ``systemctl start
+mongod.service``, however this is an `outstanding bug
+<https://bugzilla.redhat.com/show_bug.cgi?id=837904>`_ which will get in your
+way.  There is a workaround described in the bugzilla ticket.
+
+Once you're over that, install and use threebean's favorite
+python dev tool::
 
   $ sudo yum -y install python-virtualenvwrapper
   $ mkvirtualenv nomnomnom
