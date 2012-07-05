@@ -19,7 +19,7 @@ setup(name='datanommer',
       include_package_data=True,
       zip_safe=False,
       install_requires=[
-          "fedmsg",
+          "fedmsg>=0.2.2",
           "pymongo",
       ],
       entry_points={
