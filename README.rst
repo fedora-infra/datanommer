@@ -12,8 +12,8 @@ Install mongodb::
 
   $ sudo yum -y install mongodb mongodb-server
 
-You need to start mongod, normally this is done with ``systemctl start
-mongod.service``, however this is an `outstanding bug
+You need to start mongod, normally this is done with
+``systemctl start mongod.service``, however this is an `outstanding bug
 <https://bugzilla.redhat.com/show_bug.cgi?id=837904>`_ which will get in your
 way.  There is a workaround described in the bugzilla ticket.
 
