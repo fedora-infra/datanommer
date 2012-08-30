@@ -29,7 +29,7 @@ Create datanommer's DB::
 Start fedmsg-relay and datanommer::
 
     $ sudo service fedmsg-relay start
-    $ sudo service datanommer start
+    $ sudo service fedmsg-hub start  # this will find datanommer's consumer.
 
 Emit a message, which gets picked up by the relay, rebroadcasted, consumed by datanommer, and stuffed into ``/tmp/datanommer.db``::
 
