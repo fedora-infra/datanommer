@@ -1,13 +1,21 @@
 from setuptools import setup, find_packages
-import sys, os
+import sys
+import os
 
-version = '0.1'
+import multiprocessing
+import logging
+
+f = open('README.rst')
+long_description = f.read().strip()
+long_description = long_description.split('split here', 1)[1]
+f.close()
+
+version = '0.1.1'
 
 setup(name='datanommer',
       version=version,
-      description="Store all the messages on the fedmsg bus, ever.",
-      long_description="""\
-""",
+      description="A storage consumer for the Fedora Message Bus (fedmsg)",
+      long_description=long_description,
       # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
       classifiers=[],
       keywords='',
@@ -19,10 +27,19 @@ setup(name='datanommer',
       include_package_data=True,
       zip_safe=False,
       install_requires=[
-          "fedmsg>=0.2.2",
-          "pymongo",
+          "fedmsg>=0.3.8",
+          "sqlalchemy>=0.7",
       ],
+      tests_require=[
+          "nose",
+      ],
+      test_suite='nose.collector',
       entry_points={
+          'console_scripts': (
+              'datanommer-create-db=datanommer.commands:create',
+              'datanommer-dump=datanommer.commands:dump',
+              'datanommer-stats=datanommer.commands:stats',
+          ),
           'moksha.consumer': (
               'noms = datanommer.consumer:Nommer'
           ),
