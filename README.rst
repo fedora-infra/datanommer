@@ -24,7 +24,7 @@ Create the file ``/etc/fedmsg.d/datanommer.py`` and add the following content::
 
 Create datanommer's DB::
 
-    $ /usr/bin/datanommer-create-db.py
+    $ /usr/bin/datanommer-create-db
 
 Start fedmsg-relay and datanommer::
 
@@ -39,5 +39,5 @@ Use datanommer's clumsy CLI tools to inspect the DB.  Was the message stored?
 
 ::
 
-    $ /usr/bin/datanommer-stats.py
-    $ /usr/bin/datanommer-dump.py
+    $ /usr/bin/datanommer-stats
+    $ /usr/bin/datanommer-dump
