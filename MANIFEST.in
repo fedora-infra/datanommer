@@ -1,4 +1,4 @@
 include README.rst
 include LICENSE
 include gpl-3.0.txt
-recursive include tests *
+recursive-include tests *
