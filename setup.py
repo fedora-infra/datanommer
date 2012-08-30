@@ -31,7 +31,7 @@ setup(name='datanommer',
       ],
       test_suite='nose.collector',
       entry_points={
-          'console_scripts': ( 
+          'console_scripts': (
               'datanommer-create-db=datanommer.commands:create',
               'datanommer-dump=datanommer.commands:dump',
               'datanommer-stats=datanommer.commands:stats',
