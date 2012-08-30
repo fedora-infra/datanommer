@@ -5,13 +5,17 @@ import os
 import multiprocessing
 import logging
 
+f = open('README.rst')
+long_description = f.read().strip()
+long_description = long_description.split('split here', 1)[1]
+f.close()
+
 version = '0.1.0'
 
 setup(name='datanommer',
       version=version,
-      description="Store all the messages on the fedmsg bus, ever.",
-      long_description="""\
-""",
+      description="A storage consumer for the Fedora Message Bus (fedmsg)",
+      long_description=long_description,
       # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
       classifiers=[],
       keywords='',
