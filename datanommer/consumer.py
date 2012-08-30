@@ -1,12 +1,9 @@
-
 import fedmsg.consumers
-import pymongo
+import datanommer.models
 
 DEFAULTS = {
-    'enabled': True,  # TODO - Set this to False someday
-    'mongo.host': 'localhost',
-    'mongo.port': 27017,
-    'mongo.db': 'fedmsg',
+    'datanommer.enabled': True,
+    'datanommer.sqlalchemy.url': 'sqlite:///datanommer.db',
 }
 
 
@@ -21,12 +18,9 @@ class Nommer(fedmsg.consumers.FedmsgConsumer):
     def __init__(self, hub):
         super(Nommer, self).__init__(hub)
 
-        # Setup a mongo db connection.
-        self.connection = pymongo.Connection(
-            self.config['mongo.host'], self.config['mongo.port'])
-        self.db = self.connection[self.config['mongo.db']]
-        self.collection = self.db.messages
+        # Setup a sqlalchemy DB connection (postgres, or sqlite)
+        datanommer.models.init(self.config['datanommer.sqlalchemy.url'])
 
     def consume(self, message):
         log.debug("Nomming %r" % message)
-        self.collection.insert(message)
+        datanommer.models.add(message)
