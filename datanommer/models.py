@@ -144,9 +144,14 @@ class LoggerMessage(DeclarativeBase, BaseMessage):
     __tablename__ = "%s_messages" % topic_filter
 
 
+class HttpdMessage(DeclarativeBase, BaseMessage):
+    topic_filter = "httpd"
+    __tablename__ = "%s_messages" % topic_filter
+
+
 class UnclassifiedMessage(DeclarativeBase, BaseMessage):
     topic_filter = "this will never be in a topic..."
-    __tablename__ = "unclassified_message"
+    __tablename__ = "unclassified_messages"
 
 
 models = frozenset((
