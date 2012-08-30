@@ -49,10 +49,16 @@ def add(message):
 
     log.debug("Using %r" % model_cls)
 
+    timestamp = message['timestamp']
+    try:
+        timestamp = datetime.datetime.fromtimestamp(timestamp)
+    except Exception:
+        pass
+
     obj = model_cls(
         i=message['i'],
         topic=message['topic'],
-        timestamp=datetime.datetime.fromtimestamp(message['timestamp']),
+        timestamp=timestamp,
         certificate=message.get('certificate', None),
         signature=message.get('signature', None),
     )
