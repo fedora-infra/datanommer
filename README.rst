@@ -1,45 +1,43 @@
 datanommer
 ==========
 
-This is an experimental stab at datanommer.  It is comprised only of a `fedmsg
+This is datanommer.  It is comprised of only a `fedmsg
 <http://github.com/ralphbean/fedmsg>`_ consumer that stuffs every message in a
-mongodb collection.
+sqlalchemy database.
+
+There are also a handful of CLI tools to dump information from the database.
 
 Try it out
 ==========
 
-Install mongodb::
+Install it on your local machine::
 
-  $ sudo yum -y install mongodb mongodb-server
+    $ sudo yum -y install datanommer
 
-You need to start mongod, normally this is done with
-``systemctl start mongod.service``, however this is an `outstanding bug
-<https://bugzilla.redhat.com/show_bug.cgi?id=837904>`_ which will get in your
-way.  There is a workaround described in the bugzilla ticket.
+Create the file ``/etc/fedmsg.d/datanommer.py`` and add the following content::
 
-Once you're over that, install and use threebean's favorite
-python dev tool::
+    config = {
+        'datanommer.enabled': True,
+        # This is not a safe location for a sqlite db...
+        'datanommer.sqlalchemy.url': 'sqlite:////tmp/datanommer.db',
+    }
 
-  $ sudo yum -y install python-virtualenvwrapper
-  $ mkvirtualenv nomnomnom
+Create datanommer's DB::
 
-Get this code::
+    $ /usr/bin/datanommer-create-db.py
 
-  $ git clone git://github.com/ralphbean/datanommer.git
-  $ cd datanommer
+Start fedmsg-relay and datanommer::
 
-Setup all the deps::
+    $ sudo service fedmsg-relay start
+    $ sudo service datanommer start
 
-  $ workon nomnomnom
-  $ pip install -e . --use-mirrors
+Emit a message, which gets picked up by the relay, rebroadcasted, consumed by datanommer, and stuffed into ``/tmp/datanommer.db``::
 
-Open two terms and, in the first, run a fake bus::
+    $ echo "this is a test" | fedmsg-logger
 
-  $ workon nomnomnom
-  $ python tools/fake-bus.py
+Use datanommer's clumsy CLI tools to inspect the DB.  Was the message stored?
 
-In the second, run the fedmsg-hub (which picks up the datanommer consumer and
-starts nomming)::
+::
 
-  $ workon nomnomnom
-  $ fedmsg-hub
+    $ /usr/bin/datanommer-stats.py
+    $ /usr/bin/datanommer-dump.py
