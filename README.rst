@@ -1,6 +1,8 @@
 datanommer
 ==========
 
+.. split here
+
 This is datanommer.  It is comprised of only a `fedmsg
 <http://github.com/ralphbean/fedmsg>`_ consumer that stuffs every message in a
 sqlalchemy database.
