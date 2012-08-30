@@ -146,7 +146,7 @@ class LoggerMessage(DeclarativeBase, BaseMessage):
 
 class UnclassifiedMessage(DeclarativeBase, BaseMessage):
     topic_filter = "this will never be in a topic..."
-    __tablename__ = "unclassified_message"
+    __tablename__ = "unclassified_messages"
 
 
 models = frozenset((
