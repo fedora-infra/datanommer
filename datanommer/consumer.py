@@ -16,15 +16,9 @@ log = logging.getLogger("fedmsg")
 
 class Nommer(fedmsg.consumers.FedmsgConsumer):
     topic = "*"
+    config_key = 'datanommer.enabled'
 
     def __init__(self, hub):
-        # Grab the config specified in /etc/fedmsg.d/datanommer.py
-        self.config = hub.config.get('datanommer', DEFAULTS)
-
-        if not self.config['enabled']:
-            log.info("DataNommer disabled by config.")
-            return
-
         super(Nommer, self).__init__(hub)
 
         # Setup a mongo db connection.
