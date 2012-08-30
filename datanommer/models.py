@@ -88,6 +88,16 @@ class BaseMessage(object):
     def msg(self, dict_like_msg):
         self._msg = fedmsg.encoding.dumps(dict_like_msg)
 
+    def __json__(self):
+        return dict(
+            i=self.i,
+            topic=self.topic,
+            timestamp=self.timestamp,
+            certificate=self.certificate,
+            signature=self.signature,
+            msg=self.msg,
+        )
+
 
 class BodhiMessage(DeclarativeBase, BaseMessage):
     topic_filter = "bodhi"
