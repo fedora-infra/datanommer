@@ -75,12 +75,3 @@ class TestModels(unittest.TestCase):
         datanommer.models.add(msg)
         datanommer.models.session.flush()
         eq_(datanommer.models.GitMessage.query.count(), 1)
-
-    def test_deserialize(self):
-        msg = copy.deepcopy(scm_message)
-        datanommer.models.add(msg)
-        datanommer.models.session.flush()
-        eq_(datanommer.models.GitMessage.query.count(), 1)
-
-        m = datanommer.models.GitMessage.query.one()
-        eq_(m.msg['commit']['name'], scm_message['commit']['name'])
