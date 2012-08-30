@@ -139,6 +139,11 @@ class KojiMessage(DeclarativeBase, BaseMessage):
     __tablename__ = "%s_messages" % topic_filter
 
 
+class LoggerMessage(DeclarativeBase, BaseMessage):
+    topic_filter = "logger"
+    __tablename__ = "%s_messages" % topic_filter
+
+
 class UnclassifiedMessage(DeclarativeBase, BaseMessage):
     topic_filter = "this will never be in a topic..."
     __tablename__ = "unclassified_message"
