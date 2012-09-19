@@ -10,7 +10,7 @@ long_description = f.read().strip()
 long_description = long_description.split('split here', 1)[1]
 f.close()
 
-version = '0.1.3'
+version = '0.1.4'
 
 setup(name='datanommer',
       version=version,
@@ -27,7 +27,7 @@ setup(name='datanommer',
       include_package_data=True,
       zip_safe=False,
       install_requires=[
-          "fedmsg>=0.3.8",
+          "fedmsg>=0.5.0",
           "sqlalchemy>=0.7",
       ],
       tests_require=[
