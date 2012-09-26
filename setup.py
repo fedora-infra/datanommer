@@ -27,6 +27,7 @@ setup(name='datanommer',
       include_package_data=True,
       zip_safe=False,
       install_requires=[
+          "moksha.hub>=1.0.3",
           "fedmsg>=0.5.0",
           "sqlalchemy>=0.7",
       ],
