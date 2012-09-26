@@ -20,8 +20,8 @@ class Nommer(fedmsg.consumers.FedmsgConsumer):
 
         # If fedmsg doesn't think we should be enabled, then we should quit
         # before setting up all the extra special zmq machinery.
-        # __initialized is set in moksha.api.hub.consumer
-        if not getattr(self, "__initialized", False):
+        # _initialized is set in moksha.api.hub.consumer
+        if not getattr(self, "_initialized", False):
             return
 
         # Setup a sqlalchemy DB connection (postgres, or sqlite)
