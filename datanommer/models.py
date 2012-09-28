@@ -104,6 +104,11 @@ class BodhiMessage(DeclarativeBase, BaseMessage):
     __tablename__ = "%s_messages" % topic_filter
 
 
+class ComposeMessage(DeclarativeBase, BaseMessage):
+    topic_filter = "compose"
+    __tablename__ = "%s_messages" % topic_filter
+
+
 class GitMessage(DeclarativeBase, BaseMessage):
     topic_filter = "git"
     __tablename__ = "%s_messages" % topic_filter
