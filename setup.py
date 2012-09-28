@@ -10,7 +10,7 @@ long_description = f.read().strip()
 long_description = long_description.split('split here', 1)[1]
 f.close()
 
-version = '0.1.6'
+version = '0.1.7'
 
 setup(name='datanommer',
       version=version,
