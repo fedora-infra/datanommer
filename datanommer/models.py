@@ -4,7 +4,7 @@ from sqlalchemy import (
     DateTime,
     Integer,
     ForeignKey,
-    Unicode,
+    UnicodeText,
 )
 
 from sqlalchemy.orm import sessionmaker, scoped_session
@@ -74,11 +74,11 @@ def add(message):
 class BaseMessage(object):
     id = Column(Integer, primary_key=True)
     i = Column(Integer, nullable=False)
-    topic = Column(Unicode(255), nullable=False)
+    topic = Column(UnicodeText, nullable=False)
     timestamp = Column(DateTime, nullable=False)
-    certificate = Column(Unicode(1023))
-    signature = Column(Unicode(255))
-    _msg = Column(Unicode(1023), nullable=False)
+    certificate = Column(UnicodeText)
+    signature = Column(UnicodeText)
+    _msg = Column(UnicodeText, nullable=False)
 
     @hybrid_property
     def msg(self):
