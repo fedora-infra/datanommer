@@ -2,7 +2,9 @@ import fedmsg.consumers
 import datanommer.models
 
 DEFAULTS = {
-    'datanommer.enabled': True,
+    'datanommer.enabled': False,
+    # Put a sqlite db in the current working directory if the user doesn't
+    # specify a real location.
     'datanommer.sqlalchemy.url': 'sqlite:///datanommer.db',
 }
 

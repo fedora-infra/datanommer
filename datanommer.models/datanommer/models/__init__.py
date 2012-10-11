@@ -24,7 +24,13 @@ import logging
 log = logging.getLogger("datanommer")
 
 
-def init(uri, create=False):
+def init(uri=None, create=False):
+    """ Initialize a connection.  Create tables if requested. """
+
+    if uri is None:
+        uri = 'sqlite:////tmp/datanommer.db'
+        log.warning("No db uri given.  Using %r" % uri)
+
     engine = create_engine(uri)
     session.configure(bind=engine)
     DeclarativeBase.query = session.query_property()
