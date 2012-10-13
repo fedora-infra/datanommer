@@ -1,0 +1,25 @@
+Files
+-----
+
+ - timestamps.txt - The original timestamps from datanommer.
+
+ - tstampstobuckets.py - A python script that takes the raw timestamps and
+   makes them graphable.
+
+ - activity.txt - Product of tstampstobuckets.py
+
+ - plot-conf.cnf - A GNUPlot config file.
+
+ - activity.png - Final result.  Graph of a week of developer activity gathered
+   from datanommer: http://github.com/ralphbean/datanommer/
+   
+
+Usage
+-----
+
+:: 
+
+    $ python tstamptobuckets.py > activity.txt
+    $ cat plot-conf.cnf | gnuplot
+    $ eog activity.png
+
