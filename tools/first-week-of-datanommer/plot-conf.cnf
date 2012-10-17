@@ -4,7 +4,7 @@ set timefmt "%s"
 set output "activity.png"
 # time range must be in same format as data file
 #set xrange ["Mar-25-00:00:00":"Mar-26-00:00:00"]
-set yrange [0:60]
+set yrange [0:100]
 set format x "%b %d\n%H:%M:%S"
 set grid
 set xlabel "Date\nTime"

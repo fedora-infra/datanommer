@@ -57,8 +57,11 @@ if __name__ == '__main__':
 
     # Smash all the timestamps together.
     bucket = CollisionDict(keys=keys)
-    for i, stamp in enumerate(timestamps[:-1]):
-        bucket[stamp] += 1
+    for i, stamp in enumerate(timestamps):
+        try:
+            bucket[stamp] += 1
+        except KeyError:
+            pass  # Oh well
 
     # Then read them out.
     for key, value in bucket.items():
