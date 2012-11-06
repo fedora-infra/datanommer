@@ -101,6 +101,7 @@ if __name__ == '__main__':
         for msg in query.all():
             seen.add(extractor(msg))
 
+    packagers_seen = []
     for packager in packagers:
         if packager['username'] in seen or packager['email'] in seen:
             packagers_seen.append(packager['username'])
