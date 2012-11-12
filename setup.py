@@ -17,7 +17,7 @@ setup(name='datanommer',
       url='http://github.com/ralphbean/datanommer',
       license='GPLv3+',
       install_requires=[
-          "datanommer.consumers",
+          "datanommer.consumer",
           "datanommer.models",
           "datanommer.commands",
       ],
