@@ -25,3 +25,15 @@ def stats(**kw):
     datanommer.models.init(kw['datanommer.sqlalchemy.url'])
     for model in datanommer.models.models:
         print model, "has", model.query.count(), "entries"
+
+
+@command(name="datanommer-latest")
+def latest(**kw):
+    """ Print the latest message ingested by datanommer """
+    datanommer.models.init(kw['datanommer.sqlalchemy.url'])
+    for model in sorted(datanommer.models.models):
+        query = model.query.order_by(model.timestamp.desc())
+        if query.count():
+            print fedmsg.encoding.pretty_dumps(query.first())
+        else:
+            print model, "has no entries yet."
