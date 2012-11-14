@@ -27,13 +27,49 @@ def stats(**kw):
         print model, "has", model.query.count(), "entries"
 
 
-@command(name="datanommer-latest")
+# Extra arguments for datanommer-latest
+extra_args = [
+    (['--model'], {
+        'dest': 'model',
+        'default': None,
+        'help': "Show the latest for only a specific model.",
+    }),
+    (['--overall'], {
+        'dest': 'overall',
+        'default': False,
+        'action': 'store_true',
+        'help': "Show only the latest message out of all message types.",
+    }),
+]
+
+
+@command(name="datanommer-latest", extra_args=extra_args)
 def latest(**kw):
-    """ Print the latest message ingested by datanommer """
+    """ Print the latest message(s) ingested by datanommer.
+
+    The default is to display the latest message in each message category.
+    """
+
     datanommer.models.init(kw['datanommer.sqlalchemy.url'])
-    for model in sorted(datanommer.models.models):
+    models = datanommer.models.models
+
+    if kw['model']:
+        eq = lambda m: kw['model'].lower() in m.__name__.lower()
+        models = filter(eq, models)
+
+    latest = {}
+    for model in sorted(models):
         query = model.query.order_by(model.timestamp.desc())
         if query.count():
-            print fedmsg.encoding.pretty_dumps(query.first())
-        else:
-            print model, "has no entries yet."
+            latest[model] = query.first()
+
+    if kw['overall']:
+        winner = latest.items()[0]
+        for k, v in latest.items():
+            if v.timestamp > winner[1].timestamp:
+                winner = (k, v)
+
+        print winner[0], fedmsg.encoding.pretty_dumps(winner[1])
+    else:
+        for k, v in sorted(latest.items()):
+            print k, fedmsg.encoding.pretty_dumps(v)
