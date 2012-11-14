@@ -30,6 +30,7 @@ setup(
             'datanommer-create-db=datanommer.commands:create',
             'datanommer-dump=datanommer.commands:dump',
             'datanommer-stats=datanommer.commands:stats',
+            'datanommer-latest=datanommer.commands:latest',
         ),
     },
 )
