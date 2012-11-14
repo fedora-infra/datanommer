@@ -1,7 +1,9 @@
 import datanommer.models
-import fedmsg.encoding
 
+from fedmsg.encoding import pretty_dumps
 from fedmsg.commands import command
+
+import time
 
 
 @command(name="datanommer-create-db")
@@ -16,7 +18,7 @@ def dump(**kw):
     datanommer.models.init(kw['datanommer.sqlalchemy.url'])
     for model in datanommer.models.models:
         for entry in model.query.all():
-            print fedmsg.encoding.pretty_dumps(entry)
+            print pretty_dumps(entry)
 
 
 @command(name="datanommer-stats")
@@ -39,6 +41,18 @@ extra_args = [
         'default': False,
         'action': 'store_true',
         'help': "Show only the latest message out of all message types.",
+    }),
+    (['--timestamp'], {
+        'dest': 'timestamp',
+        'default': False,
+        'action': 'store_true',
+        'help': "Show only the timestamp of the message(s).",
+    }),
+    (['--human'], {
+        'dest': 'human',
+        'default': False,
+        'action': 'store_true',
+        'help': "When combined with --timestamp, show a human readable date.",
     }),
 ]
 
@@ -63,13 +77,19 @@ def latest(**kw):
         if query.count():
             latest[model] = query.first()
 
+    formatter = lambda model, value: "%s, %s" % (model, pretty_dumps(value))
+    if kw['timestamp'] and kw['human']:
+        formatter = lambda m, v: v.timestamp
+    elif kw['timestamp'] and not kw['human']:
+        formatter = lambda m, v: time.mktime(v.timestamp.timetuple())
+
     if kw['overall']:
         winner = latest.items()[0]
         for k, v in latest.items():
             if v.timestamp > winner[1].timestamp:
                 winner = (k, v)
 
-        print winner[0], fedmsg.encoding.pretty_dumps(winner[1])
+        print formatter(*winner)
     else:
         for k, v in sorted(latest.items()):
-            print k, fedmsg.encoding.pretty_dumps(v)
+            print formatter(k, v)
