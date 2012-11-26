@@ -1,4 +1,4 @@
 include README.rst
 include LICENSE
-include example-config.py
+include fedmsg.d/datanommer.py
 recursive-include tests *
