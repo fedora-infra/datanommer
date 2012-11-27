@@ -31,34 +31,95 @@ Build Status
 Try it out
 ==========
 
-Install it on your local machine::
+Using a virtualenv
+------------------
 
-    $ sudo yum -y install datanommer
+Using a virtual environment is highly recommended, although this is not a must. Using virtualenvwrapper can isolate your development environment. You will be able to work on the latest datanommer from git checkout without messing the installed datanommer copy in your system. 
 
-Create the file ``/etc/fedmsg.d/datanommer.py`` and add the following content::
+Install virtualenvwrapper by::
 
-    config = {
-        'datanommer.enabled': True,
-        # This is not a safe location for a sqlite db...
-        'datanommer.sqlalchemy.url': 'sqlite:////tmp/datanommer.db',
-    }
+    $ sudo yum install python-virtualenvwrapper
 
-Create datanommer's DB::
 
-    $ /usr/bin/datanommer-create-db
+**Note:** If you decide not to use python-virtualenvwrapper, you can always use latest update of fedmsg and datanommer in fedora. If you are doing this, simply ignore all mkvirtualenv and workon commands in these instructions. You can install fedmsg with ``sudo yum install fedmsg``, and datanommer with ``sudo yum install datanommer``.
 
-Start fedmsg-relay and datanommer::
 
-    $ sudo service fedmsg-relay start
-    $ sudo service fedmsg-hub start  # this will find datanommer's consumer.
 
-Emit a message, which gets picked up by the relay, rebroadcasted, consumed by datanommer, and stuffed into ``/tmp/datanommer.db``::
+Development dependencies
+------------------------
+Get::
+
+    $ sudo yum install python-virtualenv openssl-devel zeromq-devel gcc
+
+
+Cloning upstream the git repo¶
+------------------------------
+The source code is on github. 
+
+Create a working folder to hold the source files::
+
+    $ mkdir source
+    $ cd source
+
+Get fedmsg::
+
+    $ git clone https://github.com/ralphbean/fedmsg.git
+
+Get datanommer::
+
+    $ git clone https://github.com/ralphbean/datanommer.git
+
+
+**Note:** If submitting patches, you should check Contributing page <http://fedmsg.readthedocs.org/en/latest/contributing/> for style guidelines.
+
+
+Set up virtualenv
+-----------------
+Create a new, empty virtualenv and install all the dependencies from pypi::
+
+    $ mkvirtualenv source
+
+
+**Note:** If the mkvirtualenv command is unavailable try ``source /usr/bin/virtualenvwrapper.sh`` on Fedora (if you do not run Fedora you might have to adjust the command a little).
+
+
+Set up fedmsg::
+
+    (source)$ cd fedmsg
+    (source)$ python setup.py develop
+
+Switch to datanommer:: 
+
+    (source)$ cd ../datanommer
+
+Please note that you should set up the three packages in the following sequence: "datanommer.models", "datanommer.commands" and "datanommer.consumer". Go to the three subfolders in sequence and type::
+
+    (source)$ python setup.py develop
+
+Create datanommer db::
+
+    (source)$ datanommer-create-db
+
+
+Try out datanommer
+-------------------
+Open three terminals to try out the commands. In each of them, activate your virtualenv with::
+
+    $ workon source
+
+In one terminal, type::
+
+    (source)$ fedmsg-relay
+
+In another, type::
+
+    (source)$ fedmsg-hub
+
+In a third, emit a message, which gets picked up by the relay, rebroadcasted, consumed by datanommer, and stuffed into /tmp/datanommer.db::
 
     $ echo "this is a test" | fedmsg-logger
 
-Use datanommer's clumsy CLI tools to inspect the DB.  Was the message stored?
-
-::
+Use datanommer's clumsy CLI tools to inspect the DB. Was the message stored?::
 
     $ /usr/bin/datanommer-stats
     $ /usr/bin/datanommer-dump
