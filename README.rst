@@ -80,7 +80,7 @@ Create a new, empty virtualenv and install all the dependencies from pypi::
     $ mkvirtualenv source
 
 
-**Note:** If the mkvirtualenv command is unavailable try ``source /usr/bin/virtualenvwrapper.sh`` on Fedora (if you do not run Fedora you might have to adjust the command a little).
+**Note:** If the mkvirtualenv command is unavailable try ``source /usr/bin/virtualenvwrapper.sh`` on Fedora (if you do not run Fedora you might have to adjust the command a little).  You can also add this command to your ``~/.bashrc`` file to have it run automatically for you.
 
 
 Set up fedmsg::
