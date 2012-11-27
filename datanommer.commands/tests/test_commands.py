@@ -8,19 +8,20 @@ import datanommer.commands
 import datanommer.models
 from nose.tools import eq_
 
+
 class TestCommands(unittest.TestCase):
     def test_dump(self):
         LoggerMessage = datanommer.models.LoggerMessage
         now = datetime.utcnow()
 
         msg1 = LoggerMessage(
-            topic = 'Python'
-            , timestamp = now
+            topic='Python',
+            timestamp=now
         )
 
         msg2 = LoggerMessage(
-            topic = 'Fedora'
-            , timestamp = now
+            topic='Fedora',
+            timestamp=now
         )
 
         msg1.msg = 'Message 1'
@@ -31,7 +32,7 @@ class TestCommands(unittest.TestCase):
 
         with patch('datanommer.models.models', models):
             LoggerMessage.query = Mock()
-            LoggerMessage.query.all = Mock(return_value = objects)
+            LoggerMessage.query.all = Mock(return_value=objects)
 
             config = {
                 'datanommer.sqlalchemy.url': 'sqlite:///'
