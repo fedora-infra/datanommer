@@ -9,6 +9,25 @@ sqlalchemy database.
 
 There are also a handful of CLI tools to dump information from the database.
 
+Build Status
+------------
+
+.. |master| image:: https://secure.travis-ci.org/ralphbean/datanommer.png?branch=master
+   :alt: Build Status - master branch
+   :target: http://travis-ci.org/#!/ralphbean/datanommer
+
+.. |develop| image:: https://secure.travis-ci.org/ralphbean/datanommer.png?branch=develop
+   :alt: Build Status - develop branch
+   :target: http://travis-ci.org/#!/ralphbean/datanommer
+
++----------+-----------+
+| Branch   | Status    |
++==========+===========+
+| master   | |master|  |
++----------+-----------+
+| develop  | |develop| |
++----------+-----------+
+
 Try it out
 ==========
 
