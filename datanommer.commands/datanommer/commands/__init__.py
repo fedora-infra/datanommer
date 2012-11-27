@@ -16,10 +16,10 @@ def create(**kw):
 def dump(**kw):
     """ Dump the contents of the datanommer database as JSON """
     datanommer.models.init(kw['datanommer.sqlalchemy.url'])
+    results = []
     for model in datanommer.models.models:
-        for entry in model.query.all():
-            print pretty_dumps(entry)
-
+        results += model.query.all()
+    print pretty_dumps(results)
 
 @command(name="datanommer-stats")
 def stats(**kw):
