@@ -70,7 +70,7 @@ Get datanommer::
     $ git clone https://github.com/ralphbean/datanommer.git
 
 
-**Note:** If submitting patches, you should check Contributing page <http://fedmsg.readthedocs.org/en/latest/contributing/> for style guidelines.
+**Note:** If submitting patches, you should check `Contributing <http://fedmsg.readthedocs.org/en/latest/contributing/>`_ for style guidelines.
 
 
 Set up virtualenv
