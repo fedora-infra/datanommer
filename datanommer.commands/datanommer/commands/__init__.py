@@ -8,21 +8,22 @@ import time
 
 class CreateCommand(BaseCommand):
     """ Create a database and tables for 'datanommer.sqlalchemy.url' """
-    name="datanommer-create-db"
+    name = "datanommer-create-db"
 
     def run(self):
-        datanommer.models.init(self.config['datanommer.sqlalchemy.url'], create=True)
+        datanommer.models.init(
+            self.config['datanommer.sqlalchemy.url'], create=True
+        )
 
 
 class DumpCommand(BaseCommand):
     """ Dump the contents of the datanommer database as JSON """
-
-    name="datanommer-dump"
+    name = "datanommer-dump"
 
     def run(self):
-        datanommer.models.init(kw['datanommer.sqlalchemy.url'])
-        results = []
+        datanommer.models.init(self.config['datanommer.sqlalchemy.url'])
 
+        results = []
         for model in datanommer.models.models:
             results += model.query.all()
 
@@ -31,14 +32,14 @@ class DumpCommand(BaseCommand):
 
 class StatsCommand(BaseCommand):
     """ Produce stats on the contents of the datanommer database """
-    name="datanommer-stats"
+    name = "datanommer-stats"
 
     def run(self):
         datanommer.models.init(self.config['datanommer.sqlalchemy.url'])
 
         for model in datanommer.models.models:
-            self.logger.info("%s, %s, %s, %s" % (model, "has",
-                model.query.count(), "entries"))
+            logger_args = (model, "has", model.query.count(), "entries")
+            self.logger.info("%s, %s, %s, %s") % logger_args
 
 
 # Extra arguments for datanommer-latest
@@ -72,7 +73,8 @@ class LatestCommand(BaseCommand):
             'dest': 'human',
             'default': False,
             'action': 'store_true',
-            'help': "When combined with --timestamp, show a human readable date.",
+            'help': "When combined with --timestamp,"
+                    + "show a human readable date.",
         }),
     ]
 
@@ -90,7 +92,9 @@ class LatestCommand(BaseCommand):
             if query.count():
                 latest[model] = query.first()
 
-        formatter = lambda model, value: "%s, %s" % (model, pretty_dumps(value))
+        format_args = (model, pretty_dumps(value))
+        formatter = lambda model, value: "%s, %s" % format_args
+
         if self.config['timestamp'] and self.config['human']:
             formatter = lambda m, v: v.timestamp
         elif self.config['timestamp'] and not self.config['human']:
@@ -107,17 +111,21 @@ class LatestCommand(BaseCommand):
             for k, v in sorted(latest.items()):
                 self.logger.info(formatter(k, v))
 
+
 def create():
     command = CreateCommand()
     command.execute()
+
 
 def dump():
     command = DumpCommand()
     command.execute()
 
+
 def stats():
     command = StatsCommand()
     command.execute()
+
 
 def latest():
     command = LatestCommand()
