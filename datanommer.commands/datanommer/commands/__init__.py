@@ -16,14 +16,17 @@ class CreateCommand(BaseCommand):
 
 class DumpCommand(BaseCommand):
     """ Dump the contents of the datanommer database as JSON """
+
     name="datanommer-dump"
 
     def run(self):
-        datanommer.models.init(self.config['datanommer.sqlalchemy.url'])
+        datanommer.models.init(kw['datanommer.sqlalchemy.url'])
+        results = []
 
         for model in datanommer.models.models:
-            for entry in model.query.all():
-                self.logger.info(pretty_dumps(entry))
+            results += model.query.all()
+
+        self.logger.info(pretty_dumps(results))
 
 
 class StatsCommand(BaseCommand):
