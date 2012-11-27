@@ -34,9 +34,8 @@ class StatsCommand(BaseCommand):
         datanommer.models.init(self.config['datanommer.sqlalchemy.url'])
 
         for model in datanommer.models.models:
-            self.logger.info(model, "has", model.query.count(), "entries")
-
-
+            self.logger.info("%s, %s, %s, %s" % (model, "has",
+                model.query.count(), "entries"))
 
 
 # Extra arguments for datanommer-latest
