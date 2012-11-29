@@ -39,7 +39,7 @@ class StatsCommand(BaseCommand):
 
         for model in datanommer.models.models:
             logger_args = (model, "has", model.query.count(), "entries")
-            self.logger.info("%s, %s, %s, %s") % logger_args
+            self.logger.info("%s, %s, %s, %s" % logger_args)
 
 
 # Extra arguments for datanommer-latest
