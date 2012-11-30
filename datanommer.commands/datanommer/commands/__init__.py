@@ -39,7 +39,7 @@ class StatsCommand(BaseCommand):
 
         for model in datanommer.models.models:
             logger_args = (model, "has", model.query.count(), "entries")
-            self.logger.info("%s, %s, %s, %s") % logger_args
+            self.logger.info("%s, %s, %s, %s" % logger_args)
 
 
 # Extra arguments for datanommer-latest
@@ -94,13 +94,13 @@ class LatestCommand(BaseCommand):
                 latest[model] = query.first()
 
         def formatter(model, val):
-            model = pretty_dumps(str(model))
+            model = pretty_dumps(str(model.__name__))
             if config.get('timestamp', None) and config.get('human', None):
                 return pretty_dumps(str(val.timestamp))
             elif config.get('timestamp', None) and not config.get('human', None):
                 return pretty_dumps(time.mktime(val.timestamp.timetuple()))
             else:
-                return "%s, %s" % (model, pretty_dumps(val))
+                return "{%s: %s}" % (model, pretty_dumps(val))
 
         if config.get('overall', None):
             winner = latest.items()[0]
