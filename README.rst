@@ -34,14 +34,21 @@ Try it out
 Using a virtualenv
 ------------------
 
-Using a virtual environment is highly recommended, although this is not a must. Using virtualenvwrapper can isolate your development environment. You will be able to work on the latest datanommer from git checkout without messing the installed datanommer copy in your system. 
+Using a virtual environment is highly recommended, although this is not a \
+must. Using virtualenvwrapper can isolate your development environment. You \
+will be able to work on the latest datanommer from git checkout without \
+messing the installed datanommer copy in your system.
 
 Install virtualenvwrapper by::
 
     $ sudo yum install python-virtualenvwrapper
 
 
-**Note:** If you decide not to use python-virtualenvwrapper, you can always use latest update of fedmsg and datanommer in fedora. If you are doing this, simply ignore all mkvirtualenv and workon commands in these instructions. You can install fedmsg with ``sudo yum install fedmsg``, and datanommer with ``sudo yum install datanommer``.
+**Note:** If you decide not to use python-virtualenvwrapper, you can always \
+use latest update of fedmsg and datanommer in fedora. If you are doing this, \
+simply ignore all mkvirtualenv and workon commands in these instructions. \
+You can install fedmsg with ``sudo yum install fedmsg``, and datanommer with \
+``sudo yum install datanommer``.
 
 
 
@@ -70,7 +77,9 @@ Get datanommer::
     $ git clone https://github.com/ralphbean/datanommer.git
 
 
-**Note:** If submitting patches, you should check `Contributing <http://fedmsg.readthedocs.org/en/latest/contributing/>`_ for style guidelines.
+**Note:** If submitting patches, you should check \
+`Contributing <http://fedmsg.readthedocs.org/en/latest/contributing/>`_ \
+for style guidelines.
 
 
 Set up virtualenv
@@ -80,7 +89,10 @@ Create a new, empty virtualenv and install all the dependencies from pypi::
     $ mkvirtualenv source
 
 
-**Note:** If the mkvirtualenv command is unavailable try ``source /usr/bin/virtualenvwrapper.sh`` on Fedora (if you do not run Fedora you might have to adjust the command a little).  You can also add this command to your ``~/.bashrc`` file to have it run automatically for you.
+**Note:** If the mkvirtualenv command is unavailable try \
+``source /usr/bin/virtualenvwrapper.sh`` on Fedora (if you do not run Fedora \
+you might have to adjust the command a little).  You can also add this \
+command to your ``~/.bashrc`` file to have it run automatically for you.
 
 
 Set up fedmsg::
@@ -92,7 +104,9 @@ Switch to datanommer::
 
     (source)$ cd ../datanommer
 
-Please note that you should set up the three packages in the following sequence: "datanommer.models", "datanommer.commands" and "datanommer.consumer". Go to the three subfolders in sequence and type::
+Please note that you should set up the three packages in the following \
+sequence: "datanommer.models", "datanommer.commands" and \
+"datanommer.consumer". Go to the three subfolders in sequence and type::
 
     (source)$ python setup.py develop
 
@@ -103,7 +117,8 @@ Create datanommer db::
 
 Try out datanommer
 -------------------
-Open three terminals to try out the commands. In each of them, activate your virtualenv with::
+Open three terminals to try out the commands. In each of them, activate your \
+virtualenv with::
 
     $ workon source
 
@@ -115,11 +130,15 @@ In another, type::
 
     (source)$ fedmsg-hub
 
-In a third, emit a message, which gets picked up by the relay, rebroadcasted, consumed by datanommer, and stuffed into /tmp/datanommer.db::
+In a third, emit a message, which gets picked up by the relay, rebroadcasted, \
+consumed by datanommer, and stuffed into /tmp/datanommer.db::
 
-    $ echo "this is a test" | fedmsg-logger
+    (source)$ echo "this is a test" | fedmsg-logger
 
-Use datanommer's clumsy CLI tools to inspect the DB. Was the message stored?::
+Inspect the DB. Was the message stored?::
 
-    $ /usr/bin/datanommer-stats
-    $ /usr/bin/datanommer-dump
+    (source)$ datanommer-stats
+
+LoggerMessage should have entries.:: 
+
+    (source)$ datanommer-dump
