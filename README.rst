@@ -135,10 +135,19 @@ consumed by datanommer, and stuffed into /tmp/datanommer.db::
 
     (source)$ echo "this is a test" | fedmsg-logger
 
-Inspect the DB. Was the message stored?::
+Try the commands. Was the message stored?::
 
     (source)$ datanommer-stats
 
 LoggerMessage should have entries.:: 
 
     (source)$ datanommer-dump
+
+Inspect the database::
+
+    (source)$ sqlite3 datanommer.db
+    > select* from logger_messages;
+
+You should see a line similar to::
+
+    1|1|org.fedoraproject.dev.logger.log|2012-11-30 23:33:12.077429|||{"log": "this is a test"
