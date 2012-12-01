@@ -81,9 +81,10 @@ class LatestCommand(BaseCommand):
     def run(self):
         datanommer.models.init(self.config['datanommer.sqlalchemy.url'])
         models = datanommer.models.models
+        config = self.config
 
-        if self.config['model']:
-            eq = lambda m: self.config['model'].lower() in m.__name__.lower()
+        if config.get('model', None):
+            eq = lambda m: config['model'].lower() in m.__name__.lower()
             models = filter(eq, models)
 
         latest = {}
@@ -92,24 +93,28 @@ class LatestCommand(BaseCommand):
             if query.count():
                 latest[model] = query.first()
 
-        format_args = (model, pretty_dumps(value))
-        formatter = lambda model, value: "%s, %s" % format_args
+        def formatter(model, val):
+            model = pretty_dumps(str(model.__name__))
+            if config.get('timestamp', None) and config.get('human', None):
+                return pretty_dumps(str(val.timestamp))
+            elif config.get('timestamp', None):
+                return pretty_dumps(time.mktime(val.timestamp.timetuple()))
+            else:
+                return "{%s: %s}" % (model, pretty_dumps(val))
 
-        if self.config['timestamp'] and self.config['human']:
-            formatter = lambda m, v: v.timestamp
-        elif self.config['timestamp'] and not self.config['human']:
-            formatter = lambda m, v: time.mktime(v.timestamp.timetuple())
-
-        if self.config['overall']:
+        if config.get('overall', None):
             winner = latest.items()[0]
             for k, v in latest.items():
                 if v.timestamp > winner[1].timestamp:
                     winner = (k, v)
-
             self.logger.info(formatter(*winner))
         else:
+            results = []
+
             for k, v in sorted(latest.items()):
-                self.logger.info(formatter(k, v))
+                results.append(formatter(k, v))
+
+            self.logger.info('[%s]' % ','.join(results))
 
 
 def create():
