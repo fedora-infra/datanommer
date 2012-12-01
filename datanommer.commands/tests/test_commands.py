@@ -62,9 +62,10 @@ class TestCommands(unittest.TestCase):
 
                     eq_(json_object[0]['topic'], 'Python')
 
-    def test_latest(self):
+    def test_latest_overall(self):
         from datanommer.models import session
 
+        GitMessage = datanommer.models.GitMessage
         LoggerMessage = datanommer.models.LoggerMessage
 
         with patch('datanommer.commands.LatestCommand.get_config') as gc:
@@ -72,7 +73,7 @@ class TestCommands(unittest.TestCase):
             gc.return_value = self.config
 
             datanommer.models.init(
-                uri = self.config['datanommer.sqlalchemy.url']
+                uri=self.config['datanommer.sqlalchemy.url']
             )
 
             msg1 = LoggerMessage(
@@ -87,10 +88,17 @@ class TestCommands(unittest.TestCase):
                 i=1
             )
 
+            msg3 = GitMessage(
+                topic='Linux',
+                timestamp=datetime.utcnow(),
+                i=1
+            )
+
             msg1.msg = 'Message 1'
             msg2.msg = 'Message 2'
+            msg3.msg = 'Message 3'
 
-            session.add_all([msg1, msg2])
+            session.add_all([msg1, msg2, msg3])
             session.flush()
 
             logged_info = []
@@ -105,5 +113,60 @@ class TestCommands(unittest.TestCase):
 
             json_object = json.loads(logged_info[0])
 
-            eq_(json_object['LoggerMessage']['msg'], 'Message 2')
-            eq_(len(json_object.keys()), 1)
+            eq_(json_object['GitMessage']['msg'], 'Message 3')
+            eq_(len(json_object), 1)
+
+    def test_latest(self):
+        from datanommer.models import session
+
+        GitMessage = datanommer.models.GitMessage
+        LoggerMessage = datanommer.models.LoggerMessage
+
+        with patch('datanommer.commands.LatestCommand.get_config') as gc:
+            self.config['overall'] = False
+            gc.return_value = self.config
+
+            datanommer.models.init(
+                uri=self.config['datanommer.sqlalchemy.url']
+            )
+
+            msg1 = LoggerMessage(
+                topic='Python',
+                timestamp=datetime.utcnow(),
+                i=1
+            )
+
+            msg2 = LoggerMessage(
+                topic='Fedora',
+                timestamp=datetime.utcnow(),
+                i=1
+            )
+
+            msg3 = GitMessage(
+                topic='Linux',
+                timestamp=datetime.utcnow(),
+                i=1
+            )
+
+            msg1.msg = 'Message 1'
+            msg2.msg = 'Message 2'
+            msg3.msg = 'Message 3'
+
+            session.add_all([msg1, msg2, msg3])
+            session.flush()
+
+            logged_info = []
+
+            def info(data):
+                logged_info.append(data)
+
+            command = datanommer.commands.LatestCommand()
+
+            command.logger.info = info
+            command.run()
+
+            json_object = json.loads(logged_info[0])
+
+            eq_(json_object[0]['GitMessage']['msg'], 'Message 3')
+            eq_(json_object[1]['LoggerMessage']['msg'], 'Message 2')
+            eq_(len(json_object), 2)
