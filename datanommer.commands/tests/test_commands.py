@@ -15,7 +15,12 @@ filename = "datanommer-test.db"
 class TestCommands(unittest.TestCase):
     def setUp(self):
         uri = "sqlite:///%s" % filename
-        self.config = {'datanommer.sqlalchemy.url': uri}
+        self.config = {
+            'datanommer.sqlalchemy.url': uri,
+            'logging': {
+                'version': 1
+            }
+        }
         datanommer.models.init(uri=uri, create=True)
 
     def tearDown(self):
@@ -55,7 +60,7 @@ class TestCommands(unittest.TestCase):
                     def info(data):
                         logged_info.append(data)
 
-                    command.logger.info = info
+                    command.log.info = info
                     command.run()
 
                     json_object = json.loads(logged_info[0])
@@ -108,7 +113,7 @@ class TestCommands(unittest.TestCase):
 
             command = datanommer.commands.LatestCommand()
 
-            command.logger.info = info
+            command.log.info = info
             command.run()
 
             json_object = json.loads(logged_info[0])
@@ -162,7 +167,7 @@ class TestCommands(unittest.TestCase):
 
             command = datanommer.commands.LatestCommand()
 
-            command.logger.info = info
+            command.log.info = info
             command.run()
 
             json_object = json.loads(logged_info[0])
