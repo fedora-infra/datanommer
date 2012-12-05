@@ -27,7 +27,7 @@ class DumpCommand(BaseCommand):
         for model in datanommer.models.models:
             results += model.query.all()
 
-        self.logger.info(pretty_dumps(results))
+        self.log.info(pretty_dumps(results))
 
 
 class StatsCommand(BaseCommand):
@@ -39,7 +39,7 @@ class StatsCommand(BaseCommand):
 
         for model in datanommer.models.models:
             logger_args = (model, "has", model.query.count(), "entries")
-            self.logger.info("%s, %s, %s, %s" % logger_args)
+            self.log.info("%s, %s, %s, %s" % logger_args)
 
 
 # Extra arguments for datanommer-latest
@@ -107,14 +107,14 @@ class LatestCommand(BaseCommand):
             for k, v in latest.items():
                 if v.timestamp > winner[1].timestamp:
                     winner = (k, v)
-            self.logger.info(formatter(*winner))
+            self.log.info(formatter(*winner))
         else:
             results = []
 
             for k, v in sorted(latest.items()):
                 results.append(formatter(k, v))
 
-            self.logger.info('[%s]' % ','.join(results))
+            self.log.info('[%s]' % ','.join(results))
 
 
 def create():
