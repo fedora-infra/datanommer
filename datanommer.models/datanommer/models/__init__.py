@@ -10,6 +10,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import sessionmaker, scoped_session
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.orm import validates
 
 import datetime
 import fedmsg.encoding
@@ -42,7 +43,6 @@ def init(uri=None, create=False):
 def add(message):
     """ Take a dict-like fedmsg message and store it in the appropriate table.
     """
-
     possible = filter(lambda m: m.topic_filter in message['topic'], models)
 
     if len(possible) == 0:
@@ -68,6 +68,14 @@ def add(message):
         certificate=message.get('certificate', None),
         signature=message.get('signature', None),
     )
+
+    usernames = fedmsg.meta.msg2usernames(message)
+    packages = fedmsg.meta.msg2packages(message)
+
+    #TODO: Are we ever going to have multiple usernames and packages?
+    obj.usernames = ','.join(usernames)
+    obj.packages = ','.join(packages)
+
     obj.msg = message['msg']
 
     session.add(obj)
@@ -84,6 +92,8 @@ class BaseMessage(object):
     timestamp = Column(DateTime, nullable=False)
     certificate = Column(UnicodeText)
     signature = Column(UnicodeText)
+    usernames = Column(UnicodeText)
+    packages = Column(UnicodeText)
     _msg = Column(UnicodeText, nullable=False)
 
     @hybrid_property
