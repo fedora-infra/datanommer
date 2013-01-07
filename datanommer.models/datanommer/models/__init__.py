@@ -10,7 +10,6 @@ from sqlalchemy import (
 from sqlalchemy.orm import sessionmaker, scoped_session
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import validates
 
 import datetime
 import fedmsg.encoding
@@ -25,8 +24,8 @@ import logging
 log = logging.getLogger("datanommer")
 
 
-def init(uri=None, create=False):
-    """ Initialize a connection.  Create tables if requested. """
+def init(uri=None, alembic_ini=None, create=False):
+    """ Initialize a connection.  Create tables if requested."""
 
     if uri is None:
         uri = 'sqlite:////tmp/datanommer.db'
@@ -35,6 +34,14 @@ def init(uri=None, create=False):
     engine = create_engine(uri)
     session.configure(bind=engine)
     DeclarativeBase.query = session.query_property()
+
+    # Loads the alembic configuration and generates the version table, with
+    # the most recent revision stamped as head
+    if alembic_ini is not None:
+        from alembic.config import Config
+        from alembic import command
+        alembic_cfg = Config(alembic_ini)
+        command.stamp(alembic_cfg, "head")
 
     if create:
         DeclarativeBase.metadata.create_all(engine)
@@ -49,7 +56,8 @@ def add(message):
         model_cls = UnclassifiedMessage
     elif len(possible) > 1:
         model_cls = possible[0]
-        log.warn("Multiple models match message.  Using %r." % model)
+        warning = "Multiple models match message.  Using %r."
+        log.warn(warning % model_cls.__tablename__)
     else:
         model_cls = possible[0]
 
@@ -72,7 +80,6 @@ def add(message):
     usernames = fedmsg.meta.msg2usernames(message)
     packages = fedmsg.meta.msg2packages(message)
 
-    #TODO: Are we ever going to have multiple usernames and packages?
     obj.usernames = ','.join(usernames)
     obj.packages = ','.join(packages)
 
