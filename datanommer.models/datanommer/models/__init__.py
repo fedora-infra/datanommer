@@ -7,7 +7,14 @@ from sqlalchemy import (
     UnicodeText,
 )
 
-from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy.orm import (
+        sessionmaker,
+        scoped_session,
+        relationship,
+        mapper
+)
+
+from sqlalchemy.schema import Table
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.hybrid import hybrid_property
 
@@ -34,6 +41,39 @@ def init(uri=None, alembic_ini=None, create=False):
     engine = create_engine(uri)
     session.configure(bind=engine)
     DeclarativeBase.query = session.query_property()
+
+    for key, table in DeclarativeBase._decl_class_registry.iteritems():
+        if issubclass(table, BaseMessage):
+            table_name = table.__tablename__
+
+            association_name = '%s_association' % table_name
+
+            user_lookup_table = Table('user_'+association_name,
+                DeclarativeBase.metadata,
+                Column('username', Integer, ForeignKey('user.name')),
+                Column('%s_id' %
+                    table_name,
+                    Integer,
+                    ForeignKey('%s.id' % table_name),
+                )
+            )
+
+            table.users =  relationship('User', secondary=user_lookup_table)
+
+            packages_lookup_table = Table('packages_'+association_name,
+                DeclarativeBase.metadata,
+                Column('package', Integer, ForeignKey('package.name')),
+                Column('%s_id' %
+                    table_name,
+                    Integer,
+                    ForeignKey('%s.id' % table_name),
+                )
+            )
+
+            table.packages = relationship('Packages',
+                secondary=packages_lookup_table
+            )
+
 
     # Loads the alembic configuration and generates the version table, with
     # the most recent revision stamped as head
@@ -78,10 +118,26 @@ def add(message):
     )
 
     usernames = fedmsg.meta.msg2usernames(message)
+
+    for username in usernames:
+        user = session.query(User).get(username)
+
+        if not user:
+            user = User(name=username)
+            session.add(user)
+
+        obj.users.append(user)
+
     packages = fedmsg.meta.msg2packages(message)
 
-    obj.usernames = ','.join(usernames)
-    obj.packages = ','.join(packages)
+    for package in packages:
+        package = session.query(Packages).get(package)
+
+        if not package:
+            package = Packages(name=package)
+            session.add(package)
+
+        obj.packages.append(package)
 
     obj.msg = message['msg']
 
@@ -91,7 +147,6 @@ def add(message):
     session.flush()
     session.commit()
 
-
 class BaseMessage(object):
     id = Column(Integer, primary_key=True)
     i = Column(Integer, nullable=False)
@@ -99,8 +154,6 @@ class BaseMessage(object):
     timestamp = Column(DateTime, nullable=False)
     certificate = Column(UnicodeText)
     signature = Column(UnicodeText)
-    usernames = Column(UnicodeText)
-    packages = Column(UnicodeText)
     _msg = Column(UnicodeText, nullable=False)
 
     @hybrid_property
@@ -121,6 +174,13 @@ class BaseMessage(object):
             msg=self.msg,
         )
 
+class User(DeclarativeBase):
+    __tablename__ = 'user'
+    name = Column(UnicodeText, primary_key=True)
+
+class Packages(DeclarativeBase):
+    __tablename__ = 'package'
+    name = Column(UnicodeText, primary_key=True)
 
 class BodhiMessage(DeclarativeBase, BaseMessage):
     topic_filter = "bodhi"
