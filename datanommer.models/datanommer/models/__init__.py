@@ -77,13 +77,28 @@ def add(message):
         certificate=message.get('certificate', None),
         signature=message.get('signature', None),
     )
-    print('Topic is %r' %obj.topic)
 
-    usernames = fedmsg.meta.msg2usernames(message)
-    packages = fedmsg.meta.msg2packages(message)
     obj.msg = message['msg']
 
     session.add(obj)
+
+    usernames = fedmsg.meta.msg2usernames(message)
+    packages = fedmsg.meta.msg2packages(message)
+    for username in usernames:
+        user = session.query(User).get(username)
+
+        if not user:
+            user = User(name=username)
+
+        obj.users.append(user)
+
+    for package in packages:
+        package = session.query(Package).get(package)
+
+        if not package:
+            package = Package(name=package)
+
+        obj.packages.append(package)
 
     # TODO -- can we avoid committing every time?
     session.flush()
@@ -116,16 +131,28 @@ class BaseMessage(object):
             msg=self.msg,
         )
 
+user_assoc_table = Table('user_messages', DeclarativeBase.metadata,
+    Column('username', UnicodeText, ForeignKey('user.name')),
+    Column('msg', Integer, ForeignKey('messages.id'))
+)
+
+pack_assoc_table = Table('package_messages', DeclarativeBase.metadata,
+    Column('package', UnicodeText, ForeignKey('package.name')),
+    Column('msg', Integer, ForeignKey('messages.id'))
+)
+
 class User(DeclarativeBase):
     __tablename__ = 'user'
     name = Column(UnicodeText, primary_key=True)
 
-class Packages(DeclarativeBase):
+class Package(DeclarativeBase):
     __tablename__ = 'package'
     name = Column(UnicodeText, primary_key=True)
 
 class Message(DeclarativeBase, BaseMessage):
     __tablename__ = "messages"
+    users = relationship("User", secondary=user_assoc_table)
+    packages = relationship("Package", secondary=pack_assoc_table)
 
 #
 class UnclassifiedMessage(DeclarativeBase, BaseMessage):
