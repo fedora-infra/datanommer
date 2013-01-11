@@ -42,39 +42,6 @@ def init(uri=None, alembic_ini=None, create=False):
     session.configure(bind=engine)
     DeclarativeBase.query = session.query_property()
 
-    for key, table in DeclarativeBase._decl_class_registry.iteritems():
-        if issubclass(table, BaseMessage):
-            table_name = table.__tablename__
-
-            association_name = '%s_association' % table_name
-
-            user_lookup_table = Table('user_'+association_name,
-                DeclarativeBase.metadata,
-                Column('username', Integer, ForeignKey('user.name')),
-                Column('%s_id' %
-                    table_name,
-                    Integer,
-                    ForeignKey('%s.id' % table_name),
-                )
-            )
-
-            table.users =  relationship('User', secondary=user_lookup_table)
-
-            packages_lookup_table = Table('packages_'+association_name,
-                DeclarativeBase.metadata,
-                Column('package', Integer, ForeignKey('package.name')),
-                Column('%s_id' %
-                    table_name,
-                    Integer,
-                    ForeignKey('%s.id' % table_name),
-                )
-            )
-
-            table.packages = relationship('Packages',
-                secondary=packages_lookup_table
-            )
-
-
     # Loads the alembic configuration and generates the version table, with
     # the most recent revision stamped as head
     if alembic_ini is not None:
@@ -88,26 +55,20 @@ def init(uri=None, alembic_ini=None, create=False):
 
 
 def add(message):
-    """ Take a dict-like fedmsg message and store it in the appropriate table.
+    """ Take a dict-like fedmsg message and store it in the table.
     """
-    possible = filter(lambda m: m.topic_filter in message['topic'], models)
 
-    if len(possible) == 0:
+    if len(message['topic']) == 0:
         model_cls = UnclassifiedMessage
-    elif len(possible) > 1:
-        model_cls = possible[0]
-        warning = "Multiple models match message.  Using %r."
-        log.warn(warning % model_cls.__tablename__)
     else:
-        model_cls = possible[0]
-
-    log.debug("Using %r" % model_cls)
+        model_cls = Message
 
     timestamp = message['timestamp']
     try:
         timestamp = datetime.datetime.fromtimestamp(timestamp)
     except Exception:
         pass
+    print('Timestamped')
 
     obj = model_cls(
         i=message['i'],
@@ -116,29 +77,10 @@ def add(message):
         certificate=message.get('certificate', None),
         signature=message.get('signature', None),
     )
+    print('Topic is %r' %obj.topic)
 
     usernames = fedmsg.meta.msg2usernames(message)
-
-    for username in usernames:
-        user = session.query(User).get(username)
-
-        if not user:
-            user = User(name=username)
-            session.add(user)
-
-        obj.users.append(user)
-
     packages = fedmsg.meta.msg2packages(message)
-
-    for package in packages:
-        package = session.query(Packages).get(package)
-
-        if not package:
-            package = Packages(name=package)
-            session.add(package)
-
-        obj.packages.append(package)
-
     obj.msg = message['msg']
 
     session.add(obj)
@@ -182,66 +124,15 @@ class Packages(DeclarativeBase):
     __tablename__ = 'package'
     name = Column(UnicodeText, primary_key=True)
 
-class BodhiMessage(DeclarativeBase, BaseMessage):
-    topic_filter = "bodhi"
-    __tablename__ = "%s_messages" % topic_filter
+class Message(DeclarativeBase, BaseMessage):
+    __tablename__ = "messages"
 
-
-class ComposeMessage(DeclarativeBase, BaseMessage):
-    topic_filter = "compose"
-    __tablename__ = "%s_messages" % topic_filter
-
-
-class GitMessage(DeclarativeBase, BaseMessage):
-    topic_filter = "git"
-    __tablename__ = "%s_messages" % topic_filter
-
-
-class WikiMessage(DeclarativeBase, BaseMessage):
-    topic_filter = "wiki"
-    __tablename__ = "%s_messages" % topic_filter
-
-
-class TaggerMessage(DeclarativeBase, BaseMessage):
-    topic_filter = "tagger"
-    __tablename__ = "%s_messages" % topic_filter
-
-
-class BusmonMessage(DeclarativeBase, BaseMessage):
-    topic_filter = "busmon"
-    __tablename__ = "%s_messages" % topic_filter
-
-
-class FASMessage(DeclarativeBase, BaseMessage):
-    topic_filter = "fas"
-    __tablename__ = "%s_messages" % topic_filter
-
-
-class MeetbotMessage(DeclarativeBase, BaseMessage):
-    topic_filter = "meetbot"
-    __tablename__ = "%s_messages" % topic_filter
-
-
-class KojiMessage(DeclarativeBase, BaseMessage):
-    topic_filter = "koji"
-    __tablename__ = "%s_messages" % topic_filter
-
-
-class LoggerMessage(DeclarativeBase, BaseMessage):
-    topic_filter = "logger"
-    __tablename__ = "%s_messages" % topic_filter
-
-
-class HttpdMessage(DeclarativeBase, BaseMessage):
-    topic_filter = "httpd"
-    __tablename__ = "%s_messages" % topic_filter
-
-
+#
 class UnclassifiedMessage(DeclarativeBase, BaseMessage):
     topic_filter = "this will never be in a topic..."
     __tablename__ = "unclassified_messages"
-
-
+#
+#
 models = frozenset((
     v for k, v in locals().items()
     if (
