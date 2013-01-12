@@ -27,15 +27,15 @@ class TestCommands(unittest.TestCase):
         os.remove(filename)
 
     def test_dump(self):
-        LoggerMessage = datanommer.models.LoggerMessage
+        Message = datanommer.models.Message
         now = datetime.utcnow()
 
-        msg1 = LoggerMessage(
+        msg1 = Message(
             topic='Python',
             timestamp=now
         )
 
-        msg2 = LoggerMessage(
+        msg2 = Message(
             topic='Fedora',
             timestamp=now
         )
@@ -44,11 +44,11 @@ class TestCommands(unittest.TestCase):
         msg2.msg = 'Message 2'
         objects = [msg1, msg2]
 
-        models = [LoggerMessage]
+        models = [Message]
 
         with patch('datanommer.models.models', models):
-            with patch('datanommer.models.LoggerMessage.query') as query:
-                LoggerMessage.query.all = Mock(return_value=objects)
+            with patch('datanommer.models.Message.query') as query:
+                Message.query.all = Mock(return_value=objects)
 
                 with patch('datanommer.commands.DumpCommand.get_config') as gc:
                     gc.return_value = self.config
@@ -70,8 +70,7 @@ class TestCommands(unittest.TestCase):
     def test_latest_overall(self):
         from datanommer.models import session
 
-        GitMessage = datanommer.models.GitMessage
-        LoggerMessage = datanommer.models.LoggerMessage
+        Message = datanommer.models.Message
 
         with patch('datanommer.commands.LatestCommand.get_config') as gc:
             self.config['overall'] = True
@@ -81,19 +80,19 @@ class TestCommands(unittest.TestCase):
                 uri=self.config['datanommer.sqlalchemy.url']
             )
 
-            msg1 = LoggerMessage(
+            msg1 = Message(
                 topic='Python',
                 timestamp=datetime.utcnow(),
                 i=1
             )
 
-            msg2 = LoggerMessage(
+            msg2 = Message(
                 topic='Fedora',
                 timestamp=datetime.utcnow(),
                 i=1
             )
 
-            msg3 = GitMessage(
+            msg3 = Message(
                 topic='Linux',
                 timestamp=datetime.utcnow(),
                 i=1
@@ -118,14 +117,13 @@ class TestCommands(unittest.TestCase):
 
             json_object = json.loads(logged_info[0])
 
-            eq_(json_object['GitMessage']['msg'], 'Message 3')
+            eq_(json_object['Message']['msg'], 'Message 3')
             eq_(len(json_object), 1)
 
     def test_latest(self):
         from datanommer.models import session
 
-        GitMessage = datanommer.models.GitMessage
-        LoggerMessage = datanommer.models.LoggerMessage
+        Message = datanommer.models.Message
 
         with patch('datanommer.commands.LatestCommand.get_config') as gc:
             self.config['overall'] = False
@@ -135,19 +133,19 @@ class TestCommands(unittest.TestCase):
                 uri=self.config['datanommer.sqlalchemy.url']
             )
 
-            msg1 = LoggerMessage(
+            msg1 = Message(
                 topic='Python',
                 timestamp=datetime.utcnow(),
                 i=1
             )
 
-            msg2 = LoggerMessage(
+            msg2 = Message(
                 topic='Fedora',
                 timestamp=datetime.utcnow(),
                 i=1
             )
 
-            msg3 = GitMessage(
+            msg3 = Message(
                 topic='Linux',
                 timestamp=datetime.utcnow(),
                 i=1
@@ -172,6 +170,5 @@ class TestCommands(unittest.TestCase):
 
             json_object = json.loads(logged_info[0])
 
-            eq_(json_object[0]['GitMessage']['msg'], 'Message 3')
-            eq_(json_object[1]['LoggerMessage']['msg'], 'Message 2')
-            eq_(len(json_object), 2)
+            eq_(json_object[0]['Message']['msg'], 'Message 3')
+            eq_(len(json_object), 1)
