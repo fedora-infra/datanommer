@@ -8,6 +8,7 @@ from nose.tools import eq_
 
 import datanommer.models
 
+
 filename = "datanommer-test.db"
 
 scm_message = {
@@ -46,10 +47,23 @@ scm_message = {
 
 
 class TestModels(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        import fedmsg.config
+        import fedmsg.meta
+
+        config = fedmsg.config.load_config([], None)
+        fname = "sqlite:///%s" % filename
+        config['datanommer.sqlalchemy.url'] = fname
+        fedmsg.meta.make_processors(**config)
+
     def setUp(self):
-        datanommer.models.init("sqlite:///%s" % filename, create=True)
+
+        fname = "sqlite:///%s" % filename
+        datanommer.models.init(fname, create=True)
 
     def tearDown(self):
+        print "TEARING DOWN"
         os.remove(filename)
 
     @raises(KeyError)
@@ -62,16 +76,23 @@ class TestModels(unittest.TestCase):
         del msg['i']
         datanommer.models.add(msg)
 
+    @raises(KeyError)
+    def test_add_missing_timestamp(self):
+        msg = copy.deepcopy(scm_message)
+        del msg['timestamp']
+        datanommer.models.add(msg)
+
     def test_add_missing_cert(self):
         msg = copy.deepcopy(scm_message)
         del msg['certificate']
         datanommer.models.add(msg)
 
     def test_add_nothing(self):
-        eq_(datanommer.models.GitMessage.query.count(), 0)
+        eq_(datanommer.models.Message.query.count(), 0)
 
     def test_add_and_check(self):
         msg = copy.deepcopy(scm_message)
         datanommer.models.add(msg)
         datanommer.models.session.flush()
-        eq_(datanommer.models.GitMessage.query.count(), 1)
+        eq_(datanommer.models.Message.query.count(), 1)
+

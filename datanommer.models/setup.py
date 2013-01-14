@@ -26,6 +26,7 @@ setup(name='datanommer.models',
       install_requires=[
           "sqlalchemy>=0.7",
           "fedmsg",
+          "alembic",
       ],
       tests_require=[
           "nose",

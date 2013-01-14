@@ -7,7 +7,14 @@ from sqlalchemy import (
     UnicodeText,
 )
 
-from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy.orm import (
+        sessionmaker,
+        scoped_session,
+        relationship,
+        mapper
+)
+
+from sqlalchemy.schema import Table
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.hybrid import hybrid_property
 
@@ -24,8 +31,8 @@ import logging
 log = logging.getLogger("datanommer")
 
 
-def init(uri=None, create=False):
-    """ Initialize a connection.  Create tables if requested. """
+def init(uri=None, alembic_ini=None, create=False):
+    """ Initialize a connection.  Create tables if requested."""
 
     if uri is None:
         uri = 'sqlite:////tmp/datanommer.db'
@@ -35,31 +42,33 @@ def init(uri=None, create=False):
     session.configure(bind=engine)
     DeclarativeBase.query = session.query_property()
 
+    # Loads the alembic configuration and generates the version table, with
+    # the most recent revision stamped as head
+    if alembic_ini is not None:
+        from alembic.config import Config
+        from alembic import command
+        alembic_cfg = Config(alembic_ini)
+        command.stamp(alembic_cfg, "head")
+
     if create:
         DeclarativeBase.metadata.create_all(engine)
 
 
 def add(message):
-    """ Take a dict-like fedmsg message and store it in the appropriate table.
+    """ Take a dict-like fedmsg message and store it in the table.
     """
 
-    possible = filter(lambda m: m.topic_filter in message['topic'], models)
-
-    if len(possible) == 0:
+    if len(message['topic']) == 0:
         model_cls = UnclassifiedMessage
-    elif len(possible) > 1:
-        model_cls = possible[0]
-        log.warn("Multiple models match message.  Using %r." % model)
     else:
-        model_cls = possible[0]
-
-    log.debug("Using %r" % model_cls)
+        model_cls = Message
 
     timestamp = message['timestamp']
     try:
         timestamp = datetime.datetime.fromtimestamp(timestamp)
     except Exception:
         pass
+    print('Timestamped')
 
     obj = model_cls(
         i=message['i'],
@@ -68,14 +77,32 @@ def add(message):
         certificate=message.get('certificate', None),
         signature=message.get('signature', None),
     )
+
     obj.msg = message['msg']
 
     session.add(obj)
 
+    usernames = fedmsg.meta.msg2usernames(message)
+    packages = fedmsg.meta.msg2packages(message)
+    for username in usernames:
+        user = session.query(User).get(username)
+
+        if not user:
+            user = User(name=username)
+
+        obj.users.append(user)
+
+    for package in packages:
+        package = session.query(Package).get(package)
+
+        if not package:
+            package = Package(name=package)
+
+        obj.packages.append(package)
+
     # TODO -- can we avoid committing every time?
     session.flush()
     session.commit()
-
 
 class BaseMessage(object):
     id = Column(Integer, primary_key=True)
@@ -104,67 +131,35 @@ class BaseMessage(object):
             msg=self.msg,
         )
 
+user_assoc_table = Table('user_messages', DeclarativeBase.metadata,
+    Column('username', UnicodeText, ForeignKey('user.name')),
+    Column('msg', Integer, ForeignKey('messages.id'))
+)
 
-class BodhiMessage(DeclarativeBase, BaseMessage):
-    topic_filter = "bodhi"
-    __tablename__ = "%s_messages" % topic_filter
+pack_assoc_table = Table('package_messages', DeclarativeBase.metadata,
+    Column('package', UnicodeText, ForeignKey('package.name')),
+    Column('msg', Integer, ForeignKey('messages.id'))
+)
 
+class User(DeclarativeBase):
+    __tablename__ = 'user'
+    name = Column(UnicodeText, primary_key=True)
 
-class ComposeMessage(DeclarativeBase, BaseMessage):
-    topic_filter = "compose"
-    __tablename__ = "%s_messages" % topic_filter
+class Package(DeclarativeBase):
+    __tablename__ = 'package'
+    name = Column(UnicodeText, primary_key=True)
 
+class Message(DeclarativeBase, BaseMessage):
+    __tablename__ = "messages"
+    users = relationship("User", secondary=user_assoc_table)
+    packages = relationship("Package", secondary=pack_assoc_table)
 
-class GitMessage(DeclarativeBase, BaseMessage):
-    topic_filter = "git"
-    __tablename__ = "%s_messages" % topic_filter
-
-
-class WikiMessage(DeclarativeBase, BaseMessage):
-    topic_filter = "wiki"
-    __tablename__ = "%s_messages" % topic_filter
-
-
-class TaggerMessage(DeclarativeBase, BaseMessage):
-    topic_filter = "tagger"
-    __tablename__ = "%s_messages" % topic_filter
-
-
-class BusmonMessage(DeclarativeBase, BaseMessage):
-    topic_filter = "busmon"
-    __tablename__ = "%s_messages" % topic_filter
-
-
-class FASMessage(DeclarativeBase, BaseMessage):
-    topic_filter = "fas"
-    __tablename__ = "%s_messages" % topic_filter
-
-
-class MeetbotMessage(DeclarativeBase, BaseMessage):
-    topic_filter = "meetbot"
-    __tablename__ = "%s_messages" % topic_filter
-
-
-class KojiMessage(DeclarativeBase, BaseMessage):
-    topic_filter = "koji"
-    __tablename__ = "%s_messages" % topic_filter
-
-
-class LoggerMessage(DeclarativeBase, BaseMessage):
-    topic_filter = "logger"
-    __tablename__ = "%s_messages" % topic_filter
-
-
-class HttpdMessage(DeclarativeBase, BaseMessage):
-    topic_filter = "httpd"
-    __tablename__ = "%s_messages" % topic_filter
-
-
+#
 class UnclassifiedMessage(DeclarativeBase, BaseMessage):
     topic_filter = "this will never be in a topic..."
     __tablename__ = "unclassified_messages"
-
-
+#
+#
 models = frozenset((
     v for k, v in locals().items()
     if (
