@@ -57,20 +57,13 @@ def init(uri=None, alembic_ini=None, create=False):
 def add(message):
     """ Take a dict-like fedmsg message and store it in the table.
     """
-
-    if len(message['topic']) == 0:
-        model_cls = UnclassifiedMessage
-    else:
-        model_cls = Message
-
     timestamp = message['timestamp']
     try:
         timestamp = datetime.datetime.fromtimestamp(timestamp)
     except Exception:
         pass
-    print('Timestamped')
 
-    obj = model_cls(
+    obj = Message(
         i=message['i'],
         topic=message['topic'],
         timestamp=timestamp,
@@ -154,12 +147,6 @@ class Message(DeclarativeBase, BaseMessage):
     users = relationship("User", secondary=user_assoc_table)
     packages = relationship("Package", secondary=pack_assoc_table)
 
-#
-class UnclassifiedMessage(DeclarativeBase, BaseMessage):
-    topic_filter = "this will never be in a topic..."
-    __tablename__ = "unclassified_messages"
-#
-#
 models = frozenset((
     v for k, v in locals().items()
     if (

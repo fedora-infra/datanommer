@@ -146,8 +146,41 @@ LoggerMessage should have entries.::
 Inspect the database::
 
     (datanommer)$ sqlite3 datanommer.db
-    > select* from logger_messages;
+    > select* from messages;
 
 You should see a line similar to::
 
-    1|1|org.fedoraproject.dev.logger.log|2012-11-30 23:33:12.077429|||{"log": "this is a test"
+    1|1|org.fedoraproject.dev.logger.log|2012-11-30 23:33:12.077429|||{"log": "this is a test"}
+
+Migration with Alembic
+-----------------------
+When the database models are changed, we use alembic to retain the data. \
+Alembic is located in the models::
+
+    (datanommer)$ cd datanommer.models
+
+To check the current models version::
+
+    (datanommer)$ alembic current
+
+If your models are up to date, you should see::
+
+    INFO  [alembic.migration] Context impl SQLiteImpl.
+    INFO  [alembic.migration] Will assume transactional DDL.
+    Current revision for sqlite:///../datanommer.db: None -> 198447250956 (head), one model
+
+If you result is::
+
+    INFO  [alembic.migration] Context impl SQLiteImpl.
+    INFO  [alembic.migration] Will assume transactional DDL.
+    Current revision for sqlite:///../datanommer.db: None
+
+then migrate to the most recent version with::
+
+    (datanommer)$ alembic upgrade head
+
+You should see::
+
+    INFO  [alembic.migration] Context impl SQLiteImpl.
+    INFO  [alembic.migration] Will assume transactional DDL.
+    INFO  [alembic.migration] Running upgrade None -> 198447250956
