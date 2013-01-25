@@ -108,7 +108,7 @@ def downgrade():
         db_table = sa.Table(*args)
         db_tables[tname] = db_table
 
-    metadata.create_all(op.get_bind().engine)
+    metadata.create_all(engine)
 
     # query message table with topic filter and insert in apropriate table
     for table in tables:
