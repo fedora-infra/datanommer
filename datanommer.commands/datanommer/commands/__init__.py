@@ -1,4 +1,5 @@
 import datanommer.models
+from datanommer.models import Message
 
 from fedmsg.encoding import pretty_dumps
 from fedmsg.commands import BaseCommand
@@ -52,10 +53,15 @@ class LatestCommand(BaseCommand):
     """
     name = "datanommer-latest"
     extra_args = extra_args = [
-        (['--model'], {
-            'dest': 'model',
+        (['--topic'], {
+            'dest': 'topic',
             'default': None,
-            'help': "Show the latest for only a specific model.",
+            'help': "Show the latest for only a specific topic.",
+        }),
+        (['--category'], {
+            'dest': 'category',
+            'default': None,
+            'help': "Show the latest for only a specific category.",
         }),
         (['--overall'], {
             'dest': 'overall',
@@ -80,41 +86,37 @@ class LatestCommand(BaseCommand):
 
     def run(self):
         datanommer.models.init(self.config['datanommer.sqlalchemy.url'])
-        models = datanommer.models.models
         config = self.config
 
-        if config.get('model', None):
-            eq = lambda m: config['model'].lower() in m.__name__.lower()
-            models = filter(eq, models)
+        if config.get('topic', None):
+            query = Message.query.filter(Message.topic == config.get('topic'))
+        elif config.get('category', None):
+            query = Message.query.filter(
+                Message.category == config.get('category')
+            )
+        else:
+            query = Message.query.group_by(Message.category)
 
-        latest = {}
-        for model in sorted(models):
-            query = model.query.order_by(model.timestamp.desc())
-            if query.count():
-                latest[model] = query.first()
+        query = query.order_by(Message.timestamp.desc())
 
-        def formatter(model, val):
-            model = pretty_dumps(str(model.__name__))
+        if config.get('overall', None) or config.get('topic', None):
+            query = query.limit(1)
+        if config.get('category', None):
+            query = query.limit(1)
+
+        def formatter(key, val):
             if config.get('timestamp', None) and config.get('human', None):
                 return pretty_dumps(str(val.timestamp))
             elif config.get('timestamp', None):
                 return pretty_dumps(time.mktime(val.timestamp.timetuple()))
             else:
-                return "{%s: %s}" % (model, pretty_dumps(val))
+                return "{%s: %s}" % (pretty_dumps(key), pretty_dumps(val))
 
-        if config.get('overall', None):
-            winner = latest.items()[0]
-            for k, v in latest.items():
-                if v.timestamp > winner[1].timestamp:
-                    winner = (k, v)
-            self.log.info(formatter(*winner))
-        else:
-            results = []
+        results = []
+        for result in query.all():
+            results.append(formatter(result.category, result))
 
-            for k, v in sorted(latest.items()):
-                results.append(formatter(k, v))
-
-            self.log.info('[%s]' % ','.join(results))
+        self.log.info('[%s]' % ','.join(results))
 
 
 def create():

@@ -8,11 +8,13 @@ from sqlalchemy import (
 )
 
 from sqlalchemy.orm import (
-        sessionmaker,
-        scoped_session,
-        relationship,
-        mapper
+    sessionmaker,
+    scoped_session,
+    relationship,
 )
+
+from sqlalchemy.orm import validates
+
 
 from sqlalchemy.schema import Table
 from sqlalchemy.ext.declarative import declarative_base
@@ -97,6 +99,7 @@ def add(message):
     session.flush()
     session.commit()
 
+
 class BaseMessage(object):
     id = Column(Integer, primary_key=True)
     i = Column(Integer, nullable=False)
@@ -104,7 +107,19 @@ class BaseMessage(object):
     timestamp = Column(DateTime, nullable=False)
     certificate = Column(UnicodeText)
     signature = Column(UnicodeText)
+    category = Column(UnicodeText)
     _msg = Column(UnicodeText, nullable=False)
+
+    @validates('topic')
+    def get_category(self, key, topic):
+        filters = ['bodhi', 'compose', 'git', 'wiki', 'tagger', 'busmon',
+                    'fas', 'meetbot', 'koji', 'logger', 'httpd']
+
+        for f in filters:
+            if f in topic:
+                self.category = f
+
+        return topic
 
     @hybrid_property
     def msg(self):
@@ -134,13 +149,16 @@ pack_assoc_table = Table('package_messages', DeclarativeBase.metadata,
     Column('msg', Integer, ForeignKey('messages.id'))
 )
 
+
 class User(DeclarativeBase):
     __tablename__ = 'user'
     name = Column(UnicodeText, primary_key=True)
 
+
 class Package(DeclarativeBase):
     __tablename__ = 'package'
     name = Column(UnicodeText, primary_key=True)
+
 
 class Message(DeclarativeBase, BaseMessage):
     __tablename__ = "messages"
