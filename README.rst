@@ -167,7 +167,7 @@ If your models are up to date, you should see::
 
     INFO  [alembic.migration] Context impl SQLiteImpl.
     INFO  [alembic.migration] Will assume transactional DDL.
-    Current revision for sqlite:///../datanommer.db: None -> 198447250956 (head), one model
+    Current revision for sqlite:///../datanommer.db: 198447250956 -> ae2801c4cd9 (head), add category column
 
 If you result is::
 
@@ -184,3 +184,4 @@ You should see::
     INFO  [alembic.migration] Context impl SQLiteImpl.
     INFO  [alembic.migration] Will assume transactional DDL.
     INFO  [alembic.migration] Running upgrade None -> 198447250956
+    INFO  [alembic.migration] Running upgrade 198447250956 -> ae2801c4cd9

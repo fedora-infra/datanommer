@@ -14,7 +14,7 @@ from alembic import op
 import sqlalchemy as sa
 
 from sqlalchemy.schema import MetaData
-from datetime import datetime
+from sqlalchemy.sql import text
 
 tables = [
     "bodhi", "busmon", "compose", "fas", "git", "httpd", "koji",
@@ -39,7 +39,7 @@ def get_table_args(tname):
 def map_values(row):
     return dict(
         i=row[0]
-        , timestamp=datetime.strptime(row[1], '%Y-%m-%d %H:%M:%S.%f')
+        , timestamp=row[1]#datetime.strptime(row[1], '%Y-%m-%d %H:%M:%S.%f')
         , certificate=row[2]
         , signature=row[3]
         , topic=row[4]
@@ -61,7 +61,7 @@ def upgrade():
         tname = '%s_messages' % table
         query = base_query % tname
 
-        results = engine.execute(query)
+        results = engine.execute(text(query))
         data = map(map_values, results.fetchall())
 
         if data:
@@ -69,6 +69,14 @@ def upgrade():
 
 
     # create the tables for the new models
+    op.create_table(
+        'user', sa.Column('name', sa.UnicodeText, primary_key=True)
+    )
+
+    op.create_table(
+        'package', sa.Column('name', sa.UnicodeText, primary_key=True)
+    )
+
     op.create_table('user_messages',
         sa.Column('username', sa.UnicodeText, sa.ForeignKey('user.name')),
         sa.Column('msg', sa.Integer, sa.ForeignKey('messages.id'))
@@ -79,22 +87,16 @@ def upgrade():
         sa.Column('msg', sa.Integer, sa.ForeignKey('messages.id'))
     )
 
-    op.create_table(
-        'user', sa.Column('name', sa.UnicodeText, primary_key=True)
-    )
-
-    op.create_table(
-        'package', sa.Column('name', sa.UnicodeText, primary_key=True)
-    )
-
-
     # drop each topic table
     for table in tables:
         op.drop_table('%s_messages' % table)
 
 
 def downgrade():
-    base_query = "SELECT i, timestamp, certificate, signature, topic, _msg FROM messages WHERE topic LIKE '%{0}%'"
+    base_query = """
+        SELECT i, timestamp, certificate, signature, topic, _msg
+        FROM messages WHERE topic LIKE '%{0}%'
+    """
 
     engine = op.get_bind().engine
 
@@ -106,14 +108,12 @@ def downgrade():
         db_table = sa.Table(*args)
         db_tables[tname] = db_table
 
-    metadata.create_all(engine)
+    metadata.create_all(op.get_bind().engine)
 
     # query message table with topic filter and insert in apropriate table
     for table in tables:
         tname = '%s_messages' % table
-        query = base_query.format(table)
-
-        results = engine.execute(query)
+        results = engine.execute(text(base_query.format(table)))
 
         data = map(map_values, results.fetchall())
 
@@ -121,8 +121,8 @@ def downgrade():
             op.bulk_insert(db_tables[tname], data)
 
     # remove the new tables
+    op.drop_table('user_messages')
+    op.drop_table('package_messages')
     op.drop_table('messages')
     op.drop_table('user')
     op.drop_table('package')
-    op.drop_table('user_messages')
-    op.drop_table('package_messages')
