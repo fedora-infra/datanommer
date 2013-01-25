@@ -9,7 +9,7 @@ long_description = f.read().strip()
 long_description = long_description.split('split here', 1)[1]
 f.close()
 
-version = '0.2.0'
+version = '0.3.0'
 
 setup(name='datanommer.models',
       version=version,
@@ -26,6 +26,7 @@ setup(name='datanommer.models',
       install_requires=[
           "sqlalchemy>=0.7",
           "fedmsg",
+          "alembic",
       ],
       tests_require=[
           "nose",

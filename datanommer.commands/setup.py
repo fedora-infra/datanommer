@@ -6,7 +6,7 @@ long_description = f.read().strip()
 long_description = long_description.split('split here', 1)[1]
 f.close()
 
-version = '0.2.0'
+version = '0.3.0'
 
 setup(
     name='datanommer.commands',
@@ -30,6 +30,7 @@ setup(
             'datanommer-create-db=datanommer.commands:create',
             'datanommer-dump=datanommer.commands:dump',
             'datanommer-stats=datanommer.commands:stats',
+            'datanommer-latest=datanommer.commands:latest',
         ),
     },
 )
