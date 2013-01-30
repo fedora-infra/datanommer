@@ -7,7 +7,9 @@ import os
 
 import datanommer.commands
 import datanommer.models
-from nose.tools import eq_, assert_in
+from nose.tools import (eq_,
+                        assert_in,
+                        assert_not_in,)
 
 filename = "datanommer-test.db"
 
@@ -24,6 +26,7 @@ class TestCommands(unittest.TestCase):
         datanommer.models.init(uri=uri, create=True)
 
     def tearDown(self):
+        datanommer.models.session.rollback()
         os.remove(filename)
 
     def test_stats(self):
@@ -81,6 +84,9 @@ class TestCommands(unittest.TestCase):
             assert_in('fas has 1 entries', logged_info)
 
     def test_stats_topics(self):
+        from datanommer.models import session
+
+        Message = datanommer.models.Message
 
         with patch('datanommer.commands.StatsCommand.get_config') as gc:
             self.config['topic'] = True
@@ -89,20 +95,112 @@ class TestCommands(unittest.TestCase):
             datanommer.models.init(
                 uri=self.config['datanommer.sqlalchemy.url']
             )
+            datanommer.models.init(
+                uri=self.config['datanommer.sqlalchemy.url']
+            )
+
+            msg1 = Message(
+                topic='org.fedoraproject.prod.git.branch.valgrind.master',
+                category='git',
+                timestamp=datetime.utcnow(),
+                i=1
+            )
+
+            msg2 = Message(
+                topic='org.fedoraproject.stg.fas.user.create',
+                category='fas',
+                timestamp=datetime.utcnow(),
+                i=1
+            )
+
+            msg3 = Message(
+                topic='org.fedoraproject.prod.git.receive.valgrind.master',
+                category='git',
+                timestamp=datetime.utcnow(),
+                i=1
+            )
+
+            msg1.msg = 'Message 1'
+            msg2.msg = 'Message 2'
+            msg3.msg = 'Message 3'
+
+            session.add_all([msg1, msg2, msg3])
+            session.flush()
 
             logged_info = []
 
             def info(data):
                 logged_info.append(data)
 
+
             command = datanommer.commands.StatsCommand()
 
             command.log.info = info
             command.run()
 
-            assert_in('org.fedoraproject.prod.git.recieve.valgrind.master has 1 entries', logged_info)
+            assert_in('org.fedoraproject.prod.git.receive.valgrind.master has 1 entries', logged_info)
             assert_in('org.fedoraproject.stg.fas.user.create has 1 entries', logged_info)
-            assert_in('org.fedoraproject.branch.git.receve.valgrind.master has 1 entries', logged_info)
+            assert_in('org.fedoraproject.prod.git.branch.valgrind.master has 1 entries', logged_info)
+
+    def test_stats_cat_topics(self):
+        from datanommer.models import session
+
+        Message = datanommer.models.Message
+
+        with patch('datanommer.commands.StatsCommand.get_config') as gc:
+            self.config['topic'] = True
+            self.config['category'] = 'git'
+            gc.return_value = self.config
+
+            datanommer.models.init(
+                uri=self.config['datanommer.sqlalchemy.url']
+            )
+            datanommer.models.init(
+                uri=self.config['datanommer.sqlalchemy.url']
+            )
+
+            msg1 = Message(
+                topic='org.fedoraproject.prod.git.branch.valgrind.master',
+                category='git',
+                timestamp=datetime.utcnow(),
+                i=1
+            )
+
+            msg2 = Message(
+                topic='org.fedoraproject.stg.fas.user.create',
+                category='fas',
+                timestamp=datetime.utcnow(),
+                i=1
+            )
+
+            msg3 = Message(
+                topic='org.fedoraproject.prod.git.receive.valgrind.master',
+                category='git',
+                timestamp=datetime.utcnow(),
+                i=1
+            )
+
+            msg1.msg = 'Message 1'
+            msg2.msg = 'Message 2'
+            msg3.msg = 'Message 3'
+
+            session.add_all([msg1, msg2, msg3])
+            session.flush()
+
+            logged_info = []
+
+            def info(data):
+                logged_info.append(data)
+
+
+            command = datanommer.commands.StatsCommand()
+
+            command.log.info = info
+            command.run()
+
+            assert_in('org.fedoraproject.prod.git.receive.valgrind.master has 1 entries', logged_info)
+            assert_not_in('org.fedoraproject.stg.fas.user.create has 1 entries', logged_info)
+            assert_in('org.fedoraproject.prod.git.branch.valgrind.master has 1 entries', logged_info)
 
     def test_dump(self):
         Message = datanommer.models.Message

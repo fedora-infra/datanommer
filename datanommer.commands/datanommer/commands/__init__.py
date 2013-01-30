@@ -57,19 +57,24 @@ class StatsCommand(BaseCommand):
         datanommer.models.init(self.config['datanommer.sqlalchemy.url'])
         config = self.config
 
-        filter_cat = None
-
-        if config.get('category', None):
-            filter_cat = config.get('category')
-
-        if filter_cat:
-            query = Message.query.filter(Message.category == filter_cat)
+ #       if config.get('category', None):
+ #           query = Message.query.filter(
+ #                       Message.category == config.get('category')
+ #           )
 
         if config.get('topic', None):
-            query = session.query(Message.topic, func.count(Message.topic))
+            if config.get('category',None):
+                query = session.query(Message.topic, func.count(Message.topic)).filter(
+                        Message.category==config.get('category'))
+            else:
+                query = session.query(Message.topic, func.count(Message.topic))
             query = query.group_by(Message.topic)
         else:
-            query = session.query(Message.category, func.count(Message.category))
+            if config.get('category',None):
+                query = session.query(Message.category, func.count(Message.category)).filter(
+                        Message.category==config.get('category'))
+            else:
+                query = session.query(Message.category, func.count(Message.category))
             query = query.group_by(Message.category)
 
 
