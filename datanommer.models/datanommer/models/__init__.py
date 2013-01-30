@@ -112,8 +112,10 @@ class BaseMessage(object):
 
     @validates('topic')
     def get_category(self, key, topic):
+        # TODO -- get these from fedmsg.meta somehow.  That way, as new ones are
+        # added, we don't have to keep coming back here and extending this list.
         filters = ['bodhi', 'compose', 'git', 'wiki', 'tagger', 'busmon',
-                    'fas', 'meetbot', 'koji', 'logger', 'httpd']
+                    'fas', 'meetbot', 'koji', 'logger', 'httpd', 'pkgdb']
 
         for f in filters:
             if f in topic:
