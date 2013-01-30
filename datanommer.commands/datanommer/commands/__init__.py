@@ -1,5 +1,7 @@
 import datanommer.models
 from datanommer.models import Message
+from datanommer.models import session
+from sqlalchemy import func
 
 from fedmsg.encoding import pretty_dumps
 from fedmsg.commands import BaseCommand
@@ -32,15 +34,58 @@ class DumpCommand(BaseCommand):
 
 
 class StatsCommand(BaseCommand):
-    """ Produce stats on the contents of the datanommer database """
+    """ Produce stats on the contents of the datanommer database.
+
+    The default is to display the stats per category.
+    """
     name = "datanommer-stats"
+    extra_args = extra_args = [
+        (['--topic'], {
+            'dest': 'topic',
+            'default': False,
+            'action': 'store_true',
+            'help': "Shows the stats per topic",
+        }),
+        (['--category'], {
+            'dest': 'category',
+            'default': None,
+            'help': "Shows the stats within only the specified category",
+        }),
+    ]
 
     def run(self):
         datanommer.models.init(self.config['datanommer.sqlalchemy.url'])
+        config = self.config
 
-        for model in datanommer.models.models:
-            logger_args = (model, "has", model.query.count(), "entries")
-            self.log.info("%s, %s, %s, %s" % logger_args)
+ #       if config.get('category', None):
+ #           query = Message.query.filter(
+ #                       Message.category == config.get('category')
+ #           )
+
+        if config.get('topic', None):
+            if config.get('category',None):
+                query = session.query(Message.topic, func.count(Message.topic)).filter(
+                        Message.category==config.get('category'))
+            else:
+                query = session.query(Message.topic, func.count(Message.topic))
+            query = query.group_by(Message.topic)
+        else:
+            if config.get('category',None):
+                query = session.query(Message.category, func.count(Message.category)).filter(
+                        Message.category==config.get('category'))
+            else:
+                query = session.query(Message.category, func.count(Message.category))
+            query = query.group_by(Message.category)
+
+
+        results = query.all()
+
+        if config.get('topic', None):
+            for topic, count in results:
+                self.log.info("%s has %s entries" % (topic, count))
+        else:
+            for category, count in results:
+                self.log.info("%s has %s entries" % (category, count))
 
 
 # Extra arguments for datanommer-latest
