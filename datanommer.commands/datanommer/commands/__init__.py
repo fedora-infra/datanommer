@@ -6,6 +6,7 @@ from sqlalchemy import func
 from fedmsg.encoding import pretty_dumps
 from fedmsg.commands import BaseCommand
 
+import datetime
 import time
 
 
@@ -120,11 +121,17 @@ class LatestCommand(BaseCommand):
             'action': 'store_true',
             'help': "Show only the timestamp of the message(s).",
         }),
+        (['--timesince'], {
+            'dest': 'timesince',
+            'default': False,
+            'action': 'store_true',
+            'help': 'Show the number of seconds since the last message',
+        }),
         (['--human'], {
             'dest': 'human',
             'default': False,
             'action': 'store_true',
-            'help': "When combined with --timestamp,"
+            'help': "When combined with --timestamp or --timesince,"
                     + "show a human readable date.",
         }),
     ]
@@ -154,6 +161,11 @@ class LatestCommand(BaseCommand):
                 return pretty_dumps(str(val.timestamp))
             elif config.get('timestamp', None):
                 return pretty_dumps(time.mktime(val.timestamp.timetuple()))
+            elif config.get('timesince', None) and config.get('human', None):
+                return str(datetime.datetime.now() - val.timestamp)
+            elif config.get('timesince', None):
+                timedelta = datetime.datetime.now() - val.timestamp
+                return str((timedelta.days * 86400) + timedelta.seconds)
             else:
                 return "{%s: %s}" % (pretty_dumps(key), pretty_dumps(val))
 
