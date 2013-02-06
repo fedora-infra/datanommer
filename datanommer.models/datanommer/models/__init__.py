@@ -131,7 +131,7 @@ class BaseMessage(object):
     def msg(self, dict_like_msg):
         self._msg = fedmsg.encoding.dumps(dict_like_msg)
 
-    def __json__(self):
+    def __json__(self, request):
         return dict(
             i=self.i,
             topic=self.topic,
