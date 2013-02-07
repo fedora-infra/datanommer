@@ -87,11 +87,11 @@ def add(message):
 
         obj.users.append(user)
 
-    for package in packages:
-        package = session.query(Package).get(package)
+    for package_name in packages:
+        package = session.query(Package).get(package_name)
 
         if not package:
-            package = Package(name=package)
+            package = Package(name=package_name)
 
         obj.packages.append(package)
 
@@ -112,8 +112,15 @@ class BaseMessage(object):
 
     @validates('topic')
     def get_category(self, key, topic):
-        filters = ['bodhi', 'compose', 'git', 'wiki', 'tagger', 'busmon',
-                    'fas', 'meetbot', 'koji', 'logger', 'httpd']
+        import fedmsg.config
+        import fedmsg.meta
+
+        config = fedmsg.config.load_config([], None)
+        fedmsg.meta.make_processors(**config)
+
+        filters=[]
+        for f in fedmsg.meta.processors:
+            filters.append(f.__name__.lower())
 
         for f in filters:
             if f in topic:
@@ -129,7 +136,7 @@ class BaseMessage(object):
     def msg(self, dict_like_msg):
         self._msg = fedmsg.encoding.dumps(dict_like_msg)
 
-    def __json__(self):
+    def __json__(self, request=None):
         return dict(
             i=self.i,
             topic=self.topic,

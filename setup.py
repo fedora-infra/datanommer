@@ -11,8 +11,10 @@ import sys
 
 
 tests_require = [
-    'nose'
-    , 'mock'
+    'nose',
+    'mock',
+    # The tests assume we're working with Fedora messages.
+    'fedmsg_meta_fedora_infrastructure',
 ]
 
 if sys.version_info[0] == 2 and sys.version_info[1] <= 6:
