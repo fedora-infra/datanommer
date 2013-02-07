@@ -87,11 +87,11 @@ def add(message):
 
         obj.users.append(user)
 
-    for package in packages:
-        package = session.query(Package).get(package)
+    for package_name in packages:
+        package = session.query(Package).get(package_name)
 
         if not package:
-            package = Package(name=package)
+            package = Package(name=package_name)
 
         obj.packages.append(package)
 
