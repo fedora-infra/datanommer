@@ -39,6 +39,7 @@ scm_message = {
             This is a bit of a hammer.""",
             "email": "mjw@redhat.com",
             "branch": "master",
+            "username": "mjw",
         }
     },
     "signature": "blah",

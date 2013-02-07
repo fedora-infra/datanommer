@@ -95,7 +95,7 @@ def main():
         original_msg = entry  # Do this when reading from the json dump
 
         processor = fedmsg.text.msg2processor(entry)
-        modname = processor.__name__  # one of "Bodhi", "FAS", "Wiki".. etc.
+        modname = processor.__name__.lower()  # one of "Bodhi", "FAS", "Wiki".. etc.
         conf['processor'] = processor
         conf['legacy'] = True
 

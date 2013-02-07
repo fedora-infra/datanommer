@@ -87,11 +87,11 @@ def add(message):
 
         obj.users.append(user)
 
-    for package in packages:
-        package = session.query(Package).get(package)
+    for package_name in packages:
+        package = session.query(Package).get(package_name)
 
         if not package:
-            package = Package(name=package)
+            package = Package(name=package_name)
 
         obj.packages.append(package)
 
@@ -120,7 +120,7 @@ class BaseMessage(object):
 
         filters=[]
         for f in fedmsg.meta.processors:
-            filters.append(f.__name__)
+            filters.append(f.__name__.lower())
 
         for f in filters:
             if f in topic:
