@@ -120,7 +120,7 @@ class BaseMessage(object):
 
         filters=[]
         for f in fedmsg.meta.processors:
-            filters.append(f.__name__)
+            filters.append(f.__name__.lower())
 
         for f in filters:
             if f in topic:

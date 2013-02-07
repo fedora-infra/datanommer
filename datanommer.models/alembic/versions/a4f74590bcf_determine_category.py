@@ -29,7 +29,7 @@ fedmsg.meta.make_processors(**config)
 
 filters = []
 for f in fedmsg.meta.processors:
-    filters.append(f.__name__)
+    filters.append(f.__name__.lower())
 
 metadata = MetaData()
 
