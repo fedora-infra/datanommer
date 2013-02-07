@@ -16,10 +16,20 @@ from alembic import op
 from sqlalchemy.schema import MetaData
 from sqlalchemy.sql import text
 
-filters = [
-    "bodhi", "busmon", "compose", "fas", "git", "httpd", "koji",
-    "logger", "meetbot", "tagger", "unclassified", "wiki"
-]
+import fedmsg.meta
+import fedmsg.config
+
+from fedmsg.config import _gather_configs_in
+from alembic import context
+config_path = context.config.get_main_option('fedmsg_config_dir')
+filenames = _gather_configs_in(config_path)
+
+config = fedmsg.config.load_config(filenames=filenames)
+fedmsg.meta.make_processors(**config)
+
+filters = []
+for f in fedmsg.meta.processors:
+    filters.append(f.__name__)
 
 metadata = MetaData()
 
