@@ -150,7 +150,7 @@ class LatestCommand(BaseCommand):
             queries = [Message.query.filter(
                 Message.category == config.get('category')
             )]
-        elif config.get('overall', None):
+        elif not config.get('overall', False):
             # If no args..
             fedmsg.meta.make_processors(**config)
             categories = [
