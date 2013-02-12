@@ -5,6 +5,7 @@ from sqlalchemy import func
 
 from fedmsg.encoding import pretty_dumps
 from fedmsg.commands import BaseCommand
+import fedmsg.meta
 
 import datetime
 import time
@@ -141,20 +142,32 @@ class LatestCommand(BaseCommand):
         config = self.config
 
         if config.get('topic', None):
-            query = Message.query.filter(Message.topic == config.get('topic'))
+            queries = [
+                Message.query.filter(Message.topic == config.get('topic'))
+            ]
+
         elif config.get('category', None):
-            query = Message.query.filter(
+            queries = [Message.query.filter(
                 Message.category == config.get('category')
-            )
+            )]
+        elif config.get('overall', None):
+            # If no args..
+            fedmsg.meta.make_processors(**config)
+            categories = [
+                p.__name__.lower() for p in fedmsg.meta.processors
+            ]
+            queries = [Message.query.filter(
+                Message.category == category
+            ) for category in categories]
         else:
-            query = Message.query.group_by(Message.category)
+            # Show only the single latest message, regardless of type.
+            queries = [Message.query]
 
-        query = query.order_by(Message.timestamp.desc())
-
-        if config.get('overall', None) or config.get('topic', None):
-            query = query.limit(1)
-        if config.get('category', None):
-            query = query.limit(1)
+        # Order and limit to the latest.
+        queries = [
+            q.order_by(Message.timestamp.desc()).limit(1)
+            for q in queries
+        ]
 
         def formatter(key, val):
             if config.get('timestamp', None) and config.get('human', None):
@@ -170,7 +183,7 @@ class LatestCommand(BaseCommand):
                 return "{%s: %s}" % (pretty_dumps(key), pretty_dumps(val))
 
         results = []
-        for result in query.all():
+        for result in sum([query.all() for query in queries], []):
             results.append(formatter(result.category, result))
 
         self.log.info('[%s]' % ','.join(results))
