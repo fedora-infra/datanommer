@@ -24,13 +24,31 @@ class CreateCommand(BaseCommand):
 class DumpCommand(BaseCommand):
     """ Dump the contents of the datanommer database as JSON """
     name = "datanommer-dump"
+    extra_args = extra_args = [
+        (['--since'], {
+            'dest': 'since',
+            'default': None,
+            'help': "Only after datetime, ex 2013-02-14T08:05:59.87",
+        }),
+        (['--before'], {
+            'dest': 'before',
+            'default': None,
+            'help': "Only before datetime, ex 2013-02-14T08:05:59.87",
+        }),
+    ]
 
     def run(self):
         datanommer.models.init(self.config['datanommer.sqlalchemy.url'])
+        config = self.config
 
-        results = []
-        for model in datanommer.models.models:
-            results += model.query.all()
+        query = Message.query
+        if config.get('before', None):
+            query = query.filter(Message.timestamp<=config.get('before'))
+
+        if config.get('since', None):
+            query = query.filter(Message.timestamp>=config.get('since'))
+
+        results = query.all()
 
         self.log.info(pretty_dumps(results))
 
