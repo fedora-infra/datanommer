@@ -40,21 +40,18 @@ def map_values(row):
     )
 
 def upgrade():
-    query = "SELECT topic, category FROM messages"
-    base_query = "UPDATE messages SET category = '%s' WHERE topic = '%s'"
-
+    query = "SELECT topic, category FROM messages WHERE category IS NULL"
+    bquery = "UPDATE messages SET category = '%s' WHERE topic = '%s'"
 
     engine = op.get_bind().engine
     results = engine.execute(text(query))
     data = map(map_values, results.fetchall())
 
-    i = 0
-    if data[i]['category'] == '' or data[i]['category']==None:
+    for log in data:
         for filter in filters:
-            if filter in data[i]['topic']:
-                data[i]['category'] = filter
-                engine.execute(text(base_query % (data[i]['category'], data[i]['topic'])))
-                i += 1
+            if filter in log['topic']:
+                log['category'] = filter
+                engine.execute(text(bquery % (log['category'], log['topic'])))
 
 def downgrade():
     pass

@@ -7,6 +7,7 @@ import os
 
 import datanommer.commands
 import datanommer.models
+import fedmsg.config
 from nose.tools import (eq_,
                         assert_in,
                         assert_not_in,)
@@ -23,6 +24,7 @@ class TestCommands(unittest.TestCase):
                 'version': 1
             }
         }
+        self.config.update(fedmsg.config.defaults)
         datanommer.models.init(uri=uri, create=True)
 
     def tearDown(self):
