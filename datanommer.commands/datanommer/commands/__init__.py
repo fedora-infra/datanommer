@@ -22,7 +22,12 @@ class CreateCommand(BaseCommand):
 
 
 class DumpCommand(BaseCommand):
-    """ Dump the contents of the datanommer database as JSON """
+    """ Dump the contents of the datanommer database as JSON.
+
+    You can also specify a timespan with the --since and --before arguments:
+
+        $ datanommer-dump --before 2013-02-15 --since 2013-02-11T08:00:00 > datanommer-dump.json
+    """
     name = "datanommer-dump"
     extra_args = extra_args = [
         (['--since'], {
@@ -56,7 +61,40 @@ class DumpCommand(BaseCommand):
 class StatsCommand(BaseCommand):
     """ Produce stats on the contents of the datanommer database.
 
-    The default is to display the stats per category.
+    The default is to display the stats per category. You can also display
+    the stats per topic with the --topic argument:
+
+        $ datanommer-stats --topic
+        org.fedoraproject.stg.fas.group.member.remove has 10 entries
+        org.fedoraproject.stg.logger.log has 76 entries
+        org.fedoraproject.stg.bodhi.update.comment has 5 entries
+        org.fedoraproject.stg.busmon.colorized-messages has 10 entries
+        org.fedoraproject.stg.fas.user.update has 10 entries
+        org.fedoraproject.stg.wiki.article.edit has 106 entries
+        org.fedoraproject.stg.fas.user.create has 3 entries
+        org.fedoraproject.stg.bodhitest.testing has 4 entries
+        org.fedoraproject.stg.fedoratagger.tag.create has 9 entries
+        org.fedoraproject.stg.fedoratagger.user.rank.update has 5 entries
+        org.fedoraproject.stg.wiki.upload.complete has 1 entries
+        org.fedoraproject.stg.fas.group.member.sponsor has 6 entries
+        org.fedoraproject.stg.fedoratagger.tag.update has 1 entries
+        org.fedoraproject.stg.fas.group.member.apply has 17 entries
+        org.fedoraproject.stg.__main__.testing has 1 entries
+
+    The --category argument can be combined with --topic to shows stats of the 
+    topics with a specific category or can be used alone to show the stats for 
+    only the one category:
+
+        $ datanommer-stats --topic --category fas
+        org.fedoraproject.stg.fas.group.member.remove has 10 entries
+        org.fedoraproject.stg.fas.user.update has 10 entries
+        org.fedoraproject.stg.fas.user.create has 3 entries
+        org.fedoraproject.stg.fas.group.member.sponsor has 6 entries
+        org.fedoraproject.stg.fas.group.member.apply has 17 entries
+
+        $ datanommmer-stats --category fas
+        fas has 46 entries
+
     """
     name = "datanommer-stats"
     extra_args = extra_args = [
@@ -114,7 +152,81 @@ class StatsCommand(BaseCommand):
 class LatestCommand(BaseCommand):
     """ Print the latest message(s) ingested by datanommer.
 
-    The default is to display the latest message in each message category.
+    The default is to display the latest message in each message category. The
+    latest in only a specified category or topic can also be returned:
+
+        $ datanommer-latest --category bodhi
+        [{"bodhi": {
+          "topic": "org.fedoraproject.stg.bodhi.update.comment", 
+          "msg": {
+            "comment": {
+              "group": null, 
+              "author": "ralph", 
+              "text": "Testing for latest datanommer.", 
+              "karma": 0, 
+              "anonymous": false, 
+              "timestamp": 1360349639.0, 
+              "update_title": "xmonad-0.10-10.fc17"
+            },
+            "agent": "ralph"
+          },
+        }}]
+
+        $ datanommer-latest --topic org.fedoraproject.stg.bodhi.update.comment
+        [{"bodhi": {
+          "topic": "org.fedoraproject.stg.bodhi.update.comment", 
+          "msg": {
+            "comment": {
+              "group": null, 
+              "author": "ralph", 
+              "text": "Testing for latest datanommer.", 
+              "karma": 0, 
+              "anonymous": false, 
+              "timestamp": 1360349639.0, 
+              "update_title": "xmonad-0.10-10.fc17"
+            },
+            "agent": "ralph"
+          },
+        }}]
+
+    Or to display the latest, regardless of the topic or category:
+
+        $ datanommer-latest --overall
+        [{"bodhi": {
+          "topic": "org.fedoraproject.stg.bodhi.update.comment", 
+          "msg": {
+            "comment": {
+              "group": null, 
+              "author": "ralph", 
+              "text": "Testing for latest datanommer.", 
+              "karma": 0, 
+              "anonymous": false, 
+              "timestamp": 1360349639.0, 
+              "update_title": "xmonad-0.10-10.fc17"
+            },
+            "agent": "ralph"
+          },
+        }}]
+
+    You can combine either a --topic, --category or --overall argument while 
+    requesting information about the timestamp of the latest:
+
+        $ datanommer-latest --category wiki --timestamp
+        [1361166918.0]
+
+        # February 18, 2013 at 5:55AM
+        $ datanommer-latest --category wiki --timestamp --human
+        ["2013-02-18 05:55:18"]
+
+    Or how recent that timestamp is:
+
+        # 49250 seconds ago
+        $ datanommer-latest --category wiki --timesince
+        [49250]
+
+        # 13 hours, 40 minutes, 59.52 seconds ago
+        $ datanommer-latest --category wiki --timesince --human
+        [13:40:59.519447]
     """
     name = "datanommer-latest"
     extra_args = extra_args = [
