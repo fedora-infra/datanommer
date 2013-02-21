@@ -8,9 +8,23 @@ import os
 import datanommer.commands
 import datanommer.models
 import fedmsg.config
-from nose.tools import (eq_,
-                        assert_in,
-                        assert_not_in,)
+from nose.tools import (
+    eq_,
+    ok_,
+)
+try:
+    from nose.tools import (
+        assert_in,
+        assert_not_in,
+    )
+except ImportError:
+    # Old versions of nose don't have assert_in and friends.
+    def assert_in(item, lst, msg=None):
+        ok_(item in lst, msg)
+
+    def assert_not_in(item, lst, msg=None):
+        ok_(item not in lst, msg)
+
 
 filename = "datanommer-test.db"
 
@@ -245,6 +259,66 @@ class TestCommands(unittest.TestCase):
 
                     eq_(json_object[0]['topic'],
                         'org.fedoraproject.prod.git.branch.valgrind.master')
+
+    def test_dump_timespan(self):
+        from datanommer.models import session
+
+        Message = datanommer.models.Message
+
+        with patch('datanommer.commands.DumpCommand.get_config') as gc:
+            self.config['before'] = '2013-02-16'
+            self.config['since'] = '2013-02-14T08:00:00'
+            gc.return_value = self.config
+
+            datanommer.models.init(
+                uri=self.config['datanommer.sqlalchemy.url']
+            )
+
+            time1 = datetime.fromtimestamp(1360821600)
+            time2 = datetime.fromtimestamp(1360908000)
+            time3 = datetime.fromtimestamp(1361023200)
+
+            msg1 = Message(
+                topic='org.fedoraproject.prod.git.branch.valgrind.master',
+                timestamp=time1,
+                i=4
+            )
+
+            msg2 = Message(
+                topic='org.fedoraproject.prod.git.receive.valgrind.master',
+                timestamp=time2,
+                i=3
+            )
+
+            msg3 = Message(
+                topic='org.fedoraproject.prod.log.receive.valgrind.master',
+                timestamp=time3,
+                i=2
+            )
+
+            msg1.msg = 'Message 1'
+            msg2.msg = 'Message 2'
+            msg3.msg = 'Message 3'
+
+            session.add_all([msg1, msg2, msg3])
+            session.flush()
+
+            logged_info = []
+
+            def info(data):
+                logged_info.append(data)
+
+            command = datanommer.commands.DumpCommand()
+
+            command.log.info = info
+            command.run()
+
+            json_object = json.loads(logged_info[0])
+
+            eq_(json_object[0]['topic'],
+                'org.fedoraproject.prod.git.receive.valgrind.master')
+            eq_(len(json_object), 1)
+
 
     def test_latest_overall(self):
         from datanommer.models import session
