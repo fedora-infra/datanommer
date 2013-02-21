@@ -305,10 +305,10 @@ class LatestCommand(BaseCommand):
             elif config.get('timestamp', None):
                 return pretty_dumps(time.mktime(val.timestamp.timetuple()))
             elif config.get('timesince', None) and config.get('human', None):
-                return str(datetime.datetime.now() - val.timestamp)
+                return pretty_dumps(str(datetime.datetime.now()-val.timestamp))
             elif config.get('timesince', None):
                 timedelta = datetime.datetime.now() - val.timestamp
-                return str((timedelta.days * 86400) + timedelta.seconds)
+                return pretty_dumps(str((timedelta.days * 86400)+timedelta.seconds))
             else:
                 return "{%s: %s}" % (pretty_dumps(key), pretty_dumps(val))
 
