@@ -8,9 +8,23 @@ import os
 import datanommer.commands
 import datanommer.models
 import fedmsg.config
-from nose.tools import (eq_,
-                        assert_in,
-                        assert_not_in,)
+from nose.tools import (
+    eq_,
+    ok_,
+)
+try:
+    from nose.tools import (
+        assert_in,
+        assert_not_in,
+    )
+except ImportError:
+    # Old versions of nose don't have assert_in and friends.
+    def assert_in(item, lst, msg=None):
+        ok_(item in lst, msg)
+
+    def assert_not_in(item, lst, msg=None):
+        ok_(item not in lst, msg)
+
 
 filename = "datanommer-test.db"
 
