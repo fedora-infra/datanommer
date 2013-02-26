@@ -107,7 +107,7 @@ class BaseMessage(object):
     timestamp = Column(DateTime, nullable=False)
     certificate = Column(UnicodeText)
     signature = Column(UnicodeText)
-    category = Column(UnicodeText)
+    category = Column(UnicodeText, nullable=False)
     _msg = Column(UnicodeText, nullable=False)
 
     @validates('topic')
@@ -125,6 +125,8 @@ class BaseMessage(object):
         for f in filters:
             if f in topic:
                 self.category = f
+            else:
+                self.category = 'Unclassified'
 
         return topic
 
