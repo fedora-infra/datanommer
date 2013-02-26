@@ -13,26 +13,6 @@ down_revision = 'ae2801c4cd9'
 from alembic import op
 
 
-from sqlalchemy.schema import MetaData
-from sqlalchemy.sql import text
-
-import fedmsg.meta
-import fedmsg.config
-
-from fedmsg.config import _gather_configs_in
-from alembic import context
-config_path = context.config.get_main_option('fedmsg_config_dir')
-filenames = _gather_configs_in(config_path)
-
-config = fedmsg.config.load_config(filenames=filenames)
-fedmsg.meta.make_processors(**config)
-
-filters = []
-for f in fedmsg.meta.processors:
-    filters.append(f.__name__.lower())
-
-metadata = MetaData()
-
 def map_values(row):
     return dict(
         topic=row[0],
@@ -40,6 +20,24 @@ def map_values(row):
     )
 
 def upgrade():
+    from sqlalchemy.sql import text
+
+    import fedmsg.meta
+    import fedmsg.config
+
+    from fedmsg.config import _gather_configs_in
+    from alembic import context
+    config_path = context.config.get_main_option('fedmsg_config_dir')
+    filenames = _gather_configs_in(config_path)
+
+    config = fedmsg.config.load_config(filenames=filenames)
+    fedmsg.meta.make_processors(**config)
+
+    filters = []
+    for f in fedmsg.meta.processors:
+        filters.append(f.__name__.lower())
+
+
     query = "SELECT topic, category FROM messages WHERE category IS NULL"
     bquery = "UPDATE messages SET category = '%s' WHERE topic = '%s'"
 
