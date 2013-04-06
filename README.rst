@@ -167,73 +167,91 @@ to the datanommer database.
 *Querying Messages*
 
 Before making any queries, you'll need to initial the module-level session
-for ``datanommer.models``::
+for ``datanommer.models``:
 
-    >>> import datanommer.models as m
-    >>> url = 'sqlite:///some_database.db'
-    >>> m.init(url)
+.. code-block:: python
+
+   import datanommer.models as m
+   url = 'sqlite:///some_database.db'
+   m.init(url)
 
 In our production environment, datanommer's db URL is kept in
-``/etc/fedmsg.d/``, so you can conveniently access it like this::
+``/etc/fedmsg.d/``, so you can conveniently access it like this:
 
-    >>> import fedmsg.config
-    >>> config = fedmsg.config.load_config()
-    >>> url = config['datanommer.sqlalchemy.url']
+.. code-block:: python
 
-    >>> import datanommer.models as m
-    >>> m.init(url)
+   import fedmsg.config
+   config = fedmsg.config.load_config()
+   url = config['datanommer.sqlalchemy.url']
 
-You can query datanommer from python like this::
+   import datanommer.models as m
+   m.init(url)
 
-    >>> import datetime
+You can query datanommer from python like this:
 
-    >>> # Get all messages in the last hour
-    >>> then = datetime.datetime.now() - datetime.timedelta(hours=1)
-    >>> messages = m.Message.query.filter(m.Message.timestamp>=then).all()
+.. code-block:: python
 
-It's SQLAlchemy, after all.  You can query for only bodhi messages like this::
+   import datetime
 
-    >>> messages = m.Message.query.filter(m.Message.category=='bodhi').all()
+   # Get all messages in the last hour
+   then = datetime.datetime.now() - datetime.timedelta(hours=1)
+   messages = m.Message.query.filter(m.Message.timestamp>=then).all()
+
+It's SQLAlchemy, after all.  You can query for only bodhi messages like this:
+
+.. code-block:: python
+
+   messages = m.Message.query.filter(m.Message.category=='bodhi').all()
 
 Another useful query might be to find all the messages for the user
-`@lmacken <https://github.com/lmacken>`_ which you could accomplish with this::
+`@lmacken <https://github.com/lmacken>`_ which you could accomplish with this:
 
-    >>> user = m.User.query.filter(m.User.name=='lmacken').one()
-    >>> messages = user.messages
+.. code-block:: python
+
+   user = m.User.query.filter(m.User.name=='lmacken').one()
+   messages = user.messages
 
 Conversely, you can get the ``User`` and ``Package`` objects associated
-with a message by accessing attributes::
+with a message by accessing attributes:
 
-    >>> message = m.Message.query.first()
-    >>> packages = message.packages
-    >>> users = message.users
+.. code-block:: python
+
+   message = m.Message.query.first()
+   packages = message.packages
+   users = message.users
 
 *Formatting Messages*
 
-The raw JSON message is accessible from a ``.msg`` attribute::
+The raw JSON message is accessible from a ``.msg`` attribute:
 
-    >>> for message in messages:
-    ...     print message.msg
+.. code-block:: python
+
+   for message in messages:
+       print message.msg
 
 Of course, the datanommer Message model plays nice with fedmsg's utilities.
 You can use ``fedmsg.encoding`` to print a nicely formatted version of
-your query::
+your query:
 
-    >>> import fedmsg.encoding
-    >>> for message in messages:
-    ...     print fedmsg.encoding.pretty_dumps(message)
+.. code-block:: python
+
+   import fedmsg.encoding
+   for message in messages:
+       print fedmsg.encoding.pretty_dumps(message)
 
 If you ``yum install python-fedmsg-meta-fedora-infrastructure``, you'll have
-access to all the metadata processors provided there.  Install it and try::
+access to all the metadata processors provided there.  Install it and try:
 
-    >>> import fedmsg.config
-    >>> import fedmsg.meta
+.. code-block:: python
 
-    >>> config = fedmsg.config.load_config()
+   import fedmsg.config
+   import fedmsg.meta
 
-    >>> for message in messages
-    ...     print fedmsg.meta.msg2title(message, **config)
-    ...     print " ", fedmsg.meta.msg2subtitle(message, **config)
+   config = fedmsg.config.load_config()
+
+   for message in messages
+       print fedmsg.meta.msg2title(message, **config)
+       print " ", fedmsg.meta.msg2subtitle(message, **config)
 
 Take a look at the `list of topics and message types
 <http://fedmsg.com/en/latest/topics/>`_ that ``fedmsg.meta`` understands.
