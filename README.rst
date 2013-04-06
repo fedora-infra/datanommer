@@ -166,7 +166,7 @@ to the datanommer database.
 
 *Querying Messages*
 
-Before making any queries, you'll need to initial the module-level session
+Before making any queries, you'll need to initialize the module-level session
 for ``datanommer.models``:
 
 .. code-block:: python
