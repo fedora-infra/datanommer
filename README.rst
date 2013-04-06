@@ -239,8 +239,8 @@ your query:
    for message in messages:
        print fedmsg.encoding.pretty_dumps(message)
 
-If you ``yum install python-fedmsg-meta-fedora-infrastructure``, you'll have
-access to all the metadata processors provided there.  Install it and try:
+And, if you ``yum install python-fedmsg-meta-fedora-infrastructure``, you'll
+have access to all the metadata processors provided there.  Install it and try:
 
 .. code-block:: python
 
