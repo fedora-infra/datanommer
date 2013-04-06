@@ -274,7 +274,7 @@ If your models are up to date, you should see::
     INFO  [alembic.migration] Will assume transactional DDL.
     Current revision for sqlite:///../datanommer.db: 198447250956 -> ae2801c4cd9 (head), add category column
 
-If you result is::
+If your result is::
 
     INFO  [alembic.migration] Context impl SQLiteImpl.
     INFO  [alembic.migration] Will assume transactional DDL.
