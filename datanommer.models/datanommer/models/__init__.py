@@ -11,6 +11,7 @@ from sqlalchemy.orm import (
     sessionmaker,
     scoped_session,
     relationship,
+    backref,
 )
 
 from sqlalchemy.orm import validates
@@ -169,8 +170,10 @@ class Package(DeclarativeBase):
 
 class Message(DeclarativeBase, BaseMessage):
     __tablename__ = "messages"
-    users = relationship("User", secondary=user_assoc_table)
-    packages = relationship("Package", secondary=pack_assoc_table)
+    users = relationship("User", secondary=user_assoc_table,
+                         backref=backref('messages'))
+    packages = relationship("Package", secondary=pack_assoc_table,
+                            backref=backref('messages'))
 
 models = frozenset((
     v for k, v in locals().items()
