@@ -15,7 +15,7 @@ from sqlalchemy.orm import (
 )
 
 from sqlalchemy.orm import validates
-
+from sqlalchemy.orm.exc import NoResultFound
 
 from sqlalchemy.schema import Table
 from sqlalchemy.ext.declarative import declarative_base
@@ -164,10 +164,28 @@ class User(DeclarativeBase):
     __tablename__ = 'user'
     name = Column(UnicodeText, primary_key=True)
 
+    @classmethod
+    def get_or_create(cls, name):
+        try:
+            return cls.query.filter_by(name=name).one()
+        except NoResultFound:
+            obj = cls(name=name)
+            session.add(obj)
+            return obj
+
 
 class Package(DeclarativeBase):
     __tablename__ = 'package'
     name = Column(UnicodeText, primary_key=True)
+
+    @classmethod
+    def get_or_create(cls, name):
+        try:
+            return cls.query.filter_by(name=name).one()
+        except NoResultFound:
+            obj = cls(name=name)
+            session.add(obj)
+            return obj
 
 
 class Message(DeclarativeBase, BaseMessage):
