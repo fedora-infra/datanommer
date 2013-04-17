@@ -17,7 +17,7 @@ from sqlalchemy.orm import (
 from sqlalchemy import or_, between
 
 from sqlalchemy.orm import validates
-
+from sqlalchemy.orm.exc import NoResultFound
 
 from sqlalchemy.schema import Table
 from sqlalchemy.ext.declarative import declarative_base
@@ -37,14 +37,19 @@ import logging
 log = logging.getLogger("datanommer")
 
 
-def init(uri=None, alembic_ini=None, create=False):
+def init(uri=None, alembic_ini=None, engine=None, create=False):
     """ Initialize a connection.  Create tables if requested."""
 
-    if uri is None:
+    if uri and engine:
+        raise ValueError("uri and engine cannot both be specified")
+
+    if uri is None and not engine:
         uri = 'sqlite:////tmp/datanommer.db'
         log.warning("No db uri given.  Using %r" % uri)
 
-    engine = create_engine(uri)
+    if uri and not engine:
+        engine = create_engine(uri)
+
     session.configure(bind=engine)
     DeclarativeBase.query = session.query_property()
 
@@ -167,10 +172,28 @@ class User(DeclarativeBase):
     __tablename__ = 'user'
     name = Column(UnicodeText, primary_key=True)
 
+    @classmethod
+    def get_or_create(cls, name):
+        try:
+            return cls.query.filter_by(name=name).one()
+        except NoResultFound:
+            obj = cls(name=name)
+            session.add(obj)
+            return obj
+
 
 class Package(DeclarativeBase):
     __tablename__ = 'package'
     name = Column(UnicodeText, primary_key=True)
+
+    @classmethod
+    def get_or_create(cls, name):
+        try:
+            return cls.query.filter_by(name=name).one()
+        except NoResultFound:
+            obj = cls(name=name)
+            session.add(obj)
+            return obj
 
 
 class Message(DeclarativeBase, BaseMessage):
