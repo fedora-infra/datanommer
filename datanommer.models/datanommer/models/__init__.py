@@ -14,6 +14,8 @@ from sqlalchemy.orm import (
     backref,
 )
 
+from sqlalchemy import or_, between
+
 from sqlalchemy.orm import validates
 
 
@@ -21,6 +23,7 @@ from sqlalchemy.schema import Table
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.hybrid import hybrid_property
 
+import math
 import datetime
 import fedmsg.encoding
 
@@ -176,6 +179,64 @@ class Message(DeclarativeBase, BaseMessage):
                          backref=backref('messages'))
     packages = relationship("Package", secondary=pack_assoc_table,
                             backref=backref('messages'))
+
+    @classmethod
+    def grep(cls, start, end,
+             page=1, rows_per_page=100,
+             users=None, packages=None,
+             categories=None, topics=None):
+        """ Flexible query interface for messages.
+
+        Arguments are filters.  start and end should be :mod:`datetime` objs.
+
+        Other filters should be lists of strings.  They are applied in a
+        conjunctive-normal-form (CNF) kind of way
+
+        for example, the following::
+
+          users = ['ralph', 'lmacken']
+          categories = ['bodhi', 'wiki']
+
+        should return messages where
+
+          (user=='ralph' OR user=='lmacken') AND
+          (category=='bodhi' OR category=='wiki')
+        """
+
+        users = users or []
+        packages = packages or []
+        categories = categories or []
+        topics = topics or []
+
+        query = Message.query
+
+        # All queries have a time range applied to them
+        query = query.filter(between(Message.timestamp, start, end))
+
+        query = query.filter(or_(
+            *[Message.users.any(User.name == u) for u in users]
+        ))
+        query = query.filter(or_(
+            *[Message.packages.any(Package.name == p) for p in packages]
+        ))
+        query = query.filter(or_(
+            *[Message.category == category for category in categories]
+        ))
+        query = query.filter(or_(
+            *[Message.topic == topic for topic in topics]
+        ))
+
+        total = query.count()
+        pages = int(math.ceil(total / float(rows_per_page)))
+
+        query = query.order_by(Message.timestamp)
+
+        query = query.offset(rows_per_page * (page - 1)).limit(rows_per_page)
+
+        # Execute!
+        messages = query.all()
+
+        return total, pages, messages
 
 models = frozenset((
     v for k, v in locals().items()
