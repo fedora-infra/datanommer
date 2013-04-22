@@ -134,6 +134,7 @@ class BaseMessage(object):
         for f in filters:
             if f in topic:
                 self.category = f
+                break
             else:
                 self.category = 'Unclassified'
 
