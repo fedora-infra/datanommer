@@ -152,8 +152,113 @@ You should see a line similar to::
 
     1|1|org.fedoraproject.dev.logger.log|2012-11-30 23:33:12.077429|||{"log": "this is a test"}
 
+
+Programming against the datanommer API
+--------------------------------------
+
+The ``datanommer.models`` module provides an API that will let other trusted
+applications make queries against datanommer.  It was designed specifically
+for use by the `datagrepper <https://github.com/fedora-infra/datagrepper>`_
+and `fedbadges <https://github.com/fedora-infra/fedbadges>`_ applications.
+Untrusted applications will have to go another route (like make http GET
+queries on datagrepper); we simply can't allow them a direct connection
+to the datanommer database.
+
+*Querying Messages*
+
+Before making any queries, you'll need to initialize the module-level session
+for ``datanommer.models``:
+
+.. code-block:: python
+
+   import datanommer.models as m
+   url = 'sqlite:///some_database.db'
+   m.init(url)
+
+In our production environment, datanommer's db URL is kept in
+``/etc/fedmsg.d/``, so you can conveniently access it like this:
+
+.. code-block:: python
+
+   import fedmsg.config
+   config = fedmsg.config.load_config()
+   url = config['datanommer.sqlalchemy.url']
+
+   import datanommer.models as m
+   m.init(url)
+
+You can query datanommer from python like this:
+
+.. code-block:: python
+
+   import datetime
+
+   # Get all messages in the last hour
+   then = datetime.datetime.now() - datetime.timedelta(hours=1)
+   messages = m.Message.query.filter(m.Message.timestamp>=then).all()
+
+It's SQLAlchemy, after all.  You can query for only bodhi messages like this:
+
+.. code-block:: python
+
+   messages = m.Message.query.filter(m.Message.category=='bodhi').all()
+
+Another useful query might be to find all the messages for the user
+`@lmacken <https://github.com/lmacken>`_ which you could accomplish with this:
+
+.. code-block:: python
+
+   user = m.User.query.filter(m.User.name=='lmacken').one()
+   messages = user.messages
+
+Conversely, you can get the ``User`` and ``Package`` objects associated
+with a message by accessing attributes:
+
+.. code-block:: python
+
+   message = m.Message.query.first()
+   packages = message.packages
+   users = message.users
+
+*Formatting Messages*
+
+The raw JSON message is accessible from a ``.msg`` attribute:
+
+.. code-block:: python
+
+   for message in messages:
+       print message.msg
+
+Of course, the datanommer Message model plays nice with fedmsg's utilities.
+You can use ``fedmsg.encoding`` to print a nicely formatted version of
+your query:
+
+.. code-block:: python
+
+   import fedmsg.encoding
+   for message in messages:
+       print fedmsg.encoding.pretty_dumps(message)
+
+And, if you ``yum install python-fedmsg-meta-fedora-infrastructure``, you'll
+have access to all the metadata processors provided there.  Install it and try:
+
+.. code-block:: python
+
+   import fedmsg.config
+   import fedmsg.meta
+
+   config = fedmsg.config.load_config()
+
+   for message in messages
+       print fedmsg.meta.msg2title(message, **config)
+       print " ", fedmsg.meta.msg2subtitle(message, **config)
+
+Take a look at the `list of topics and message types
+<http://fedmsg.com/en/latest/topics/>`_ that ``fedmsg.meta`` understands.
+
 Migration with Alembic
 -----------------------
+
 When the database models are changed, we use alembic to retain the data. \
 Alembic is located in the models::
 
@@ -169,7 +274,7 @@ If your models are up to date, you should see::
     INFO  [alembic.migration] Will assume transactional DDL.
     Current revision for sqlite:///../datanommer.db: 198447250956 -> ae2801c4cd9 (head), add category column
 
-If you result is::
+If your result is::
 
     INFO  [alembic.migration] Context impl SQLiteImpl.
     INFO  [alembic.migration] Will assume transactional DDL.
