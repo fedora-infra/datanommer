@@ -31,4 +31,8 @@ class Nommer(fedmsg.consumers.FedmsgConsumer):
 
     def consume(self, message):
         log.debug("Nomming %r" % message)
-        datanommer.models.add(message['body'])
+        try:
+            datanommer.models.add(message['body'])
+        except Exception as e:
+            log.error("Got error: %s" % str(e))
+            datanommer.models.session.rollback()

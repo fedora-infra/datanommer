@@ -207,6 +207,7 @@ class Message(DeclarativeBase, BaseMessage):
     @classmethod
     def grep(cls, start, end,
              page=1, rows_per_page=100,
+             order="asc",
              users=None, packages=None,
              categories=None, topics=None):
         """ Flexible query interface for messages.
@@ -253,7 +254,7 @@ class Message(DeclarativeBase, BaseMessage):
         total = query.count()
         pages = int(math.ceil(total / float(rows_per_page)))
 
-        query = query.order_by(Message.timestamp)
+        query = query.order_by(getattr(Message.timestamp, order)())
 
         query = query.offset(rows_per_page * (page - 1)).limit(rows_per_page)
 
