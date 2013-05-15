@@ -233,15 +233,8 @@ class Message(DeclarativeBase, BaseMessage):
         categories = categories or []
         topics = topics or []
 
-        if (not start and not end) and not users and not packages \
-                and not categories and not topics:
-            raise ValueError('You need to specify at least one filter '
-                             'either timed, users, packages, categories '
-                             'or topics based')
-
         query = Message.query
 
-        # All queries have a time range applied to them
         if start and end:
             query = query.filter(between(Message.timestamp, start, end))
 
