@@ -11,7 +11,7 @@ Files
  - plot-conf.cnf - A GNUPlot config file.
 
  - activity.png - Final result.  Graph of a week of developer activity gathered
-   from datanommer: http://github.com/ralphbean/datanommer/
+   from datanommer: http://github.com/fedora-infra/datanommer/
    
 
 Usage
