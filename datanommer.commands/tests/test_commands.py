@@ -38,7 +38,7 @@ class TestCommands(unittest.TestCase):
                 'version': 1
             }
         }
-        self.config.update(fedmsg.config.defaults)
+        self.config.update(fedmsg.config.load_config())
         datanommer.models.init(uri=uri, create=True)
 
     def tearDown(self):
