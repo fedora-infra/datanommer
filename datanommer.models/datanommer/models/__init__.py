@@ -205,7 +205,7 @@ class Message(DeclarativeBase, BaseMessage):
                             backref=backref('messages'))
 
     @classmethod
-    def grep(cls, start, end,
+    def grep(cls, start=None, end=None,
              page=1, rows_per_page=100,
              order="asc",
              users=None, packages=None,
@@ -233,10 +233,17 @@ class Message(DeclarativeBase, BaseMessage):
         categories = categories or []
         topics = topics or []
 
+        if (not start and not end) and not users and not packages \
+                and not categories and not topics:
+            raise ValueError('You need to specify at least one filter '
+                             'either timed, users, packages, categories '
+                             'or topics based')
+
         query = Message.query
 
         # All queries have a time range applied to them
-        query = query.filter(between(Message.timestamp, start, end))
+        if start and end:
+            query = query.filter(between(Message.timestamp, start, end))
 
         query = query.filter(or_(
             *[Message.users.any(User.name == u) for u in users]
