@@ -4,7 +4,7 @@ datanommer
 .. split here
 
 This is datanommer.  It is comprised of only a `fedmsg
-<http://github.com/ralphbean/fedmsg>`_ consumer that stuffs every message in a
+<http://github.com/fedora-infra/fedmsg>`_ consumer that stuffs every message in a
 sqlalchemy database.
 
 There are also a handful of CLI tools to dump information from the database.
@@ -60,7 +60,7 @@ Get::
     $ sudo yum install python-virtualenv openssl-devel zeromq-devel gcc
 
 **Note:** If submitting patches, you should check \
-`Contributing <http://fedmsg.readthedocs.org/en/latest/contributing/>`_ \
+`Contributing <http://fedmsg.com/en/latest/contributing/>`_ \
 for style guidelines.
 
 
@@ -84,11 +84,11 @@ The source code is on github.
 
 Get fedmsg::
 
-    (datanommer)$ git clone https://github.com/ralphbean/fedmsg.git
+    (datanommer)$ git clone https://github.com/fedora-infra/fedmsg.git
 
 Get datanommer::
 
-    (datanommer)$ git clone https://github.com/ralphbean/datanommer.git
+    (datanommer)$ git clone https://github.com/fedora-infra/datanommer.git
 
 Set up fedmsg::
 

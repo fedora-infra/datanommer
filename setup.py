@@ -35,7 +35,7 @@ setup(name='datanommer',
       long_description=long_description,
       author='Ralph Bean',
       author_email='rbean@redhat.com',
-      url='http://github.com/ralphbean/datanommer',
+      url='http://github.com/fedora-infra/datanommer',
       license='GPLv3+',
       install_requires=[
           "datanommer.consumer",
