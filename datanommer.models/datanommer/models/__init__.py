@@ -205,7 +205,7 @@ class Message(DeclarativeBase, BaseMessage):
                             backref=backref('messages'))
 
     @classmethod
-    def grep(cls, start, end,
+    def grep(cls, start=None, end=None,
              page=1, rows_per_page=100,
              order="asc",
              users=None, packages=None,
@@ -235,8 +235,14 @@ class Message(DeclarativeBase, BaseMessage):
 
         query = Message.query
 
-        # All queries have a time range applied to them
-        query = query.filter(between(Message.timestamp, start, end))
+        # A little argument validation.  We could provide some defaults in
+        # these mixed cases.. but instead we'll just leave it up to our caller.
+        if (start and not end) or (end and not start):
+            raise ValueError("Either both start and end must be specified "
+                             "or neither must be specified")
+
+        if start and end:
+            query = query.filter(between(Message.timestamp, start, end))
 
         query = query.filter(or_(
             *[Message.users.any(User.name == u) for u in users]
