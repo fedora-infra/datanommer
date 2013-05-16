@@ -105,12 +105,19 @@ Switch to datanommer::
 
 Please note that you should set up the three packages in the following \
 sequence: "datanommer.models", "datanommer.commands" and \
-"datanommer.consumer". Go to the three subfolders in sequence and type::
+"datanommer.consumer".
+
+There is a script that will do this for you::
+
+    (datanommer)$ ./.travis-dev-setup.sh
+
+Or, if for some reason you wanted to do it on your own, go to the three
+subfolders in sequence and type::
 
     (datanommer)$ git checkout develop
     (datanommer)$ python setup.py develop
 
-Create datanommer db::
+Finally, initialize the datanommer db::
 
     (datanommer)$ datanommer-create-db
 
