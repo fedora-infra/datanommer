@@ -235,6 +235,12 @@ class Message(DeclarativeBase, BaseMessage):
 
         query = Message.query
 
+        # A little argument validation.  We could provide some defaults in
+        # these mixed cases.. but instead we'll just leave it up to our caller.
+        if (start and not end) or (end and not start):
+            raise ValueError("Either both start and end must be specified "
+                             "or neither must be specified")
+
         if start and end:
             query = query.filter(between(Message.timestamp, start, end))
 
