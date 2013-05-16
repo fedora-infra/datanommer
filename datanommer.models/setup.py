@@ -9,7 +9,7 @@ long_description = f.read().strip()
 long_description = long_description.split('split here', 1)[1]
 f.close()
 
-version = '0.4.4'
+version = '0.4.5'
 
 setup(name='datanommer.models',
       version=version,
@@ -17,7 +17,7 @@ setup(name='datanommer.models',
       long_description=long_description,
       author='Ralph Bean',
       author_email='rbean@redhat.com',
-      url='http://github.com/ralphbean/datanommer',
+      url='http://github.com/fedora-infra/datanommer',
       license='GPLv3+',
       packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
       namespace_packages=['datanommer'],
