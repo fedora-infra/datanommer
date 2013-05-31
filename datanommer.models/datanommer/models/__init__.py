@@ -209,7 +209,8 @@ class Message(DeclarativeBase, BaseMessage):
              page=1, rows_per_page=100,
              order="asc",
              users=None, packages=None,
-             categories=None, topics=None):
+             categories=None, topics=None,
+             defer=False):
         """ Flexible query interface for messages.
 
         Arguments are filters.  start and end should be :mod:`datetime` objs.
@@ -226,6 +227,9 @@ class Message(DeclarativeBase, BaseMessage):
 
           (user=='ralph' OR user=='lmacken') AND
           (category=='bodhi' OR category=='wiki')
+
+        If the `defer` argument evaluates to True, the query won't actually
+        be executed, but a SQLAlchemy query object returned instead.
         """
 
         users = users or []
@@ -264,10 +268,12 @@ class Message(DeclarativeBase, BaseMessage):
 
         query = query.offset(rows_per_page * (page - 1)).limit(rows_per_page)
 
-        # Execute!
-        messages = query.all()
-
-        return total, pages, messages
+        if defer:
+            return total, page, query
+        else:
+            # Execute!
+            messages = query.all()
+            return total, pages, messages
 
 models = frozenset((
     v for k, v in locals().items()
