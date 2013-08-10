@@ -117,6 +117,8 @@ class BaseMessage(object):
     certificate = Column(UnicodeText)
     signature = Column(UnicodeText)
     category = Column(UnicodeText, nullable=False)
+    source_name = Column(UnicodeText, default="datanommer")
+    source_version = Column(UnicodeText, default="0")
     _msg = Column(UnicodeText, nullable=False)
 
     @validates('topic')
