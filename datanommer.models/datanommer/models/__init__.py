@@ -23,6 +23,8 @@ from sqlalchemy.schema import Table
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.hybrid import hybrid_property
 
+import pkg_resources
+
 import math
 import datetime
 import fedmsg.encoding
@@ -109,6 +111,11 @@ def add(message):
     session.commit()
 
 
+def source_version_default(context):
+    dist = pkg_resources.get_distribution("datanommer.models")
+    return dist.version
+
+
 class BaseMessage(object):
     id = Column(Integer, primary_key=True)
     i = Column(Integer, nullable=False)
@@ -118,7 +125,7 @@ class BaseMessage(object):
     signature = Column(UnicodeText)
     category = Column(UnicodeText, nullable=False)
     source_name = Column(UnicodeText, default="datanommer")
-    source_version = Column(UnicodeText, default="0")
+    source_version = Column(UnicodeText, default=source_version_default)
     _msg = Column(UnicodeText, nullable=False)
 
     @validates('topic')
