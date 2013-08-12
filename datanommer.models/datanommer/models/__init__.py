@@ -23,6 +23,8 @@ from sqlalchemy.schema import Table
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.hybrid import hybrid_property
 
+import pkg_resources
+
 import math
 import datetime
 import fedmsg.encoding
@@ -109,6 +111,11 @@ def add(message):
     session.commit()
 
 
+def source_version_default(context):
+    dist = pkg_resources.get_distribution("datanommer.models")
+    return dist.version
+
+
 class BaseMessage(object):
     id = Column(Integer, primary_key=True)
     i = Column(Integer, nullable=False)
@@ -117,6 +124,8 @@ class BaseMessage(object):
     certificate = Column(UnicodeText)
     signature = Column(UnicodeText)
     category = Column(UnicodeText, nullable=False)
+    source_name = Column(UnicodeText, default="datanommer")
+    source_version = Column(UnicodeText, default=source_version_default)
     _msg = Column(UnicodeText, nullable=False)
 
     @validates('topic')
@@ -262,11 +271,13 @@ class Message(DeclarativeBase, BaseMessage):
         ))
 
         total = query.count()
-        pages = int(math.ceil(total / float(rows_per_page)))
-
         query = query.order_by(getattr(Message.timestamp, order)())
 
-        query = query.offset(rows_per_page * (page - 1)).limit(rows_per_page)
+        if rows_per_page is None:
+            pages = 1
+        else:
+            pages = int(math.ceil(total / float(rows_per_page)))
+            query = query.offset(rows_per_page * (page - 1)).limit(rows_per_page)
 
         if defer:
             return total, page, query
