@@ -271,11 +271,13 @@ class Message(DeclarativeBase, BaseMessage):
         ))
 
         total = query.count()
-        pages = int(math.ceil(total / float(rows_per_page)))
-
         query = query.order_by(getattr(Message.timestamp, order)())
 
-        query = query.offset(rows_per_page * (page - 1)).limit(rows_per_page)
+        if rows_per_page is None:
+            pages = 1
+        else:
+            pages = int(math.ceil(total / float(rows_per_page)))
+            query = query.offset(rows_per_page * (page - 1)).limit(rows_per_page)
 
         if defer:
             return total, page, query
