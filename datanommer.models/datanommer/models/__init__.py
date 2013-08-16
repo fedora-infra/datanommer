@@ -124,7 +124,7 @@ class BaseMessage(object):
     certificate = Column(UnicodeText)
     signature = Column(UnicodeText)
     category = Column(UnicodeText, nullable=False)
-    source_name = Column(UnicodeText, default="datanommer")
+    source_name = Column(UnicodeText, default=u"datanommer")
     source_version = Column(UnicodeText, default=source_version_default)
     _msg = Column(UnicodeText, nullable=False)
 
