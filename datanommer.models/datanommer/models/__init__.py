@@ -250,7 +250,7 @@ class Message(DeclarativeBase, BaseMessage):
 
         # A little argument validation.  We could provide some defaults in
         # these mixed cases.. but instead we'll just leave it up to our caller.
-        if (start and not end) or (end and not start):
+        if (start != None and end == None) or (end != None and start == None):
             raise ValueError("Either both start and end must be specified "
                              "or neither must be specified")
 
