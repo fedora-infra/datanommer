@@ -4,6 +4,9 @@ git.branch.* => git.branch
 git.lookaside.*.new => git.lookaside.new
 git.receive.* => git.receive
 
+Data is added to allow the messages to be parsed by the meta. Certificates and
+signatures are removed.
+
 There is no downgrade section as this is not a schema change. This revision
 cannot be reversed.
 
@@ -31,21 +34,42 @@ def upgrade():
     branch = m.Message.topic.like(u'%.git.branch.%')
     for msg in m.Message.query.filter(branch).yield_per(100):
         prefix, suffix = msg.topic.split(u'.git.branch.')
+        # Fix topic
         msg.topic = prefix + '.git.branch'
+        # Fix message contents
+        message = msg.msg
+        message['name'] = '.'.join(suffix.split('.')[0:-1])
+        message['branch'] = suffix.split('.')[-1]
+        msg.msg = message
+        # Drop cert and sig
+        msg.certificate = None
+        msg.signature = None
         m.session.add(msg)
 
     # git.lookaside.*.new
     lookaside = m.Message.topic.like(u'%.git.lookaside.%.new')
     for msg in m.Message.query.filter(lookaside).yield_per(100):
         prefix, suffix = msg.topic.split(u'.git.lookaside.')
+        # Fix topic
         msg.topic = prefix + '.git.lookaside.new'
+        # Drop cert and sig
+        msg.certificate = None
+        msg.signature = None
         m.session.add(msg)
 
     # git.receive
     receive = m.Message.topic.like(u'%.git.receive.%')
     for msg in m.Message.query.filter(receive).yield_per(100):
         prefix, suffix = msg.topic.split(u'.git.receive.')
+        # Fix topic
         msg.topic = prefix + '.git.receive'
+        # Fix message contents
+        message = msg.msg
+        message['commit']['repo'] = '.'.join(suffix.split('.')[0:-1])
+        msg.msg = message
+        # Drop cert and sig
+        msg.certificate = None
+        msg.signature = None
         m.session.add(msg)
 
     m.session.commit()
