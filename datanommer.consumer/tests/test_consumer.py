@@ -41,13 +41,13 @@ class TestConsumer(unittest.TestCase):
     def tearDown(self):
         os.remove(filename)
 
-    def test_duplicate_uuid(self):
+    def test_duplicate_msg_id(self):
         example_message = dict(
             topic="topiclol",
             body=dict(
                 topic="topiclol",
                 i=1,
-                uuid="1234",
+                msg_id="1234",
                 timestamp=1234,
                 msg=dict(
                     foo="bar",
