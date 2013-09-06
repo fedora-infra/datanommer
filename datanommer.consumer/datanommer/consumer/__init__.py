@@ -38,8 +38,8 @@ class Nommer(fedmsg.consumers.FedmsgConsumer):
         except sqlalchemy.exc.IntegrityError as e:
             log.error("Got error: %s" % str(e))
             datanommer.models.session.rollback()
-            fedmsg.publish(topic='datanommer.wat', {'exception': str(e),
-                                                    'msg': message})
+            fedmsg.publish(topic='datanommer.wat', msg={'exception': str(e),
+                                                        'msg': message})
         except Exception as e:
             log.error("Got error: %s" % str(e))
             datanommer.models.session.rollback()

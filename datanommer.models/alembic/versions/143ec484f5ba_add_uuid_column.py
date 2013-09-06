@@ -1,4 +1,4 @@
-"""Add uuid column
+"""Add msg_id column
 
 Revision ID: 143ec484f5ba
 Revises: 2affa1daa804
@@ -15,11 +15,11 @@ import sqlalchemy as sa
 
 
 def upgrade():
-    op.add_column('messages', sa.Column('uuid', sa.UnicodeText, nullable=True,
+    op.add_column('messages', sa.Column('msg_id', sa.UnicodeText, nullable=True,
                                         unique=True, default=None))
     pass
 
 
 def downgrade():
-    op.drop_column('messages', 'uuid')
+    op.drop_column('messages', 'msg_id')
     pass
