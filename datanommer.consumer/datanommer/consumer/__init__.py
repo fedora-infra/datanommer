@@ -1,5 +1,7 @@
+import fedmsg
 import fedmsg.consumers
 import datanommer.models
+import sqlalchemy.exc
 
 DEFAULTS = {
     'datanommer.enabled': False,
@@ -33,6 +35,11 @@ class Nommer(fedmsg.consumers.FedmsgConsumer):
         log.debug("Nomming %r" % message)
         try:
             datanommer.models.add(message['body'])
+        except sqlalchemy.exc.IntegrityError as e:
+            log.error("Got error: %s" % str(e))
+            datanommer.models.session.rollback()
+            fedmsg.publish(topic='datanommer.wat', {'exception': str(e),
+                                                    'msg': message})
         except Exception as e:
             log.error("Got error: %s" % str(e))
             datanommer.models.session.rollback()
