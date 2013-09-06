@@ -78,7 +78,7 @@ def add(message):
 
     obj = Message(
         i=message['i'],
-        msg_id=message['msg_id'],
+        msg_id=message.get('msg_id', None),
         topic=message['topic'],
         timestamp=timestamp,
         certificate=message.get('certificate', None),
