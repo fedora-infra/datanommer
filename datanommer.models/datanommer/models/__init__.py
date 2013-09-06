@@ -222,7 +222,7 @@ class Message(DeclarativeBase, BaseMessage):
     @classmethod
     def grep(cls, start=None, end=None,
              page=1, rows_per_page=100,
-             order="asc",
+             order="asc", uuid=None,
              users=None, packages=None,
              categories=None, topics=None,
              defer=False):
@@ -262,6 +262,9 @@ class Message(DeclarativeBase, BaseMessage):
 
         if start and end:
             query = query.filter(between(Message.timestamp, start, end))
+
+        if uuid:
+            query = query.filter(Message.uuid == uuid)
 
         query = query.filter(or_(
             *[Message.users.any(User.name == u) for u in users]
