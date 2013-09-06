@@ -78,6 +78,7 @@ def add(message):
 
     obj = Message(
         i=message['i'],
+        uuid=message['uuid'],
         topic=message['topic'],
         timestamp=timestamp,
         certificate=message.get('certificate', None),
