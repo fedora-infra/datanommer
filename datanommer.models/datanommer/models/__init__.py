@@ -165,6 +165,8 @@ class BaseMessage(object):
             certificate=self.certificate,
             signature=self.signature,
             msg=self.msg,
+            source_name=self.source_name,
+            source_version=self.source_version,
         )
 
 user_assoc_table = Table('user_messages', DeclarativeBase.metadata,
