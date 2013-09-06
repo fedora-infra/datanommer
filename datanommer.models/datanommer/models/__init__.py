@@ -118,6 +118,7 @@ def source_version_default(context):
 
 class BaseMessage(object):
     id = Column(Integer, primary_key=True)
+    uuid = Column(UnicodeText, nullable=True, unique=True, default=None)
     i = Column(Integer, nullable=False)
     topic = Column(UnicodeText, nullable=False)
     timestamp = Column(DateTime, nullable=False)
@@ -157,9 +158,14 @@ class BaseMessage(object):
     def msg(self, dict_like_msg):
         self._msg = fedmsg.encoding.dumps(dict_like_msg)
 
+    @classmethod
+    def from_uuid(cls, uuid):
+        return cls.query.filter(cls.uuid == uuid).first()
+
     def __json__(self, request=None):
         return dict(
             i=self.i,
+            uuid=self.uuid,
             topic=self.topic,
             timestamp=self.timestamp,
             certificate=self.certificate,
