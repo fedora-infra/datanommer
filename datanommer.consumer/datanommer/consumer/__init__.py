@@ -41,6 +41,11 @@ class Nommer(fedmsg.consumers.FedmsgConsumer):
             # Assume it's all the uuid/msg_id's fault and try again
             uuid = message['body'].get('msg_id', None)
             message['body']['msg_id'] = None
+            # Also remove cert and sig
+            if 'certificate' in message['body']:
+                del message['body']['certificate']
+            if 'signature' in message['body']:
+                del message['body']['signature']
             try:
                 datanommer.models.add(message['body'])
             except Exception as e:
