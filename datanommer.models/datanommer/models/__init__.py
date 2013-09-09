@@ -78,6 +78,7 @@ def add(message):
 
     obj = Message(
         i=message['i'],
+        msg_id=message.get('msg_id', None),
         topic=message['topic'],
         timestamp=timestamp,
         certificate=message.get('certificate', None),
@@ -118,13 +119,14 @@ def source_version_default(context):
 
 class BaseMessage(object):
     id = Column(Integer, primary_key=True)
+    msg_id = Column(UnicodeText, nullable=True, unique=True, default=None)
     i = Column(Integer, nullable=False)
     topic = Column(UnicodeText, nullable=False)
     timestamp = Column(DateTime, nullable=False)
     certificate = Column(UnicodeText)
     signature = Column(UnicodeText)
     category = Column(UnicodeText, nullable=False)
-    source_name = Column(UnicodeText, default="datanommer")
+    source_name = Column(UnicodeText, default=u"datanommer")
     source_version = Column(UnicodeText, default=source_version_default)
     _msg = Column(UnicodeText, nullable=False)
 
@@ -157,14 +159,21 @@ class BaseMessage(object):
     def msg(self, dict_like_msg):
         self._msg = fedmsg.encoding.dumps(dict_like_msg)
 
+    @classmethod
+    def from_msg_id(cls, msg_id):
+        return cls.query.filter(cls.msg_id == msg_id).first()
+
     def __json__(self, request=None):
         return dict(
             i=self.i,
+            msg_id=self.msg_id,
             topic=self.topic,
             timestamp=self.timestamp,
             certificate=self.certificate,
             signature=self.signature,
             msg=self.msg,
+            source_name=self.source_name,
+            source_version=self.source_version,
         )
 
 user_assoc_table = Table('user_messages', DeclarativeBase.metadata,
@@ -216,7 +225,7 @@ class Message(DeclarativeBase, BaseMessage):
     @classmethod
     def grep(cls, start=None, end=None,
              page=1, rows_per_page=100,
-             order="asc",
+             order="asc", msg_id=None,
              users=None, packages=None,
              categories=None, topics=None,
              defer=False):
@@ -250,12 +259,15 @@ class Message(DeclarativeBase, BaseMessage):
 
         # A little argument validation.  We could provide some defaults in
         # these mixed cases.. but instead we'll just leave it up to our caller.
-        if (start and not end) or (end and not start):
+        if (start != None and end == None) or (end != None and start == None):
             raise ValueError("Either both start and end must be specified "
                              "or neither must be specified")
 
         if start and end:
             query = query.filter(between(Message.timestamp, start, end))
+
+        if msg_id:
+            query = query.filter(Message.msg_id == msg_id)
 
         query = query.filter(or_(
             *[Message.users.any(User.name == u) for u in users]
