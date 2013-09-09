@@ -1,5 +1,7 @@
+import fedmsg
 import fedmsg.consumers
 import datanommer.models
+import sqlalchemy.exc
 
 DEFAULTS = {
     'datanommer.enabled': False,
@@ -34,5 +36,16 @@ class Nommer(fedmsg.consumers.FedmsgConsumer):
         try:
             datanommer.models.add(message['body'])
         except Exception as e:
-            log.error("Got error: %s" % str(e))
+            log.error("Got error (trying without uuid): %s" % str(e))
             datanommer.models.session.rollback()
+            # Assume it's all the uuid/msg_id's fault and try again
+            uuid = message['body'].get('msg_id', None)
+            message['body']['msg_id'] = None
+            try:
+                datanommer.models.add(message['body'])
+            except Exception as e:
+                log.error("Got error (again): %s" % str(e))
+                datanommer.models.session.rollback()
+            else:
+                # Adding the message succeeded, so it's time to tell somebody
+                fedmsg.publish(topic='datanommer.wat', msg={'uuid': uuid})
