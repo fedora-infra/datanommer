@@ -78,6 +78,7 @@ def add(message):
 
     obj = Message(
         i=message['i'],
+        msg_id=message.get('msg_id', None),
         topic=message['topic'],
         timestamp=timestamp,
         certificate=message.get('certificate', None),
@@ -118,6 +119,7 @@ def source_version_default(context):
 
 class BaseMessage(object):
     id = Column(Integer, primary_key=True)
+    msg_id = Column(UnicodeText, nullable=True, unique=True, default=None)
     i = Column(Integer, nullable=False)
     topic = Column(UnicodeText, nullable=False)
     timestamp = Column(DateTime, nullable=False)
@@ -157,9 +159,14 @@ class BaseMessage(object):
     def msg(self, dict_like_msg):
         self._msg = fedmsg.encoding.dumps(dict_like_msg)
 
+    @classmethod
+    def from_msg_id(cls, msg_id):
+        return cls.query.filter(cls.msg_id == msg_id).first()
+
     def __json__(self, request=None):
         return dict(
             i=self.i,
+            msg_id=self.msg_id,
             topic=self.topic,
             timestamp=self.timestamp,
             certificate=self.certificate,
@@ -218,7 +225,7 @@ class Message(DeclarativeBase, BaseMessage):
     @classmethod
     def grep(cls, start=None, end=None,
              page=1, rows_per_page=100,
-             order="asc",
+             order="asc", msg_id=None,
              users=None, packages=None,
              categories=None, topics=None,
              defer=False):
@@ -258,6 +265,9 @@ class Message(DeclarativeBase, BaseMessage):
 
         if start and end:
             query = query.filter(between(Message.timestamp, start, end))
+
+        if msg_id:
+            query = query.filter(Message.msg_id == msg_id)
 
         query = query.filter(or_(
             *[Message.users.any(User.name == u) for u in users]
