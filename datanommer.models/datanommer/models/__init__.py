@@ -269,18 +269,25 @@ class Message(DeclarativeBase, BaseMessage):
         if msg_id:
             query = query.filter(Message.msg_id == msg_id)
 
-        query = query.filter(or_(
-            *[Message.users.any(User.name == u) for u in users]
-        ))
-        query = query.filter(or_(
-            *[Message.packages.any(Package.name == p) for p in packages]
-        ))
-        query = query.filter(or_(
-            *[Message.category == category for category in categories]
-        ))
-        query = query.filter(or_(
-            *[Message.topic == topic for topic in topics]
-        ))
+        if users:
+            query = query.filter(or_(
+                *[Message.users.any(User.name == u) for u in users]
+            ))
+
+        if packages:
+            query = query.filter(or_(
+                *[Message.packages.any(Package.name == p) for p in packages]
+            ))
+
+        if categories:
+            query = query.filter(or_(
+                *[Message.category == category for category in categories]
+            ))
+
+        if topics:
+            query = query.filter(or_(
+                *[Message.topic == topic for topic in topics]
+            ))
 
         total = query.count()
         query = query.order_by(getattr(Message.timestamp, order)())
