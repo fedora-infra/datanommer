@@ -189,7 +189,8 @@ pack_assoc_table = Table('package_messages', DeclarativeBase.metadata,
 
 class User(DeclarativeBase):
     __tablename__ = 'user'
-    name = Column(UnicodeText, primary_key=True)
+
+    name = Column(UnicodeText, primary_key=True, index=True)
 
     @classmethod
     def get_or_create(cls, name):
@@ -203,7 +204,8 @@ class User(DeclarativeBase):
 
 class Package(DeclarativeBase):
     __tablename__ = 'package'
-    name = Column(UnicodeText, primary_key=True)
+
+    name = Column(UnicodeText, primary_key=True, index=True)
 
     @classmethod
     def get_or_create(cls, name):
