@@ -119,10 +119,10 @@ def source_version_default(context):
 
 class BaseMessage(object):
     id = Column(Integer, primary_key=True)
-    msg_id = Column(UnicodeText, nullable=True, unique=True, default=None)
+    msg_id = Column(UnicodeText, nullable=True, unique=True, default=None, index=True)
     i = Column(Integer, nullable=False)
     topic = Column(UnicodeText, nullable=False)
-    timestamp = Column(DateTime, nullable=False)
+    timestamp = Column(DateTime, nullable=False, index=True)
     certificate = Column(UnicodeText)
     signature = Column(UnicodeText)
     category = Column(UnicodeText, nullable=False)
