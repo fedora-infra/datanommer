@@ -1,6 +1,4 @@
-import datanommer.models
-from datanommer.models import Message
-from datanommer.models import session
+import datanommer.models as m
 from sqlalchemy import func
 
 from fedmsg.encoding import pretty_dumps
@@ -16,7 +14,7 @@ class CreateCommand(BaseCommand):
     name = "datanommer-create-db"
 
     def run(self):
-        datanommer.models.init(
+        m.init(
             self.config['datanommer.sqlalchemy.url'], create=True
         )
 
@@ -43,15 +41,15 @@ class DumpCommand(BaseCommand):
     ]
 
     def run(self):
-        datanommer.models.init(self.config['datanommer.sqlalchemy.url'])
+        m.init(self.config['datanommer.sqlalchemy.url'])
         config = self.config
 
-        query = Message.query
+        query = m.Message.query
         if config.get('before', None):
-            query = query.filter(Message.timestamp<=config.get('before'))
+            query = query.filter(m.Message.timestamp<=config.get('before'))
 
         if config.get('since', None):
-            query = query.filter(Message.timestamp>=config.get('since'))
+            query = query.filter(m.Message.timestamp>=config.get('since'))
 
         results = query.all()
 
@@ -81,8 +79,8 @@ class StatsCommand(BaseCommand):
         org.fedoraproject.stg.fas.group.member.apply has 17 entries
         org.fedoraproject.stg.__main__.testing has 1 entries
 
-    The --category argument can be combined with --topic to shows stats of the 
-    topics with a specific category or can be used alone to show the stats for 
+    The --category argument can be combined with --topic to shows stats of the
+    topics with a specific category or can be used alone to show the stats for
     only the one category:
 
         $ datanommer-stats --topic --category fas
@@ -112,28 +110,33 @@ class StatsCommand(BaseCommand):
     ]
 
     def run(self):
-        datanommer.models.init(self.config['datanommer.sqlalchemy.url'])
+        m.init(self.config['datanommer.sqlalchemy.url'])
         config = self.config
-
- #       if config.get('category', None):
- #           query = Message.query.filter(
- #                       Message.category == config.get('category')
- #           )
 
         if config.get('topic', None):
             if config.get('category',None):
-                query = session.query(Message.topic, func.count(Message.topic)).filter(
-                        Message.category==config.get('category'))
+                query = m.session.query(
+                    m.Message.topic, func.count(m.Message.topic)
+                ).filter(
+                    m.Message.category==config.get('category')
+                )
             else:
-                query = session.query(Message.topic, func.count(Message.topic))
-            query = query.group_by(Message.topic)
+                query = m.session.query(
+                    m.Message.topic, func.count(m.Message.topic)
+                )
+            query = query.group_by(m.Message.topic)
         else:
             if config.get('category',None):
-                query = session.query(Message.category, func.count(Message.category)).filter(
-                        Message.category==config.get('category'))
+                query = m.session.query(
+                    m.Message.category, func.count(m.Message.category)
+                ).filter(
+                    m.Message.category==config.get('category')
+                )
             else:
-                query = session.query(Message.category, func.count(Message.category))
-            query = query.group_by(Message.category)
+                query = m.session.query(
+                    m.Message.category, func.count(m.Message.category)
+                )
+            query = query.group_by(m.Message.category)
 
 
         results = query.all()
@@ -157,15 +160,15 @@ class LatestCommand(BaseCommand):
 
         $ datanommer-latest --category bodhi
         [{"bodhi": {
-          "topic": "org.fedoraproject.stg.bodhi.update.comment", 
+          "topic": "org.fedoraproject.stg.bodhi.update.comment",
           "msg": {
             "comment": {
-              "group": null, 
-              "author": "ralph", 
-              "text": "Testing for latest datanommer.", 
-              "karma": 0, 
-              "anonymous": false, 
-              "timestamp": 1360349639.0, 
+              "group": null,
+              "author": "ralph",
+              "text": "Testing for latest datanommer.",
+              "karma": 0,
+              "anonymous": false,
+              "timestamp": 1360349639.0,
               "update_title": "xmonad-0.10-10.fc17"
             },
             "agent": "ralph"
@@ -174,15 +177,15 @@ class LatestCommand(BaseCommand):
 
         $ datanommer-latest --topic org.fedoraproject.stg.bodhi.update.comment
         [{"bodhi": {
-          "topic": "org.fedoraproject.stg.bodhi.update.comment", 
+          "topic": "org.fedoraproject.stg.bodhi.update.comment",
           "msg": {
             "comment": {
-              "group": null, 
-              "author": "ralph", 
-              "text": "Testing for latest datanommer.", 
-              "karma": 0, 
-              "anonymous": false, 
-              "timestamp": 1360349639.0, 
+              "group": null,
+              "author": "ralph",
+              "text": "Testing for latest datanommer.",
+              "karma": 0,
+              "anonymous": false,
+              "timestamp": 1360349639.0,
               "update_title": "xmonad-0.10-10.fc17"
             },
             "agent": "ralph"
@@ -193,22 +196,22 @@ class LatestCommand(BaseCommand):
 
         $ datanommer-latest --overall
         [{"bodhi": {
-          "topic": "org.fedoraproject.stg.bodhi.update.comment", 
+          "topic": "org.fedoraproject.stg.bodhi.update.comment",
           "msg": {
             "comment": {
-              "group": null, 
-              "author": "ralph", 
-              "text": "Testing for latest datanommer.", 
-              "karma": 0, 
-              "anonymous": false, 
-              "timestamp": 1360349639.0, 
+              "group": null,
+              "author": "ralph",
+              "text": "Testing for latest datanommer.",
+              "karma": 0,
+              "anonymous": false,
+              "timestamp": 1360349639.0,
               "update_title": "xmonad-0.10-10.fc17"
             },
             "agent": "ralph"
           },
         }}]
 
-    You can combine either a --topic, --category or --overall argument while 
+    You can combine either a --topic, --category or --overall argument while
     requesting information about the timestamp of the latest:
 
         $ datanommer-latest --category wiki --timestamp
@@ -268,17 +271,17 @@ class LatestCommand(BaseCommand):
     ]
 
     def run(self):
-        datanommer.models.init(self.config['datanommer.sqlalchemy.url'])
+        m.init(self.config['datanommer.sqlalchemy.url'])
         config = self.config
 
         if config.get('topic', None):
             queries = [
-                Message.query.filter(Message.topic == config.get('topic'))
+                m.Message.query.filter(m.Message.topic == config.get('topic'))
             ]
 
         elif config.get('category', None):
-            queries = [Message.query.filter(
-                Message.category == config.get('category')
+            queries = [m.Message.query.filter(
+                m.Message.category == config.get('category')
             )]
         elif not config.get('overall', False):
             # If no args..
@@ -286,16 +289,16 @@ class LatestCommand(BaseCommand):
             categories = [
                 p.__name__.lower() for p in fedmsg.meta.processors
             ]
-            queries = [Message.query.filter(
-                Message.category == category
+            queries = [m.Message.query.filter(
+                m.Message.category == category
             ) for category in categories]
         else:
             # Show only the single latest message, regardless of type.
-            queries = [Message.query]
+            queries = [m.Message.query]
 
         # Order and limit to the latest.
         queries = [
-            q.order_by(Message.timestamp.desc()).limit(1)
+            q.order_by(m.Message.timestamp.desc()).limit(1)
             for q in queries
         ]
 
