@@ -52,6 +52,14 @@ def init(uri=None, alembic_ini=None, engine=None, create=False):
     if uri and not engine:
         engine = create_engine(uri)
 
+    # We need to hang our own attribute on the sqlalchemy session to stop
+    # ourselves from initializing twice.  That is only a problem is the code
+    # calling us isn't consistent.
+    if getattr(session, '_datanommer_initialized', None):
+        log.warning("Session already initialized.  Bailing")
+        return
+    session._datanommer_initialized = True
+
     session.configure(bind=engine)
     DeclarativeBase.query = session.query_property()
 
