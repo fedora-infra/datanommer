@@ -2,6 +2,8 @@ import unittest
 import mock
 import copy
 
+from sqlalchemy.orm import scoped_session
+
 from nose.tools import eq_
 
 import datanommer.consumer
@@ -9,7 +11,7 @@ import datanommer.models
 
 import os
 
-filename = "datanommer-test.db"
+filename = ":memory:"
 
 
 class TestConsumer(unittest.TestCase):
@@ -21,6 +23,7 @@ class TestConsumer(unittest.TestCase):
         config = fedmsg.config.load_config([], None)
         uri = "sqlite:///%s" % filename
         config['datanommer.sqlalchemy.url'] = uri
+        config['datanommer.enabled'] = True
         fedmsg.meta.make_processors(**config)
         cls.fedmsg_config = config
 
@@ -31,6 +34,9 @@ class TestConsumer(unittest.TestCase):
             def subscribe(*args, **kwargs):
                 pass
 
+        # We only have to do this so that we can do it over
+        # and over again for each test.
+        datanommer.models.session = scoped_session(datanommer.models.maker)
         datanommer.models.init(
             self.fedmsg_config['datanommer.sqlalchemy.url'],
             create=True,
@@ -39,7 +45,8 @@ class TestConsumer(unittest.TestCase):
         self.consumer = datanommer.consumer.Nommer(FakeHub())
 
     def tearDown(self):
-        os.remove(filename)
+        engine = datanommer.models.session.get_bind()
+        datanommer.models.DeclarativeBase.metadata.drop_all(engine)
 
     def test_duplicate_msg_id(self):
         example_message = dict(
