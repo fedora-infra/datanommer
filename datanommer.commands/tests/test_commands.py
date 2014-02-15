@@ -3,10 +3,13 @@ from mock import Mock
 from mock import patch
 from datetime import datetime
 import json
+import time
 import os
 
+from sqlalchemy.orm import scoped_session
+
 import datanommer.commands
-import datanommer.models
+import datanommer.models as m
 import fedmsg.config
 from nose.tools import (
     eq_,
@@ -26,7 +29,7 @@ except ImportError:
         ok_(item not in lst, msg)
 
 
-filename = "datanommer-test.db"
+filename = ":memory:"
 
 
 class TestCommands(unittest.TestCase):
@@ -39,40 +42,33 @@ class TestCommands(unittest.TestCase):
             }
         }
         self.config.update(fedmsg.config.load_config())
-        datanommer.models.init(uri=uri, create=True)
+        m.session = scoped_session(m.maker)
+        m.init(uri=uri, create=True)
 
     def tearDown(self):
-        datanommer.models.session.rollback()
-        os.remove(filename)
+        engine = m.session.get_bind()
+        m.DeclarativeBase.metadata.drop_all(engine)
 
     def test_stats(self):
-        from datanommer.models import session
-
-        Message = datanommer.models.Message
-
         with patch('datanommer.commands.StatsCommand.get_config') as gc:
             self.config['topic'] = False
             gc.return_value = self.config
 
-            datanommer.models.init(
-                uri=self.config['datanommer.sqlalchemy.url']
-            )
-
-            msg1 = Message(
+            msg1 = m.Message(
                 topic='org.fedoraproject.prod.git.branch.valgrind.master',
                 category='git',
                 timestamp=datetime.utcnow(),
                 i=1
             )
 
-            msg2 = Message(
+            msg2 = m.Message(
                 topic='org.fedoraproject.stg.fas.user.create',
                 category='fas',
                 timestamp=datetime.utcnow(),
                 i=1
             )
 
-            msg3 = Message(
+            msg3 = m.Message(
                 topic='org.fedoraproject.prod.git.receive.valgrind.master',
                 category='git',
                 timestamp=datetime.utcnow(),
@@ -83,8 +79,8 @@ class TestCommands(unittest.TestCase):
             msg2.msg = 'Message 2'
             msg3.msg = 'Message 3'
 
-            session.add_all([msg1, msg2, msg3])
-            session.flush()
+            m.session.add_all([msg1, msg2, msg3])
+            m.session.flush()
 
             logged_info = []
 
@@ -100,36 +96,25 @@ class TestCommands(unittest.TestCase):
             assert_in('fas has 1 entries', logged_info)
 
     def test_stats_topics(self):
-        from datanommer.models import session
-
-        Message = datanommer.models.Message
-
         with patch('datanommer.commands.StatsCommand.get_config') as gc:
             self.config['topic'] = True
             gc.return_value = self.config
 
-            datanommer.models.init(
-                uri=self.config['datanommer.sqlalchemy.url']
-            )
-            datanommer.models.init(
-                uri=self.config['datanommer.sqlalchemy.url']
-            )
-
-            msg1 = Message(
+            msg1 = m.Message(
                 topic='org.fedoraproject.prod.git.branch.valgrind.master',
                 category='git',
                 timestamp=datetime.utcnow(),
                 i=1
             )
 
-            msg2 = Message(
+            msg2 = m.Message(
                 topic='org.fedoraproject.stg.fas.user.create',
                 category='fas',
                 timestamp=datetime.utcnow(),
                 i=1
             )
 
-            msg3 = Message(
+            msg3 = m.Message(
                 topic='org.fedoraproject.prod.git.receive.valgrind.master',
                 category='git',
                 timestamp=datetime.utcnow(),
@@ -140,8 +125,8 @@ class TestCommands(unittest.TestCase):
             msg2.msg = 'Message 2'
             msg3.msg = 'Message 3'
 
-            session.add_all([msg1, msg2, msg3])
-            session.flush()
+            m.session.add_all([msg1, msg2, msg3])
+            m.session.flush()
 
             logged_info = []
 
@@ -159,37 +144,26 @@ class TestCommands(unittest.TestCase):
             assert_in('org.fedoraproject.prod.git.branch.valgrind.master has 1 entries', logged_info)
 
     def test_stats_cat_topics(self):
-        from datanommer.models import session
-
-        Message = datanommer.models.Message
-
         with patch('datanommer.commands.StatsCommand.get_config') as gc:
             self.config['topic'] = True
             self.config['category'] = 'git'
             gc.return_value = self.config
 
-            datanommer.models.init(
-                uri=self.config['datanommer.sqlalchemy.url']
-            )
-            datanommer.models.init(
-                uri=self.config['datanommer.sqlalchemy.url']
-            )
-
-            msg1 = Message(
+            msg1 = m.Message(
                 topic='org.fedoraproject.prod.git.branch.valgrind.master',
                 category='git',
                 timestamp=datetime.utcnow(),
                 i=1
             )
 
-            msg2 = Message(
+            msg2 = m.Message(
                 topic='org.fedoraproject.stg.fas.user.create',
                 category='fas',
                 timestamp=datetime.utcnow(),
                 i=1
             )
 
-            msg3 = Message(
+            msg3 = m.Message(
                 topic='org.fedoraproject.prod.git.receive.valgrind.master',
                 category='git',
                 timestamp=datetime.utcnow(),
@@ -200,8 +174,8 @@ class TestCommands(unittest.TestCase):
             msg2.msg = 'Message 2'
             msg3.msg = 'Message 3'
 
-            session.add_all([msg1, msg2, msg3])
-            session.flush()
+            m.session.add_all([msg1, msg2, msg3])
+            m.session.flush()
 
             logged_info = []
 
@@ -219,15 +193,15 @@ class TestCommands(unittest.TestCase):
             assert_in('org.fedoraproject.prod.git.branch.valgrind.master has 1 entries', logged_info)
 
     def test_dump(self):
-        Message = datanommer.models.Message
+        m.Message = datanommer.models.Message
         now = datetime.utcnow()
 
-        msg1 = Message(
+        msg1 = m.Message(
             topic='org.fedoraproject.prod.git.branch.valgrind.master',
             timestamp=now
         )
 
-        msg2 = Message(
+        msg2 = m.Message(
             topic='org.fedoraproject.prod.git.receive.valgrind.master',
             timestamp=now
         )
@@ -236,11 +210,11 @@ class TestCommands(unittest.TestCase):
         msg2.msg = 'Message 2'
         objects = [msg1, msg2]
 
-        models = [Message]
+        models = [m.Message]
 
         with patch('datanommer.models.models', models):
             with patch('datanommer.models.Message.query') as query:
-                Message.query.all = Mock(return_value=objects)
+                m.Message.query.all = Mock(return_value=objects)
 
                 with patch('datanommer.commands.DumpCommand.get_config') as gc:
                     gc.return_value = self.config
@@ -261,35 +235,29 @@ class TestCommands(unittest.TestCase):
                         'org.fedoraproject.prod.git.branch.valgrind.master')
 
     def test_dump_before(self):
-        from datanommer.models import session
-
-        Message = datanommer.models.Message
+        m.Message = datanommer.models.Message
 
         with patch('datanommer.commands.DumpCommand.get_config') as gc:
             self.config['before'] = '2013-02-16'
             gc.return_value = self.config
 
-            datanommer.models.init(
-                uri=self.config['datanommer.sqlalchemy.url']
-            )
-
             time1 = datetime(2013,02,14)
             time2 = datetime(2013,02,15)
             time3 = datetime(2013,02,16,8)
 
-            msg1 = Message(
+            msg1 = m.Message(
                 topic='org.fedoraproject.prod.git.branch.valgrind.master',
                 timestamp=time1,
                 i=4
             )
 
-            msg2 = Message(
+            msg2 = m.Message(
                 topic='org.fedoraproject.prod.git.receive.valgrind.master',
                 timestamp=time2,
                 i=3
             )
 
-            msg3 = Message(
+            msg3 = m.Message(
                 topic='org.fedoraproject.prod.log.receive.valgrind.master',
                 timestamp=time3,
                 i=2
@@ -299,8 +267,8 @@ class TestCommands(unittest.TestCase):
             msg2.msg = 'Message 2'
             msg3.msg = 'Message 3'
 
-            session.add_all([msg1, msg2, msg3])
-            session.flush()
+            m.session.add_all([msg1, msg2, msg3])
+            m.session.flush()
 
             logged_info = []
 
@@ -321,35 +289,27 @@ class TestCommands(unittest.TestCase):
             eq_(len(json_object), 2)
 
     def test_dump_since(self):
-        from datanommer.models import session
-
-        Message = datanommer.models.Message
-
         with patch('datanommer.commands.DumpCommand.get_config') as gc:
             self.config['since'] = '2013-02-14T08:00:00'
             gc.return_value = self.config
-
-            datanommer.models.init(
-                uri=self.config['datanommer.sqlalchemy.url']
-            )
 
             time1 = datetime(2013,02,14)
             time2 = datetime(2013,02,15)
             time3 = datetime(2013,02,16,8)
 
-            msg1 = Message(
+            msg1 = m.Message(
                 topic='org.fedoraproject.prod.git.branch.valgrind.master',
                 timestamp=time1,
                 i=4
             )
 
-            msg2 = Message(
+            msg2 = m.Message(
                 topic='org.fedoraproject.prod.git.receive.valgrind.master',
                 timestamp=time2,
                 i=3
             )
 
-            msg3 = Message(
+            msg3 = m.Message(
                 topic='org.fedoraproject.prod.log.receive.valgrind.master',
                 timestamp=time3,
                 i=2
@@ -359,8 +319,8 @@ class TestCommands(unittest.TestCase):
             msg2.msg = 'Message 2'
             msg3.msg = 'Message 3'
 
-            session.add_all([msg1, msg2, msg3])
-            session.flush()
+            m.session.add_all([msg1, msg2, msg3])
+            m.session.flush()
 
             logged_info = []
 
@@ -381,36 +341,28 @@ class TestCommands(unittest.TestCase):
             eq_(len(json_object), 2)
 
     def test_dump_timespan(self):
-        from datanommer.models import session
-
-        Message = datanommer.models.Message
-
         with patch('datanommer.commands.DumpCommand.get_config') as gc:
             self.config['before'] = '2013-02-16'
             self.config['since'] = '2013-02-14T08:00:00'
             gc.return_value = self.config
 
-            datanommer.models.init(
-                uri=self.config['datanommer.sqlalchemy.url']
-            )
-
             time1 = datetime(2013,02,14)
             time2 = datetime(2013,02,15)
             time3 = datetime(2013,02,16,8)
 
-            msg1 = Message(
+            msg1 = m.Message(
                 topic='org.fedoraproject.prod.git.branch.valgrind.master',
                 timestamp=time1,
                 i=4
             )
 
-            msg2 = Message(
+            msg2 = m.Message(
                 topic='org.fedoraproject.prod.git.receive.valgrind.master',
                 timestamp=time2,
                 i=3
             )
 
-            msg3 = Message(
+            msg3 = m.Message(
                 topic='org.fedoraproject.prod.log.receive.valgrind.master',
                 timestamp=time3,
                 i=2
@@ -420,8 +372,8 @@ class TestCommands(unittest.TestCase):
             msg2.msg = 'Message 2'
             msg3.msg = 'Message 3'
 
-            session.add_all([msg1, msg2, msg3])
-            session.flush()
+            m.session.add_all([msg1, msg2, msg3])
+            m.session.flush()
 
             logged_info = []
 
@@ -441,31 +393,23 @@ class TestCommands(unittest.TestCase):
 
 
     def test_latest_overall(self):
-        from datanommer.models import session
-
-        Message = datanommer.models.Message
-
         with patch('datanommer.commands.LatestCommand.get_config') as gc:
             self.config['overall'] = True
             gc.return_value = self.config
 
-            datanommer.models.init(
-                uri=self.config['datanommer.sqlalchemy.url']
-            )
-
-            msg1 = Message(
+            msg1 = m.Message(
                 topic='org.fedoraproject.prod.git.branch.valgrind.master',
                 timestamp=datetime.utcnow(),
                 i=1
             )
 
-            msg2 = Message(
+            msg2 = m.Message(
                 topic='org.fedoraproject.stg.fas.user.create',
                 timestamp=datetime.utcnow(),
                 i=1
             )
 
-            msg3 = Message(
+            msg3 = m.Message(
                 topic='org.fedoraproject.prod.git.receive.valgrind.master',
                 timestamp=datetime.utcnow(),
                 i=1
@@ -475,8 +419,8 @@ class TestCommands(unittest.TestCase):
             msg2.msg = 'Message 2'
             msg3.msg = 'Message 3'
 
-            session.add_all([msg1, msg2, msg3])
-            session.flush()
+            m.session.add_all([msg1, msg2, msg3])
+            m.session.flush()
 
             logged_info = []
 
@@ -494,31 +438,23 @@ class TestCommands(unittest.TestCase):
             eq_(len(json_object), 1)
 
     def test_latest_topic(self):
-        from datanommer.models import session
-
-        Message = datanommer.models.Message
-
         with patch('datanommer.commands.LatestCommand.get_config') as gc:
             self.config['topic'] = 'org.fedoraproject.stg.fas.user.create'
             gc.return_value = self.config
 
-            datanommer.models.init(
-                uri=self.config['datanommer.sqlalchemy.url']
-            )
-
-            msg1 = Message(
+            msg1 = m.Message(
                 topic='org.fedoraproject.prod.git.branch.valgrind.master',
                 timestamp=datetime.utcnow(),
                 i=1
             )
 
-            msg2 = Message(
+            msg2 = m.Message(
                 topic='org.fedoraproject.stg.fas.user.create',
                 timestamp=datetime.utcnow(),
                 i=1
             )
 
-            msg3 = Message(
+            msg3 = m.Message(
                 topic='org.fedoraproject.prod.git.receive.valgrind.master',
                 timestamp=datetime.utcnow(),
                 i=1
@@ -528,8 +464,8 @@ class TestCommands(unittest.TestCase):
             msg2.msg = 'Message 2'
             msg3.msg = 'Message 3'
 
-            session.add_all([msg1, msg2, msg3])
-            session.flush()
+            m.session.add_all([msg1, msg2, msg3])
+            m.session.flush()
 
             logged_info = []
 
@@ -547,33 +483,25 @@ class TestCommands(unittest.TestCase):
             eq_(len(json_object), 1)
 
     def test_latest_category(self):
-        from datanommer.models import session
-
-        Message = datanommer.models.Message
-
         with patch('datanommer.commands.LatestCommand.get_config') as gc:
             self.config['category'] = 'fas'
             gc.return_value = self.config
 
-            datanommer.models.init(
-                uri=self.config['datanommer.sqlalchemy.url']
-            )
-
-            msg1 = Message(
+            msg1 = m.Message(
                 topic='org.fedoraproject.prod.git.branch.valgrind.master',
                 category='git',
                 timestamp=datetime.utcnow(),
                 i=1
             )
 
-            msg2 = Message(
+            msg2 = m.Message(
                 topic='org.fedoraproject.stg.fas.user.create',
                 category='fas',
                 timestamp=datetime.utcnow(),
                 i=1
             )
 
-            msg3 = Message(
+            msg3 = m.Message(
                 topic='org.fedoraproject.prod.git.receive.valgrind.master',
                 category='git',
                 timestamp=datetime.utcnow(),
@@ -584,8 +512,8 @@ class TestCommands(unittest.TestCase):
             msg2.msg = 'Message 2'
             msg3.msg = 'Message 3'
 
-            session.add_all([msg1, msg2, msg3])
-            session.flush()
+            m.session.add_all([msg1, msg2, msg3])
+            m.session.flush()
 
             logged_info = []
 
@@ -603,10 +531,6 @@ class TestCommands(unittest.TestCase):
             eq_(len(json_object), 1)
 
     def test_latest_timestamp_human(self):
-        from datanommer.models import session
-
-        Message = datanommer.models.Message
-
         with patch('datanommer.commands.LatestCommand.get_config') as gc:
             self.config['overall'] = False
             self.config['timestamp'] = True
@@ -617,23 +541,19 @@ class TestCommands(unittest.TestCase):
             time2 = datetime(2013,02,15,15,15,15,15)
             time3 = datetime(2013,02,16,16,16,16,16)
 
-            datanommer.models.init(
-                uri=self.config['datanommer.sqlalchemy.url']
-            )
-
-            msg1 = Message(
+            msg1 = m.Message(
                 topic='org.fedoraproject.prod.git.branch.valgrind.master',
                 timestamp=time1,
                 i=1
             )
 
-            msg2 = Message(
+            msg2 = m.Message(
                 topic='org.fedoraproject.stg.fas.user.create',
                 timestamp=time2,
                 i=1
             )
 
-            msg3 = Message(
+            msg3 = m.Message(
                 topic='org.fedoraproject.prod.git.receive.valgrind.master',
                 timestamp=time3,
                 i=1
@@ -643,8 +563,8 @@ class TestCommands(unittest.TestCase):
             msg2.msg = 'Message 2'
             msg3.msg = 'Message 3'
 
-            session.add_all([msg1, msg2, msg3])
-            session.flush()
+            m.session.add_all([msg1, msg2, msg3])
+            m.session.flush()
 
             logged_info = []
 
@@ -663,11 +583,6 @@ class TestCommands(unittest.TestCase):
             eq_(len(json_object), 2)
 
     def test_latest_timestamp(self):
-        from datanommer.models import session
-        import time
-
-        Message = datanommer.models.Message
-
         with patch('datanommer.commands.LatestCommand.get_config') as gc:
             self.config['overall'] = False
             self.config['timestamp'] = True
@@ -677,23 +592,19 @@ class TestCommands(unittest.TestCase):
             time2 = datetime(2013,02,15)
             time3 = datetime(2013,02,16)
 
-            datanommer.models.init(
-                uri=self.config['datanommer.sqlalchemy.url']
-            )
-
-            msg1 = Message(
+            msg1 = m.Message(
                 topic='org.fedoraproject.prod.git.branch.valgrind.master',
                 timestamp=time1,
                 i=1
             )
 
-            msg2 = Message(
+            msg2 = m.Message(
                 topic='org.fedoraproject.stg.fas.user.create',
                 timestamp=time2,
                 i=1
             )
 
-            msg3 = Message(
+            msg3 = m.Message(
                 topic='org.fedoraproject.prod.git.receive.valgrind.master',
                 timestamp=time3,
                 i=1
@@ -703,8 +614,8 @@ class TestCommands(unittest.TestCase):
             msg2.msg = 'Message 2'
             msg3.msg = 'Message 3'
 
-            session.add_all([msg1, msg2, msg3])
-            session.flush()
+            m.session.add_all([msg1, msg2, msg3])
+            m.session.flush()
 
             logged_info = []
 
@@ -723,10 +634,6 @@ class TestCommands(unittest.TestCase):
             eq_(len(json_object), 2)
 
     def test_latest_timesince(self):
-        from datanommer.models import session
-
-        Message = datanommer.models.Message
-
         with patch('datanommer.commands.LatestCommand.get_config') as gc:
             self.config['overall'] = False
             self.config['timesince'] = True
@@ -737,23 +644,19 @@ class TestCommands(unittest.TestCase):
             time2 = now.replace(minute=now.minute-1)
             time3 = now.replace(second=now.second-1)
 
-            datanommer.models.init(
-                uri=self.config['datanommer.sqlalchemy.url']
-            )
-
-            msg1 = Message(
+            msg1 = m.Message(
                 topic='org.fedoraproject.prod.git.branch.valgrind.master',
                 timestamp=time1,
                 i=1
             )
 
-            msg2 = Message(
+            msg2 = m.Message(
                 topic='org.fedoraproject.stg.fas.user.create',
                 timestamp=time2,
                 i=1
             )
 
-            msg3 = Message(
+            msg3 = m.Message(
                 topic='org.fedoraproject.prod.git.receive.valgrind.master',
                 timestamp=time3,
                 i=1
@@ -763,8 +666,8 @@ class TestCommands(unittest.TestCase):
             msg2.msg = 'Message 2'
             msg3.msg = 'Message 3'
 
-            session.add_all([msg1, msg2, msg3])
-            session.flush()
+            m.session.add_all([msg1, msg2, msg3])
+            m.session.flush()
 
             logged_info = []
 
@@ -786,10 +689,6 @@ class TestCommands(unittest.TestCase):
             eq_(len(json_object), 2)
 
     def test_latest_timesince_human(self):
-        from datanommer.models import session
-
-        Message = datanommer.models.Message
-
         with patch('datanommer.commands.LatestCommand.get_config') as gc:
             self.config['overall'] = False
             self.config['timesince'] = True
@@ -801,23 +700,19 @@ class TestCommands(unittest.TestCase):
             time2 = now.replace(day=now.day-1)
             time3 = now.replace(second=now.second-1)
 
-            datanommer.models.init(
-                uri=self.config['datanommer.sqlalchemy.url']
-            )
-
-            msg1 = Message(
+            msg1 = m.Message(
                 topic='org.fedoraproject.prod.git.branch.valgrind.master',
                 timestamp=time1,
                 i=1
             )
 
-            msg2 = Message(
+            msg2 = m.Message(
                 topic='org.fedoraproject.stg.fas.user.create',
                 timestamp=time2,
                 i=1
             )
 
-            msg3 = Message(
+            msg3 = m.Message(
                 topic='org.fedoraproject.prod.git.receive.valgrind.master',
                 timestamp=time3,
                 i=1
@@ -827,8 +722,8 @@ class TestCommands(unittest.TestCase):
             msg2.msg = 'Message 2'
             msg3.msg = 'Message 3'
 
-            session.add_all([msg1, msg2, msg3])
-            session.flush()
+            m.session.add_all([msg1, msg2, msg3])
+            m.session.flush()
 
             logged_info = []
 
@@ -849,31 +744,23 @@ class TestCommands(unittest.TestCase):
             eq_(len(json_object), 2)
 
     def test_latest(self):
-        from datanommer.models import session
-
-        Message = datanommer.models.Message
-
         with patch('datanommer.commands.LatestCommand.get_config') as gc:
             self.config['overall'] = False
             gc.return_value = self.config
 
-            datanommer.models.init(
-                uri=self.config['datanommer.sqlalchemy.url']
-            )
-
-            msg1 = Message(
+            msg1 = m.Message(
                 topic='org.fedoraproject.prod.git.branch.valgrind.master',
                 timestamp=datetime.utcnow(),
                 i=1
             )
 
-            msg2 = Message(
+            msg2 = m.Message(
                 topic='org.fedoraproject.stg.fas.user.create',
                 timestamp=datetime.utcnow(),
                 i=1
             )
 
-            msg3 = Message(
+            msg3 = m.Message(
                 topic='org.fedoraproject.prod.git.receive.valgrind.master',
                 timestamp=datetime.utcnow(),
                 i=1
@@ -883,8 +770,8 @@ class TestCommands(unittest.TestCase):
             msg2.msg = 'Message 2'
             msg3.msg = 'Message 3'
 
-            session.add_all([msg1, msg2, msg3])
-            session.flush()
+            m.session.add_all([msg1, msg2, msg3])
+            m.session.flush()
 
             logged_info = []
 

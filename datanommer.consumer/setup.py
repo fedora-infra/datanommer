@@ -29,6 +29,10 @@ setup(
         'moksha.consumer': (
             'noms = datanommer.consumer:Nommer'
         ),
-
     },
+    tests_require=[
+        "nose",
+        "mock",
+    ],
+    test_suite='nose.collector',
 )

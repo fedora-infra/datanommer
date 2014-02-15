@@ -3,13 +3,15 @@ import os
 import sqlalchemy.exc
 import unittest
 
+from sqlalchemy.orm import scoped_session
+
 from nose.tools import raises
 from nose.tools import eq_
 
 import datanommer.models
 
 
-filename = "datanommer-test.db"
+filename = ":memory:"
 
 scm_message = {
     "i": 1,
@@ -59,13 +61,15 @@ class TestModels(unittest.TestCase):
         fedmsg.meta.make_processors(**config)
 
     def setUp(self):
-
         fname = "sqlite:///%s" % filename
+        # We only have to do this so that we can do it over
+        # and over again for each test.
+        datanommer.models.session = scoped_session(datanommer.models.maker)
         datanommer.models.init(fname, create=True)
 
     def tearDown(self):
-        print "TEARING DOWN"
-        os.remove(filename)
+        engine = datanommer.models.session.get_bind()
+        datanommer.models.DeclarativeBase.metadata.drop_all(engine)
 
     @raises(KeyError)
     def test_add_empty(self):

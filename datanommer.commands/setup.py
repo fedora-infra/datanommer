@@ -33,4 +33,10 @@ setup(
             'datanommer-latest=datanommer.commands:latest',
         ),
     },
+    tests_require=[
+        "nose",
+        "mock",
+        "fedmsg_meta_fedora_infrastructure",
+    ],
+    test_suite='nose.collector',
 )
