@@ -14,7 +14,7 @@ from sqlalchemy.orm import (
     backref,
 )
 
-from sqlalchemy import or_, between
+from sqlalchemy import not_, or_, between
 
 from sqlalchemy.orm import validates
 from sqlalchemy.orm.exc import NoResultFound
@@ -234,8 +234,10 @@ class Message(DeclarativeBase, BaseMessage):
     def grep(cls, start=None, end=None,
              page=1, rows_per_page=100,
              order="asc", msg_id=None,
-             users=None, packages=None,
-             categories=None, topics=None,
+             users=None, not_users=None,
+             packages=None, not_packages=None,
+             categories=None, not_categories=None,
+             topics=None, not_topics=None,
              defer=False):
         """ Flexible query interface for messages.
 
@@ -254,14 +256,30 @@ class Message(DeclarativeBase, BaseMessage):
           (user=='ralph' OR user=='lmacken') AND
           (category=='bodhi' OR category=='wiki')
 
+        Furthermore, you can use a negative version of each argument.
+
+            users = ['ralph']
+            not_categories = ['bodhi', 'wiki']
+
+        should return messages where
+
+            (user == 'ralph') AND
+            NOT (category == 'bodhi' OR category == 'wiki')
+
+        ----
+
         If the `defer` argument evaluates to True, the query won't actually
         be executed, but a SQLAlchemy query object returned instead.
         """
 
         users = users or []
+        not_users = not_users or []
         packages = packages or []
+        not_packs = not_packages or []
         categories = categories or []
+        not_cats = not_categories or []
         topics = topics or []
+        not_topics = not_topics or []
 
         query = Message.query
 
@@ -277,6 +295,7 @@ class Message(DeclarativeBase, BaseMessage):
         if msg_id:
             query = query.filter(Message.msg_id == msg_id)
 
+        # Add the four positive filters as necessary
         if users:
             query = query.filter(or_(
                 *[Message.users.any(User.name == u) for u in users]
@@ -297,6 +316,28 @@ class Message(DeclarativeBase, BaseMessage):
                 *[Message.topic == topic for topic in topics]
             ))
 
+        # And then the four negative filters as necessary
+        if not_users:
+            query = query.filter(not_(or_(
+                *[Message.users.any(User.name == u) for u in not_users]
+            )))
+
+        if not_packs:
+            query = query.filter(not_(or_(
+                *[Message.packages.any(Package.name == p) for p in not_packs]
+            )))
+
+        if not_cats:
+            query = query.filter(not_(or_(
+                *[Message.category == category for category in not_cats]
+            )))
+
+        if not_topics:
+            query = query.filter(not_(or_(
+                *[Message.topic == topic for topic in not_topics]
+            )))
+
+        # Finally, tag on our pagination arguments
         total = query.count()
         query = query.order_by(getattr(Message.timestamp, order)())
 

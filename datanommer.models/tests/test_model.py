@@ -127,3 +127,12 @@ class TestModels(unittest.TestCase):
         eq_(p, 1)
         eq_(len(r), 1)
         eq_(r[0].msg, scm_message['msg'])
+
+    def test_grep_not_category(self):
+        msg = copy.deepcopy(scm_message)
+        datanommer.models.add(msg)
+        datanommer.models.session.flush()
+        t, p, r = datanommer.models.Message.grep(not_categories=['git'])
+        eq_(t, 0)
+        eq_(p, 0)
+        eq_(len(r), 0)
