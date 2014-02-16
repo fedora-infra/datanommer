@@ -107,3 +107,23 @@ class TestModels(unittest.TestCase):
         datanommer.models.session.flush()
         obj = datanommer.models.Message.query.first()
         eq_(obj.category, 'git')
+
+    def test_grep_all(self):
+        msg = copy.deepcopy(scm_message)
+        datanommer.models.add(msg)
+        datanommer.models.session.flush()
+        t, p, r = datanommer.models.Message.grep()
+        eq_(t, 1)
+        eq_(p, 1)
+        eq_(len(r), 1)
+        eq_(r[0].msg, scm_message['msg'])
+
+    def test_grep_category(self):
+        msg = copy.deepcopy(scm_message)
+        datanommer.models.add(msg)
+        datanommer.models.session.flush()
+        t, p, r = datanommer.models.Message.grep(categories=['git'])
+        eq_(t, 1)
+        eq_(p, 1)
+        eq_(len(r), 1)
+        eq_(r[0].msg, scm_message['msg'])
