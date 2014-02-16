@@ -30,6 +30,7 @@ setup(name='datanommer.models',
       ],
       tests_require=[
           "nose",
+          "fedmsg_meta_fedora_infrastructure",
       ],
       test_suite='nose.collector',
 )

@@ -101,3 +101,9 @@ class TestModels(unittest.TestCase):
         datanommer.models.session.flush()
         eq_(datanommer.models.Message.query.count(), 1)
 
+    def test_categories(self):
+        msg = copy.deepcopy(scm_message)
+        datanommer.models.add(msg)
+        datanommer.models.session.flush()
+        obj = datanommer.models.Message.query.first()
+        eq_(obj.category, 'git')
