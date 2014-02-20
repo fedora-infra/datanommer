@@ -238,6 +238,7 @@ class Message(DeclarativeBase, BaseMessage):
              packages=None, not_packages=None,
              categories=None, not_categories=None,
              topics=None, not_topics=None,
+             contains=None,
              defer=False):
         """ Flexible query interface for messages.
 
@@ -280,6 +281,7 @@ class Message(DeclarativeBase, BaseMessage):
         not_cats = not_categories or []
         topics = topics or []
         not_topics = not_topics or []
+        contains = contains or []
 
         query = Message.query
 
@@ -314,6 +316,12 @@ class Message(DeclarativeBase, BaseMessage):
         if topics:
             query = query.filter(or_(
                 *[Message.topic == topic for topic in topics]
+            ))
+
+        if contains:
+            query = query.filter(or_(
+                *[Message._msg.like('%%%s%%' % contain)
+                  for contain in contains]
             ))
 
         # And then the four negative filters as necessary
