@@ -127,10 +127,10 @@ def source_version_default(context):
 
 class BaseMessage(object):
     id = Column(Integer, primary_key=True)
-    msg_id = Column(UnicodeText, nullable=True, unique=True, default=None)
+    msg_id = Column(UnicodeText, nullable=True, unique=True, default=None, index=True)
     i = Column(Integer, nullable=False)
     topic = Column(UnicodeText, nullable=False)
-    timestamp = Column(DateTime, nullable=False)
+    timestamp = Column(DateTime, nullable=False, index=True)
     certificate = Column(UnicodeText)
     signature = Column(UnicodeText)
     category = Column(UnicodeText, nullable=False)
@@ -197,7 +197,8 @@ pack_assoc_table = Table('package_messages', DeclarativeBase.metadata,
 
 class User(DeclarativeBase):
     __tablename__ = 'user'
-    name = Column(UnicodeText, primary_key=True)
+
+    name = Column(UnicodeText, primary_key=True, index=True)
 
     @classmethod
     def get_or_create(cls, name):
@@ -211,7 +212,8 @@ class User(DeclarativeBase):
 
 class Package(DeclarativeBase):
     __tablename__ = 'package'
-    name = Column(UnicodeText, primary_key=True)
+
+    name = Column(UnicodeText, primary_key=True, index=True)
 
     @classmethod
     def get_or_create(cls, name):
