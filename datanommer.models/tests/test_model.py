@@ -88,8 +88,8 @@ class TestModels(unittest.TestCase):
         engine = datanommer.models.session.get_bind()
         datanommer.models.DeclarativeBase.metadata.drop_all(engine)
         # These contain objects bound to the old session, so we have to flush.
-        datanommer.models._user_cache = {}
-        datanommer.models._package_cache = {}
+        datanommer.models._users_seen = set()
+        datanommer.models._packages_seen = set()
 
     @raises(KeyError)
     def test_add_empty(self):

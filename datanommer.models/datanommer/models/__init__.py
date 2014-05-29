@@ -53,7 +53,7 @@ DeclarativeBase.query = session.query_property()
 import logging
 log = logging.getLogger("datanommer")
 
-_user_cache, _package_cache = {}, {}
+_users_seen, _packages_seen = set(), set()
 
 
 def init(uri=None, alembic_ini=None, engine=None, create=False):
@@ -117,14 +117,21 @@ def add(message):
     usernames = fedmsg.meta.msg2usernames(message)
     packages = fedmsg.meta.msg2packages(message)
 
-    # If we've never seen one of these users before, then make sure they exist
+    # If we've never seen one of these users before, then:
+    # 1) make sure they exist in the db (create them if necessary)
+    # 2) mark an in memory cache so we can remember that they exist without
+    #    having to hit the db.
     for username in usernames:
-        if username not in _user_cache:
-            _user_cache[username] = User.get_or_create(username)
+        if username not in _users_seen:
+            # Create the user in the DB if necessary
+            User.get_or_create(username)
+            # Then just mark an in memory cache noting that we've seen them.
+            _users_seen.add(username)
 
     for package in packages:
-        if package not in _package_cache:
-            _package_cache[package] = Package.get_or_create(package)
+        if package not in _packages_seen:
+            Package.get_or_create(package)
+            _packages_seen.add(package)
 
     # These two blocks would normally be a simple "obj.users.append(user)" kind
     # of statement, but here we drop down out of sqlalchemy's ORM and into the
