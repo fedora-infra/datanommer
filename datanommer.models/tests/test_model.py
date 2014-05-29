@@ -131,6 +131,24 @@ class TestModels(unittest.TestCase):
         del msg['certificate']
         datanommer.models.add(msg)
 
+    def test_add_and_check_for_others(self):
+        # There are no users or packages at the start
+        eq_(datanommer.models.User.query.count(), 0)
+        eq_(datanommer.models.Package.query.count(), 0)
+
+        # Then add a message
+        msg = copy.deepcopy(scm_message)
+        datanommer.models.add(msg)
+
+        # There should now be one of each
+        eq_(datanommer.models.User.query.count(), 1)
+        eq_(datanommer.models.Package.query.count(), 1)
+
+        # If we add it again, there should be no duplicates
+        datanommer.models.add(msg)
+        eq_(datanommer.models.User.query.count(), 1)
+        eq_(datanommer.models.Package.query.count(), 1)
+
     def test_add_nothing(self):
         eq_(datanommer.models.Message.query.count(), 0)
 
