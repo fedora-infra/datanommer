@@ -62,6 +62,8 @@ class TestConsumer(unittest.TestCase):
     def tearDown(self):
         engine = datanommer.models.session.get_bind()
         datanommer.models.DeclarativeBase.metadata.drop_all(engine)
+        datanommer.models._users_seen = set()
+        datanommer.models._packages_seen = set()
 
     def test_duplicate_msg_id(self):
         example_message = dict(

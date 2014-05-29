@@ -63,6 +63,8 @@ class TestCommands(unittest.TestCase):
     def tearDown(self):
         engine = m.session.get_bind()
         m.DeclarativeBase.metadata.drop_all(engine)
+        m._users_seen = set()
+        m._packages_seen = set()
 
     def test_stats(self):
         with patch('datanommer.commands.StatsCommand.get_config') as gc:
