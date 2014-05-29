@@ -87,6 +87,9 @@ class TestModels(unittest.TestCase):
     def tearDown(self):
         engine = datanommer.models.session.get_bind()
         datanommer.models.DeclarativeBase.metadata.drop_all(engine)
+        # These contain objects bound to the old session, so we have to flush.
+        datanommer.models._user_cache = {}
+        datanommer.models._package_cache = {}
 
     @raises(KeyError)
     def test_add_empty(self):
@@ -105,8 +108,8 @@ class TestModels(unittest.TestCase):
         datanommer.models.add(msg)
 
     def test_add_many_and_count_statements(self):
-
         statements = []
+
         def track(conn, cursor, statement, param, ctx, many):
             statements.append(statement)
 
@@ -117,14 +120,12 @@ class TestModels(unittest.TestCase):
 
         # Add it to the db and check how many queries we made
         datanommer.models.add(msg)
-        pprint.pprint(statements)  # debug
-        eq_(len(statements), 9)
+        eq_(len(statements), 7)
 
         # Add it again and check again
         datanommer.models.add(msg)
-        pprint.pprint(statements)  # debug
-        eq_(len(statements), 16)
-
+        pprint.pprint(statements)
+        eq_(len(statements), 10)
 
     def test_add_missing_cert(self):
         msg = copy.deepcopy(scm_message)
