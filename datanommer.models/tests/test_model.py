@@ -15,6 +15,8 @@
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 import copy
 import os
+import pprint
+import sqlalchemy
 import sqlalchemy.exc
 import unittest
 
@@ -85,6 +87,9 @@ class TestModels(unittest.TestCase):
     def tearDown(self):
         engine = datanommer.models.session.get_bind()
         datanommer.models.DeclarativeBase.metadata.drop_all(engine)
+        # These contain objects bound to the old session, so we have to flush.
+        datanommer.models._users_seen = set()
+        datanommer.models._packages_seen = set()
 
     @raises(KeyError)
     def test_add_empty(self):
@@ -102,10 +107,48 @@ class TestModels(unittest.TestCase):
         del msg['timestamp']
         datanommer.models.add(msg)
 
+    def test_add_many_and_count_statements(self):
+        statements = []
+
+        def track(conn, cursor, statement, param, ctx, many):
+            statements.append(statement)
+
+        engine = datanommer.models.session.get_bind()
+        sqlalchemy.event.listen(engine, "before_cursor_execute", track)
+
+        msg = copy.deepcopy(scm_message)
+
+        # Add it to the db and check how many queries we made
+        datanommer.models.add(msg)
+        eq_(len(statements), 7)
+
+        # Add it again and check again
+        datanommer.models.add(msg)
+        pprint.pprint(statements)
+        eq_(len(statements), 10)
+
     def test_add_missing_cert(self):
         msg = copy.deepcopy(scm_message)
         del msg['certificate']
         datanommer.models.add(msg)
+
+    def test_add_and_check_for_others(self):
+        # There are no users or packages at the start
+        eq_(datanommer.models.User.query.count(), 0)
+        eq_(datanommer.models.Package.query.count(), 0)
+
+        # Then add a message
+        msg = copy.deepcopy(scm_message)
+        datanommer.models.add(msg)
+
+        # There should now be one of each
+        eq_(datanommer.models.User.query.count(), 1)
+        eq_(datanommer.models.Package.query.count(), 1)
+
+        # If we add it again, there should be no duplicates
+        datanommer.models.add(msg)
+        eq_(datanommer.models.User.query.count(), 1)
+        eq_(datanommer.models.Package.query.count(), 1)
 
     def test_add_nothing(self):
         eq_(datanommer.models.Message.query.count(), 0)

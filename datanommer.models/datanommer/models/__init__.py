@@ -53,6 +53,8 @@ DeclarativeBase.query = session.query_property()
 import logging
 log = logging.getLogger("datanommer")
 
+_users_seen, _packages_seen = set(), set()
+
 
 def init(uri=None, alembic_ini=None, engine=None, create=False):
     """ Initialize a connection.  Create tables if requested."""
@@ -114,21 +116,33 @@ def add(message):
 
     usernames = fedmsg.meta.msg2usernames(message)
     packages = fedmsg.meta.msg2packages(message)
+
+    # If we've never seen one of these users before, then:
+    # 1) make sure they exist in the db (create them if necessary)
+    # 2) mark an in memory cache so we can remember that they exist without
+    #    having to hit the db.
     for username in usernames:
-        user = session.query(User).get(username)
+        if username not in _users_seen:
+            # Create the user in the DB if necessary
+            User.get_or_create(username)
+            # Then just mark an in memory cache noting that we've seen them.
+            _users_seen.add(username)
 
-        if not user:
-            user = User(name=username)
+    for package in packages:
+        if package not in _packages_seen:
+            Package.get_or_create(package)
+            _packages_seen.add(package)
 
-        obj.users.append(user)
+    # These two blocks would normally be a simple "obj.users.append(user)" kind
+    # of statement, but here we drop down out of sqlalchemy's ORM and into the
+    # sql abstraction in order to gain a little performance boost.
+    values = [{'username': username, 'msg': obj.id} for username in usernames]
+    if values:
+        session.execute(user_assoc_table.insert(), values)
 
-    for package_name in packages:
-        package = session.query(Package).get(package_name)
-
-        if not package:
-            package = Package(name=package_name)
-
-        obj.packages.append(package)
+    values = [{'package': package, 'msg': obj.id} for package in packages]
+    if values:
+        session.execute(pack_assoc_table.insert(), values)
 
     # TODO -- can we avoid committing every time?
     session.flush()
