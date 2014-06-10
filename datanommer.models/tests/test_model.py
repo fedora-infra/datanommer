@@ -146,8 +146,16 @@ class TestModels(unittest.TestCase):
         eq_(datanommer.models.Package.query.count(), 1)
 
         # If we add it again, there should be no duplicates
+        msg['msg']['msg_id'] = 'foobar2'
         datanommer.models.add(msg)
         eq_(datanommer.models.User.query.count(), 1)
+        eq_(datanommer.models.Package.query.count(), 1)
+
+        msg = copy.deepcopy(scm_message)
+        msg['msg']['commit']['username'] = 'ralph'
+        msg['msg']['msg_id'] = 'foobar3'
+        datanommer.models.add(msg)
+        eq_(datanommer.models.User.query.count(), 2)
         eq_(datanommer.models.Package.query.count(), 1)
 
     def test_add_nothing(self):
