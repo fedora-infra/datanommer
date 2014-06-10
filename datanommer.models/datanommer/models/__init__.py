@@ -127,13 +127,13 @@ def add(message):
             User.get_or_create(username)
             # Then just mark an in memory cache noting that we've seen them.
             _users_seen.add(username)
-            session.commit()
 
     for package in packages:
         if package not in _packages_seen:
             Package.get_or_create(package)
             _packages_seen.add(package)
-            session.commit()
+
+    session.flush()
 
     # These two blocks would normally be a simple "obj.users.append(user)" kind
     # of statement, but here we drop down out of sqlalchemy's ORM and into the
