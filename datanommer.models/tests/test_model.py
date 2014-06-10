@@ -19,6 +19,7 @@ import pprint
 import sqlalchemy
 import sqlalchemy.exc
 import unittest
+import requests
 
 from sqlalchemy.orm import scoped_session
 
@@ -27,6 +28,8 @@ from nose.tools import eq_
 
 import datanommer.models
 
+# Set this to false to use faitout
+USE_SQLITE = True  # False
 
 filename = ":memory:"
 
@@ -73,20 +76,53 @@ class TestModels(unittest.TestCase):
         import fedmsg.meta
 
         config = fedmsg.config.load_config([], None)
-        fname = "sqlite:///%s" % filename
+
+        if USE_SQLITE:
+            fname = "sqlite:///%s" % filename
+        else:
+            response = requests.get('http://209.132.184.152/faitout/new',
+                                    headers=dict(accept='application/json'))
+            details = response.json()
+            fname = "postgres://{username}:{password}@{host}:{port}/{dbname}"\
+                .format(**details)
+            cls.dbname = details['dbname']
+
         config['datanommer.sqlalchemy.url'] = fname
         fedmsg.meta.make_processors(**config)
 
+    @classmethod
+    def tearDownClass(cls):
+        if not USE_SQLITE:
+            requests.get("http://209.132.184.152/faitout/drop/{dbname}"\
+                        .format(dbname=cls.dbname))
+
     def setUp(self):
-        fname = "sqlite:///%s" % filename
+        if USE_SQLITE:
+            fname = "sqlite:///%s" % filename
+        else:
+            response = requests.get('http://209.132.184.152/faitout/new',
+                                    headers=dict(accept='application/json'))
+            details = response.json()
+            import pprint
+            pprint.pprint(details)
+            fname = "postgres://{username}:{password}@{host}:{port}/{dbname}"\
+                .format(**details)
+            self.dbname2 = details['dbname']
         # We only have to do this so that we can do it over
         # and over again for each test.
         datanommer.models.session = scoped_session(datanommer.models.maker)
         datanommer.models.init(fname, create=True)
 
+
     def tearDown(self):
-        engine = datanommer.models.session.get_bind()
-        datanommer.models.DeclarativeBase.metadata.drop_all(engine)
+        if USE_SQLITE:
+            engine = datanommer.models.session.get_bind()
+            datanommer.models.DeclarativeBase.metadata.drop_all(engine)
+        else:
+            datanommer.models.session.close()
+            requests.get("http://209.132.184.152/faitout/drop/{dbname}"\
+                        .format(dbname=self.dbname2))
+
         # These contain objects bound to the old session, so we have to flush.
         datanommer.models._users_seen = set()
         datanommer.models._packages_seen = set()
