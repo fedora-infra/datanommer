@@ -133,6 +133,8 @@ def add(message):
             Package.get_or_create(package)
             _packages_seen.add(package)
 
+    session.flush()
+
     # These two blocks would normally be a simple "obj.users.append(user)" kind
     # of statement, but here we drop down out of sqlalchemy's ORM and into the
     # sql abstraction in order to gain a little performance boost.
