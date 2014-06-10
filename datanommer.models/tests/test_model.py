@@ -156,12 +156,12 @@ class TestModels(unittest.TestCase):
 
         # Add it to the db and check how many queries we made
         datanommer.models.add(msg)
-        eq_(len(statements), 7)
+        eq_(len(statements), 8)
 
         # Add it again and check again
         datanommer.models.add(msg)
         pprint.pprint(statements)
-        eq_(len(statements), 10)
+        eq_(len(statements), 11)
 
     def test_add_missing_cert(self):
         msg = copy.deepcopy(scm_message)
