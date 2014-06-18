@@ -69,6 +69,42 @@ scm_message = {
 }
 
 
+github_message = {
+    "i": 2,
+    "msg": {
+        "compare": "https://github.com/ralphbean/apps.fp.o",
+        "fas_usernames": {},
+        "hook": {
+            "active": True,
+            "config": {
+                "content_type": "json",
+                "secret": "G9KNgSeNb1xkhXFe6ZgnIJkUptGJZ2",
+                "url": "https://apps.fedoraproject.org/github2fedmsg/webhook"
+            },
+            "created_at": "2014-06-18T21:32:43Z",
+            "events": [ "*" ],
+            "id": 2442140,
+            "last_response": {
+                "code": None,
+                "message": None,
+                "status": "unused"
+            },
+            "name": "web",
+            "updated_at": "2014-06-18T21:32:43Z",
+            "url": "https://api.github.com/repos/ralphbean/apps.fp.o/"
+            "hooks/2442140",
+        },
+        "hook_id": 2442140,
+        "zen": "Keep it logically awesome."
+    },
+    "msg_id": "2014-6552feeb-6dd9-4c39-9839-2c35f0a0f498",
+    "source_name": "datanommer",
+    "source_version": "0.6.4",
+    "timestamp": 1403127164.0,
+    "topic": "org.fedoraproject.prod.github.webhook"
+}
+
+
 class TestModels(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -238,3 +274,13 @@ class TestModels(unittest.TestCase):
         eq_(t, 0)
         eq_(p, 0)
         eq_(len(r), 0)
+
+    def test_add_with_close_category(self):
+        msg = copy.deepcopy(github_message)
+        datanommer.models.add(msg)
+        datanommer.models.session.flush()
+        t, p, r = datanommer.models.Message.grep(categories=['github'])
+        eq_(t, 1)
+        eq_(p, 1)
+        eq_(len(r), 1)
+        eq_(r[0].msg_id, '2014-6552feeb-6dd9-4c39-9839-2c35f0a0f498')
