@@ -182,7 +182,7 @@ class BaseMessage(object):
             filters.append(f.__name__.lower())
 
         for f in filters:
-            if f in topic:
+            if '.%s.' % f in topic:
                 self.category = f
                 break
             else:
