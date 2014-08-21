@@ -2,7 +2,7 @@
 
 echo "Installing all packages in development mode"
 for package in datanommer.{models,consumer,commands}; do
-    echo "[$package] Installing"
+    echo "[$package] Testing..."
     pushd $package
     python setup.py test
     popd
