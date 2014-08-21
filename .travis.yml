@@ -5,7 +5,7 @@ python:
 # Someday, soon.
 # - "3.2"
 install: ./.travis-dev-setup.sh
-script: python setup.py test
+script: ./.travis-runtests.sh
 notifications:
     email: false
     irc:
