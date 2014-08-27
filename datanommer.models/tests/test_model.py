@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 import copy
+import datetime
 import os
 import pprint
 import sqlalchemy
@@ -284,3 +285,13 @@ class TestModels(unittest.TestCase):
         eq_(p, 1)
         eq_(len(r), 1)
         eq_(r[0].msg_id, '2014-6552feeb-6dd9-4c39-9839-2c35f0a0f498')
+
+    def test_timezone_awareness(self):
+        msg = copy.deepcopy(github_message)
+        datanommer.models.add(msg)
+        datanommer.models.session.flush()
+
+        queried = datanommer.models.Message.query.one()
+
+        t = queried.timestamp
+        eq_(t, datetime.datetime(2014, 6, 18, 21, 32, 44))

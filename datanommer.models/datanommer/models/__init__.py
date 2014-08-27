@@ -97,7 +97,7 @@ def add(message):
     """
     timestamp = message['timestamp']
     try:
-        timestamp = datetime.datetime.fromtimestamp(timestamp)
+        timestamp = datetime.datetime.utcfromtimestamp(timestamp)
     except Exception:
         pass
 
