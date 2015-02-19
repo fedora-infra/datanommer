@@ -311,6 +311,14 @@ class LatestCommand(BaseCommand):
             # Show only the single latest message, regardless of type.
             queries = [m.Message.query]
 
+        # Only check messages from the last year to speed up queries
+        a_year = datetime.timedelta(days=365)
+        earliest = datetime.datetime.utcnow() - a_year
+        queries = [
+            q.filter(m.Message.timestamp > earliest)
+            for q in queries
+        ]
+
         # Order and limit to the latest.
         queries = [
             q.order_by(m.Message.timestamp.desc()).limit(1)
