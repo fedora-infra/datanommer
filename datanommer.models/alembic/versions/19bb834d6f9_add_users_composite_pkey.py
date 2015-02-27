@@ -23,7 +23,7 @@ def upgrade():
     start = time.time()
     engine = op.get_bind().engine
     try:
-        cols = ['user', 'msg']
+        cols = ['username', 'msg']
         for col in cols:
             query = "DELETE FROM user_messages WHERE %s is NULL" % col
             log.info("Running %r", query)
