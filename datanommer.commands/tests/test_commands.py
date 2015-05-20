@@ -19,7 +19,6 @@ from mock import patch
 from datetime import datetime
 import json
 import time
-import os
 
 from sqlalchemy.orm import scoped_session
 
@@ -230,7 +229,7 @@ class TestCommands(unittest.TestCase):
         models = [m.Message]
 
         with patch('datanommer.models.models', models):
-            with patch('datanommer.models.Message.query') as query:
+            with patch('datanommer.models.Message.query'):
                 m.Message.query.all = Mock(return_value=objects)
 
                 with patch('datanommer.commands.DumpCommand.get_config') as gc:
