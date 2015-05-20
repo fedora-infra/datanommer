@@ -25,6 +25,8 @@ from sqlalchemy.orm import scoped_session
 import datanommer.commands
 import datanommer.models as m
 import fedmsg.config
+
+import freezegun
 from nose.tools import (
     eq_,
     ok_,
@@ -250,6 +252,7 @@ class TestCommands(unittest.TestCase):
                     eq_(json_object[0]['topic'],
                         'org.fedoraproject.prod.git.branch.valgrind.master')
 
+    @freezegun.freeze_time('2013-03-01')
     def test_dump_before(self):
         m.Message = datanommer.models.Message
 
@@ -304,6 +307,7 @@ class TestCommands(unittest.TestCase):
                 'org.fedoraproject.prod.git.receive.valgrind.master')
             eq_(len(json_object), 2)
 
+    @freezegun.freeze_time('2013-03-01')
     def test_dump_since(self):
         with patch('datanommer.commands.DumpCommand.get_config') as gc:
             self.config['since'] = '2013-02-14T08:00:00'
@@ -356,6 +360,7 @@ class TestCommands(unittest.TestCase):
                 'org.fedoraproject.prod.log.receive.valgrind.master')
             eq_(len(json_object), 2)
 
+    @freezegun.freeze_time('2013-03-01')
     def test_dump_timespan(self):
         with patch('datanommer.commands.DumpCommand.get_config') as gc:
             self.config['before'] = '2013-02-16'
@@ -546,6 +551,7 @@ class TestCommands(unittest.TestCase):
             eq_(json_object[0]['fas']['msg'], 'Message 2')
             eq_(len(json_object), 1)
 
+    @freezegun.freeze_time('2013-03-01')
     def test_latest_timestamp_human(self):
         with patch('datanommer.commands.LatestCommand.get_config') as gc:
             self.config['overall'] = False
@@ -598,6 +604,7 @@ class TestCommands(unittest.TestCase):
             eq_(json_object[1], "2013-02-15 15:15:15.000015")
             eq_(len(json_object), 2)
 
+    @freezegun.freeze_time('2013-03-01')
     def test_latest_timestamp(self):
         with patch('datanommer.commands.LatestCommand.get_config') as gc:
             self.config['overall'] = False
@@ -649,6 +656,7 @@ class TestCommands(unittest.TestCase):
             eq_(json_object[1], time.mktime(datetime(2013,2,15).timetuple()))
             eq_(len(json_object), 2)
 
+    @freezegun.freeze_time('2013-03-01')
     def test_latest_timesince(self):
         with patch('datanommer.commands.LatestCommand.get_config') as gc:
             self.config['overall'] = False
