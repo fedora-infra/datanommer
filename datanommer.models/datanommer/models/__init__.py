@@ -101,9 +101,10 @@ def add(message):
     except Exception:
         pass
 
+    msg_id = message.get('msg_id', None)
     obj = Message(
         i=message['i'],
-        msg_id=message.get('msg_id', None),
+        msg_id=msg_id,
         topic=message['topic'],
         timestamp=timestamp,
         certificate=message.get('certificate', None),
@@ -116,6 +117,19 @@ def add(message):
 
     usernames = fedmsg.meta.msg2usernames(message)
     packages = fedmsg.meta.msg2packages(message)
+
+    # Do a little sanity checking on fedmsg.meta results
+    if None in usernames:
+        # Notify developers so they can fix msg2usernames
+        log.error('NoneType found in usernames of %r' % msg_id)
+        # And prune out the bad value
+        usernames = [name for name in usernames if name is not None]
+
+    if None in packages:
+        # Notify developers so they can fix msg2packages
+        log.error('NoneType found in packages of %r' % msg_id)
+        # And prune out the bad value
+        packages = [pkg for pkg in packages if pkg is not None]
 
     # If we've never seen one of these users before, then:
     # 1) make sure they exist in the db (create them if necessary)
