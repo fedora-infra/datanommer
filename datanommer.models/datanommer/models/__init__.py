@@ -42,6 +42,7 @@ import pkg_resources
 
 import math
 import datetime
+import traceback
 import fedmsg.encoding
 
 maker = sessionmaker()
@@ -185,23 +186,11 @@ class BaseMessage(object):
 
     @validates('topic')
     def get_category(self, key, topic):
-        import fedmsg.config
-        import fedmsg.meta
-
-        config = fedmsg.config.load_config([], None)
-        fedmsg.meta.make_processors(**config)
-
-        filters=[]
-        for f in fedmsg.meta.processors:
-            filters.append(f.__name__.lower())
-
-        for f in filters:
-            if '.%s.' % f in topic:
-                self.category = f
-                break
-            else:
-                self.category = 'Unclassified'
-
+        try:
+            self.category = topic.split('.')[3]
+        except:
+            traceback.print_exc()
+            self.category = 'Unclassified'
         return topic
 
     @hybrid_property
