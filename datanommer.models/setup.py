@@ -47,5 +47,9 @@ setup(name='datanommer.models',
           "nose",
           "fedmsg_meta_fedora_infrastructure",
       ],
+      classifiers=[
+          'Programming Language :: Python :: 2',
+          'Programming Language :: Python :: 3',
+      ],
       test_suite='nose.collector',
 )
