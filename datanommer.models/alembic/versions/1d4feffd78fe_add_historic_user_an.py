@@ -74,7 +74,7 @@ def upgrade():
     engine = op.get_bind().engine
     m.init(engine=engine)
     for msg in _page(m.Message.query.order_by(m.Message.timestamp)):
-        print "processing", msg.timestamp, msg.topic
+        print("processing %s %s" % (msg.timestamp, msg.topic))
 
         if msg.users and msg.packages:
             continue
@@ -83,7 +83,7 @@ def upgrade():
 
         if not msg.users:
             new_usernames = msg2usernames(msg.__json__(), **config)
-            print "Updating users to %r" % new_usernames
+            print("Updating users to %r" % new_usernames)
             changed = changed or new_usernames
             for new_username in new_usernames:
                 new_user = m.User.get_or_create(new_username)
@@ -91,7 +91,7 @@ def upgrade():
 
         if not msg.packages:
             new_packagenames = msg2packages(msg.__json__(), **config)
-            print "Updating packages to %r" % new_packagenames
+            print("Updating packages to %r" % new_packagenames)
             changed = changed or new_usernames
             for new_packagename in new_packagenames:
                 new_package = m.Package.get_or_create(new_packagename)
@@ -101,7 +101,7 @@ def upgrade():
             # Only save if something changed.. and only do it every so often.
             # We do this so that if we crash, we can kind of pick up where
             # we left off.  But if we do it on every change: too slow.
-            print " * Saving!"
+            print(" * Saving!")
             m.session.commit()
 
     m.session.commit()

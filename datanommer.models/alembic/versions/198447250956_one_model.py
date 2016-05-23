@@ -77,7 +77,7 @@ def upgrade():
         query = base_query % tname
 
         results = engine.execute(text(query))
-        data = map(map_values, results.fetchall())
+        data = list(map(map_values, results.fetchall()))
 
         if data:
             op.bulk_insert(messages_table, data)
@@ -130,7 +130,7 @@ def downgrade():
         tname = '%s_messages' % table
         results = engine.execute(text(base_query.format(table)))
 
-        data = map(map_values, results.fetchall())
+        data = list(map(map_values, results.fetchall()))
 
         if data:
             op.bulk_insert(db_tables[tname], data)
