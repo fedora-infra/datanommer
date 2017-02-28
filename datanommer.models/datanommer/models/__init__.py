@@ -44,6 +44,7 @@ import math
 import datetime
 import traceback
 import fedmsg.encoding
+import uuid
 
 maker = sessionmaker()
 session = scoped_session(maker)
@@ -96,16 +97,19 @@ def init(uri=None, alembic_ini=None, engine=None, create=False):
 def add(message):
     """ Take a dict-like fedmsg message and store it in the table.
     """
-    timestamp = message['timestamp']
+    timestamp = message.get('timestamp', None)
     try:
-        timestamp = datetime.datetime.utcfromtimestamp(timestamp)
+        if timestamp:
+            timestamp = datetime.datetime.utcfromtimestamp(timestamp)
+        else:
+            timestamp = datetime.datetime.utcnow()
     except Exception:
         pass
 
     msg_id = message.get('msg_id', None)
     obj = Message(
-        i=message['i'],
-        msg_id=msg_id,
+        i=message.get('i', 0),
+        msg_id=msg_id or unicode(uuid.uuid4()),
         topic=message['topic'],
         timestamp=timestamp,
         certificate=message.get('certificate', None),
