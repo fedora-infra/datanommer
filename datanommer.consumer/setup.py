@@ -48,6 +48,8 @@ setup(
     tests_require=[
         "nose",
         "mock",
+        "psutil",
+        "moksha.hub",
     ],
     test_suite='nose.collector',
 )
