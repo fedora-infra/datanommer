@@ -720,9 +720,9 @@ class TestCommands(unittest.TestCase):
             gc.return_value = self.config
 
             now = datetime.now()
-            time1 = now.replace(day=now.day-2)
-            time2 = now.replace(day=now.day-1)
-            time3 = now.replace(second=now.second-1)
+            time1 = now - timedelta(days=2)
+            time2 = now - timedelta(days=1)
+            time3 = now - timedelta(seconds=1)
 
             msg1 = m.Message(
                 topic='org.fedoraproject.prod.git.branch.valgrind.master',
