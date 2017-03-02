@@ -17,6 +17,7 @@ import unittest
 import mock
 import copy
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import scoped_session
 
 from nose.tools import eq_
@@ -85,7 +86,10 @@ class TestConsumer(unittest.TestCase):
         eq_(datanommer.models.Message.query.count(), 1)
 
         with mock.patch("fedmsg.publish") as mocked_function:
-            self.consumer.consume(msg2)
-            eq_(datanommer.models.Message.query.count(), 2)
+            with self.assertRaises(IntegrityError):
+                # The database layer should raise an exception on
+                # the unique constraint violation.
+                self.consumer.consume(msg2)
+            eq_(datanommer.models.Message.query.count(), 1)
 
-        mocked_function.assert_called_once()
+        mocked_function.assert_not_called()
