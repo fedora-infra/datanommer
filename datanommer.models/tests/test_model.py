@@ -168,17 +168,22 @@ class TestModels(unittest.TestCase):
     def test_add_empty(self):
         datanommer.models.add(dict())
 
-    @raises(KeyError)
     def test_add_missing_i(self):
         msg = copy.deepcopy(scm_message)
         del msg['i']
         datanommer.models.add(msg)
+        dbmsg = datanommer.models.Message.query.first()
+        self.assertEqual(dbmsg.i, 0)
 
-    @raises(KeyError)
     def test_add_missing_timestamp(self):
         msg = copy.deepcopy(scm_message)
         del msg['timestamp']
         datanommer.models.add(msg)
+        dbmsg = datanommer.models.Message.query.first()
+        timediff = datetime.datetime.now() - dbmsg.timestamp
+        # 10 seconds between adding the message and checking
+        # the timestamp should be more than enough.
+        self.assertTrue(timediff < datetime.timedelta(seconds=10))
 
     def test_add_many_and_count_statements(self):
         statements = []

@@ -19,4 +19,5 @@ config = dict(
     io_threads=1,
     zmq_enabled=True,
     zmq_strict=False,
+    validate_signatures=False,
 )
