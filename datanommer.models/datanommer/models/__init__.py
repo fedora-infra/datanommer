@@ -112,6 +112,8 @@ def add(message):
         msg_id=msg_id or unicode(uuid.uuid4()),
         topic=message['topic'],
         timestamp=timestamp,
+        username=message.get('username', None),
+        crypto=message.get('crypto', None),
         certificate=message.get('certificate', None),
         signature=message.get('signature', None),
     )
@@ -184,6 +186,8 @@ class BaseMessage(object):
     certificate = Column(UnicodeText)
     signature = Column(UnicodeText)
     category = Column(UnicodeText, nullable=False)
+    username = Column(UnicodeText)
+    crypto = Column(UnicodeText)
     source_name = Column(UnicodeText, default=u"datanommer")
     source_version = Column(UnicodeText, default=source_version_default)
     _msg = Column(UnicodeText, nullable=False)
@@ -217,6 +221,8 @@ class BaseMessage(object):
             timestamp=self.timestamp,
             certificate=self.certificate,
             signature=self.signature,
+            username=self.username,
+            crypto=self.crypto,
             msg=self.msg,
             source_name=self.source_name,
             source_version=self.source_version,
