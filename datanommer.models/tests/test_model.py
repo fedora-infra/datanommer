@@ -67,6 +67,7 @@ scm_message = {
     },
     "signature": "blah",
     "certificate": "blah",
+    "username": "mjw",
 }
 
 
@@ -102,7 +103,8 @@ github_message = {
     "source_name": "datanommer",
     "source_version": "0.6.4",
     "timestamp": 1403127164.0,
-    "topic": "org.fedoraproject.prod.github.webhook"
+    "topic": "org.fedoraproject.prod.github.webhook",
+    "crypto": "x509",
 }
 
 
@@ -184,6 +186,20 @@ class TestModels(unittest.TestCase):
         # 10 seconds between adding the message and checking
         # the timestamp should be more than enough.
         self.assertTrue(timediff < datetime.timedelta(seconds=10))
+
+    def test_extract_base_username(self):
+        msg = copy.deepcopy(scm_message)
+        datanommer.models.add(msg)
+        dbmsg = datanommer.models.Message.query.first()
+        self.assertEquals(dbmsg.__json__()['username'], msg['username'])
+        self.assertEquals(dbmsg.__json__()['crypto'], None)
+
+    def test_extract_crypto_type(self):
+        msg = copy.deepcopy(github_message)
+        datanommer.models.add(msg)
+        dbmsg = datanommer.models.Message.query.first()
+        self.assertEquals(dbmsg.__json__()['username'], None)
+        self.assertEquals(dbmsg.__json__()['crypto'], 'x509')
 
     def test_add_many_and_count_statements(self):
         statements = []
