@@ -15,6 +15,6 @@
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 config = {
     'datanommer.enabled': True,
-    # This is generally not safe.. you probably want to use a real DB.
-    'datanommer.sqlalchemy.url': 'sqlite:////tmp/datanommer.db',
+    # Use an in-memory database by default.  Not very useful, really.
+    'datanommer.sqlalchemy.url': 'sqlite://',
 }

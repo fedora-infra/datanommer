@@ -15,5 +15,6 @@
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 config = {
     'datanommer.enabled': True,
-    'datanommer.sqlalchemy.url': 'sqlite:///datanommer.db',
+    # Use the in-memory database by default.  Not very useful, really.
+    'datanommer.sqlalchemy.url': 'sqlite://',
 }
