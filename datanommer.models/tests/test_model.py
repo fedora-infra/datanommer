@@ -187,6 +187,21 @@ class TestModels(unittest.TestCase):
         # the timestamp should be more than enough.
         self.assertTrue(timediff < datetime.timedelta(seconds=10))
 
+    def test_add_missing_msg_id_with_timestamp(self):
+        msg = copy.deepcopy(scm_message)
+        datanommer.models.add(msg)
+        dbmsg = datanommer.models.Message.query.first()
+        year = datetime.datetime.now().year
+        self.assertTrue(dbmsg.msg_id.startswith('2012-'))
+
+    def test_add_missing_msg_id_no_timestamp(self):
+        msg = copy.deepcopy(scm_message)
+        del msg['timestamp']
+        datanommer.models.add(msg)
+        dbmsg = datanommer.models.Message.query.first()
+        year = datetime.datetime.now().year
+        self.assertTrue(dbmsg.msg_id.startswith(unicode(year) + u'-'))
+
     def test_extract_base_username(self):
         msg = copy.deepcopy(scm_message)
         datanommer.models.add(msg)

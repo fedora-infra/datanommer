@@ -107,9 +107,11 @@ def add(message):
         pass
 
     msg_id = message.get('msg_id', None)
+    if not msg_id:
+        msg_id = unicode(timestamp.year) + u'-' + unicode(uuid.uuid4())
     obj = Message(
         i=message.get('i', 0),
-        msg_id=msg_id or unicode(uuid.uuid4()),
+        msg_id=msg_id,
         topic=message['topic'],
         timestamp=timestamp,
         username=message.get('username', None),
