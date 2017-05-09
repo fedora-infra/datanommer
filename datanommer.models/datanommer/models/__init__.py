@@ -108,7 +108,10 @@ def add(envelope):
     except Exception:
         pass
 
+    headers = envelope.get('headers', None)
     msg_id = message.get('msg_id', None)
+    if not msg_id and headers:
+        msg_id = headers.get('message-id', None)
     if not msg_id:
         msg_id = unicode(timestamp.year) + u'-' + unicode(uuid.uuid4())
     obj = Message(
@@ -123,7 +126,7 @@ def add(envelope):
     )
 
     obj.msg = message['msg']
-    obj.headers = envelope.get('headers')
+    obj.headers = headers
 
     session.add(obj)
 

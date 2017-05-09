@@ -348,3 +348,10 @@ class TestModels(unittest.TestCase):
         datanommer.models.add(msg)
         dbmsg = datanommer.models.Message.query.first()
         self.assertEquals(dbmsg.headers, msg['headers'])
+
+    def test_add_headers_message_id(self):
+        msg = copy.deepcopy(scm_message)
+        msg['headers'] = {'message-id': 'abc123'}
+        datanommer.models.add(msg)
+        dbmsg = datanommer.models.Message.query.first()
+        self.assertEquals(dbmsg.msg_id, 'abc123')
