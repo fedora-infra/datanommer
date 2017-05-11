@@ -54,7 +54,7 @@ class Nommer(fedmsg.consumers.FedmsgConsumer):
     def consume(self, message):
         log.debug("Nomming %r" % message)
         try:
-            datanommer.models.add(message['body'])
+            datanommer.models.add(message)
         except Exception:
             datanommer.models.session.rollback()
             raise

@@ -35,6 +35,7 @@ USE_SQLITE = True  # False
 filename = ":memory:"
 
 scm_message = {
+"body": {
     "i": 1,
     "timestamp": 1344350850.8867381,
     "topic": "org.fedoraproject.prod.git.receive.valgrind.master",
@@ -69,9 +70,11 @@ scm_message = {
     "certificate": "blah",
     "username": "mjw",
 }
+}
 
 
 github_message = {
+"body": {
     "i": 2,
     "msg": {
         "compare": "https://github.com/ralphbean/apps.fp.o",
@@ -105,6 +108,7 @@ github_message = {
     "timestamp": 1403127164.0,
     "topic": "org.fedoraproject.prod.github.webhook",
     "crypto": "x509",
+}
 }
 
 
@@ -172,14 +176,14 @@ class TestModels(unittest.TestCase):
 
     def test_add_missing_i(self):
         msg = copy.deepcopy(scm_message)
-        del msg['i']
+        del msg['body']['i']
         datanommer.models.add(msg)
         dbmsg = datanommer.models.Message.query.first()
         self.assertEqual(dbmsg.i, 0)
 
     def test_add_missing_timestamp(self):
         msg = copy.deepcopy(scm_message)
-        del msg['timestamp']
+        del msg['body']['timestamp']
         datanommer.models.add(msg)
         dbmsg = datanommer.models.Message.query.first()
         timediff = datetime.datetime.now() - dbmsg.timestamp
@@ -196,7 +200,7 @@ class TestModels(unittest.TestCase):
 
     def test_add_missing_msg_id_no_timestamp(self):
         msg = copy.deepcopy(scm_message)
-        del msg['timestamp']
+        del msg['body']['timestamp']
         datanommer.models.add(msg)
         dbmsg = datanommer.models.Message.query.first()
         year = datetime.datetime.now().year
@@ -206,7 +210,7 @@ class TestModels(unittest.TestCase):
         msg = copy.deepcopy(scm_message)
         datanommer.models.add(msg)
         dbmsg = datanommer.models.Message.query.first()
-        self.assertEquals(dbmsg.__json__()['username'], msg['username'])
+        self.assertEquals(dbmsg.__json__()['username'], msg['body']['username'])
         self.assertEquals(dbmsg.__json__()['crypto'], None)
 
     def test_extract_crypto_type(self):
@@ -238,7 +242,7 @@ class TestModels(unittest.TestCase):
 
     def test_add_missing_cert(self):
         msg = copy.deepcopy(scm_message)
-        del msg['certificate']
+        del msg['body']['certificate']
         datanommer.models.add(msg)
 
     def test_add_and_check_for_others(self):
@@ -255,14 +259,14 @@ class TestModels(unittest.TestCase):
         eq_(datanommer.models.Package.query.count(), 1)
 
         # If we add it again, there should be no duplicates
-        msg['msg']['msg_id'] = 'foobar2'
+        msg['body']['msg']['msg_id'] = 'foobar2'
         datanommer.models.add(msg)
         eq_(datanommer.models.User.query.count(), 1)
         eq_(datanommer.models.Package.query.count(), 1)
 
         msg = copy.deepcopy(scm_message)
-        msg['msg']['commit']['username'] = 'ralph'
-        msg['msg']['msg_id'] = 'foobar3'
+        msg['body']['msg']['commit']['username'] = 'ralph'
+        msg['body']['msg']['msg_id'] = 'foobar3'
         datanommer.models.add(msg)
         eq_(datanommer.models.User.query.count(), 2)
         eq_(datanommer.models.Package.query.count(), 1)
@@ -291,7 +295,7 @@ class TestModels(unittest.TestCase):
         eq_(t, 1)
         eq_(p, 1)
         eq_(len(r), 1)
-        eq_(r[0].msg, scm_message['msg'])
+        eq_(r[0].msg, scm_message['body']['msg'])
 
     def test_grep_category(self):
         msg = copy.deepcopy(scm_message)
@@ -301,7 +305,7 @@ class TestModels(unittest.TestCase):
         eq_(t, 1)
         eq_(p, 1)
         eq_(len(r), 1)
-        eq_(r[0].msg, scm_message['msg'])
+        eq_(r[0].msg, scm_message['body']['msg'])
 
     def test_grep_not_category(self):
         msg = copy.deepcopy(scm_message)
@@ -331,3 +335,23 @@ class TestModels(unittest.TestCase):
 
         t = queried.timestamp
         eq_(t, datetime.datetime(2014, 6, 18, 21, 32, 44))
+
+    def test_add_no_headers(self):
+        msg = copy.deepcopy(scm_message)
+        datanommer.models.add(msg)
+        dbmsg = datanommer.models.Message.query.first()
+        self.assertEquals(dbmsg.headers, {})
+
+    def test_add_headers(self):
+        msg = copy.deepcopy(scm_message)
+        msg['headers'] = {'foo': 'bar', 'baz': 1, 'wibble': ['zork', 'zap']}
+        datanommer.models.add(msg)
+        dbmsg = datanommer.models.Message.query.first()
+        self.assertEquals(dbmsg.headers, msg['headers'])
+
+    def test_add_headers_message_id(self):
+        msg = copy.deepcopy(scm_message)
+        msg['headers'] = {'message-id': 'abc123'}
+        datanommer.models.add(msg)
+        dbmsg = datanommer.models.Message.query.first()
+        self.assertEquals(dbmsg.msg_id, 'abc123')

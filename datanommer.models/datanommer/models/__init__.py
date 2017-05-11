@@ -94,9 +94,11 @@ def init(uri=None, alembic_ini=None, engine=None, create=False):
         DeclarativeBase.metadata.create_all(engine)
 
 
-def add(message):
-    """ Take a dict-like fedmsg message and store it in the table.
+def add(envelope):
+    """ Take a dict-like fedmsg envelope and store the headers and message
+        in the table.
     """
+    message = envelope['body']
     timestamp = message.get('timestamp', None)
     try:
         if timestamp:
@@ -106,7 +108,10 @@ def add(message):
     except Exception:
         pass
 
+    headers = envelope.get('headers', None)
     msg_id = message.get('msg_id', None)
+    if not msg_id and headers:
+        msg_id = headers.get('message-id', None)
     if not msg_id:
         msg_id = unicode(timestamp.year) + u'-' + unicode(uuid.uuid4())
     obj = Message(
@@ -121,6 +126,7 @@ def add(message):
     )
 
     obj.msg = message['msg']
+    obj.headers = headers
 
     session.add(obj)
 
@@ -193,6 +199,7 @@ class BaseMessage(object):
     source_name = Column(UnicodeText, default=u"datanommer")
     source_version = Column(UnicodeText, default=source_version_default)
     _msg = Column(UnicodeText, nullable=False)
+    _headers = Column(UnicodeText)
 
     @validates('topic')
     def get_category(self, key, topic):
@@ -211,6 +218,21 @@ class BaseMessage(object):
     def msg(self, dict_like_msg):
         self._msg = fedmsg.encoding.dumps(dict_like_msg)
 
+    @hybrid_property
+    def headers(self):
+        hdrs = self._headers
+        if hdrs:
+            return fedmsg.encoding.loads(hdrs)
+        else:
+            return {}
+
+    @headers.setter
+    def headers(self, headers):
+        if headers:
+            self._headers = fedmsg.encoding.dumps(headers)
+        else:
+            self._headers = None
+
     @classmethod
     def from_msg_id(cls, msg_id):
         return cls.query.filter(cls.msg_id == msg_id).first()
@@ -226,6 +248,7 @@ class BaseMessage(object):
             username=self.username,
             crypto=self.crypto,
             msg=self.msg,
+            headers=self.headers,
             source_name=self.source_name,
             source_version=self.source_version,
         )
