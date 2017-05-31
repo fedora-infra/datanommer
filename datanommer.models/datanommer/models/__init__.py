@@ -203,8 +203,9 @@ class BaseMessage(object):
 
     @validates('topic')
     def get_category(self, key, topic):
+        index = 2 if 'VirtualTopic' in topic else 3
         try:
-            self.category = topic.split('.')[3]
+            self.category = topic.split('.')[index]
         except:
             traceback.print_exc()
             self.category = 'Unclassified'

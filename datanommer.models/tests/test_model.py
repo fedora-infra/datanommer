@@ -110,6 +110,73 @@ github_message = {
 }
 }
 
+umb_message = {
+"headers": {
+    "content-length": "598",
+    "expires": "0",
+    "old": "OPEN",
+    "JMS_AMQP_MESSAGE_FORMAT": "0",
+    "parent": "null",
+    "JMS_AMQP_NATIVE": "false",
+    "destination": "/topic/VirtualTopic.eng.brew.task.closed",
+    "method": "newRepo",
+    "priority": "4",
+    "message-id": "ID\\cmessaging-devops-broker01.web.prod.ext.phx2.redhat.com-32888-1493960489068-4\\c473057\\c0\\c0\\c1",
+    "timestamp": "0",
+    "attribute": "state",
+    "new": "CLOSED",
+    "JMS_AMQP_FirstAcquirer": "false",
+    "type": "TaskStateChange",
+    "id": "13317101",
+    "subscription": "/queue/Consumer.datanommer-dev-mikeb.VirtualTopic.eng.>"
+},
+"body": {
+    "username": None,
+    "source_name": "datanommer",
+    "certificate": None,
+    "i": 0,
+    "timestamp": 1496253497.0,
+    "msg_id": "ID\\cmessaging-devops-broker01.web.prod.ext.phx2.redhat.com-"
+    "32888-1493960489068-4\\c473057\\c0\\c0\\c1",
+    "crypto": None,
+    "topic": "/topic/VirtualTopic.eng.brew.task.closed",
+    "signature": None,
+    "source_version": "0.7.0",
+    "msg": {
+        "info": {
+            "weight": 0.1,
+            "parent": None,
+            "completion_time": "2017-05-31 17:58:20.299696",
+            "start_ts": 1496253256.59157,
+            "start_time": "2017-05-31 17:54:16.591569",
+            "request": [
+                "rhos-12.0-rhel-7-build"
+            ],
+            "waiting": False,
+            "awaited": None,
+            "label": None,
+            "priority": 15,
+            "channel_id": 3,
+            "state": 2,
+            "create_time": "2017-05-31 17:54:15.915999",
+            "create_ts": 1496253255.916,
+            "owner": 3371,
+            "host_id": 93,
+            "method": "newRepo",
+            "completion_ts": 1496253500.2997,
+            "arch": "noarch",
+            "id": 13317101,
+            "result": [
+                2041311,
+                15755194
+            ]
+        },
+        "attribute": "state",
+        "old": "OPEN",
+        "new": "CLOSED"
+    }
+}}
+
 
 class TestModels(unittest.TestCase):
     @classmethod
@@ -284,6 +351,13 @@ class TestModels(unittest.TestCase):
         datanommer.models.session.flush()
         obj = datanommer.models.Message.query.first()
         eq_(obj.category, 'git')
+
+    def test_categories_with_umb(self):
+        msg = copy.deepcopy(umb_message)
+        datanommer.models.add(msg)
+        datanommer.models.session.flush()
+        obj = datanommer.models.Message.query.first()
+        eq_(obj.category, 'brew')
 
     def test_grep_all(self):
         msg = copy.deepcopy(scm_message)
