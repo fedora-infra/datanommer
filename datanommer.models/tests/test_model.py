@@ -15,7 +15,6 @@
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 import copy
 import datetime
-import os
 import pprint
 import sqlalchemy
 import sqlalchemy.exc
@@ -195,7 +194,6 @@ class TestModels(unittest.TestCase):
         msg = copy.deepcopy(scm_message)
         datanommer.models.add(msg)
         dbmsg = datanommer.models.Message.query.first()
-        year = datetime.datetime.now().year
         self.assertTrue(dbmsg.msg_id.startswith('2012-'))
 
     def test_add_missing_msg_id_no_timestamp(self):
