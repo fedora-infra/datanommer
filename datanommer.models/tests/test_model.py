@@ -416,3 +416,12 @@ class TestModels(unittest.TestCase):
         datanommer.models.add(msg)
         dbmsg = datanommer.models.Message.query.first()
         self.assertEquals(dbmsg.msg_id, 'abc123')
+
+    def test_add_duplicate(self):
+        # use the github message because it has a msg_id
+        msg = copy.deepcopy(github_message)
+        datanommer.models.add(msg)
+        datanommer.models.add(msg)
+        # if no exception was thrown, then we successfully ignored the
+        # duplicate message
+        eq_(datanommer.models.Message.query.count(), 1)

@@ -38,6 +38,8 @@ from sqlalchemy.schema import Table
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.hybrid import hybrid_property
 
+from sqlalchemy.sql import literal, select, exists
+
 import pkg_resources
 
 import math
@@ -128,7 +130,16 @@ def add(envelope):
     obj.msg = message['msg']
     obj.headers = headers
 
-    session.add(obj)
+    # Construct an INSERT ... SELECT ... which will do nothing if an
+    # entry with a matching msg_id already exists. This can happen in the
+    # event of message redelivery.
+    cols = [c for c in Message.__table__.c if c.name != 'id']
+    vals = [literal(getattr(obj, c.name)) for c in cols]
+    not_exists = ~exists(select([Message.__table__.c.i]).\
+                         where(Message.msg_id == msg_id))
+    insert = Message.__table__.insert().from_select(cols, select(vals).\
+                                                    where(not_exists))
+    session.execute(insert)
 
     usernames = fedmsg.meta.msg2usernames(message)
     packages = fedmsg.meta.msg2packages(message)
