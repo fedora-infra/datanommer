@@ -68,9 +68,9 @@ class TestConsumer(unittest.TestCase):
 
     def test_duplicate_msg_id(self):
         example_message = dict(
-            topic="topiclol",
+            topic="topic.lol.lol.lol",
             body=dict(
-                topic="topiclol",
+                topic="topic.lol.lol.lol",
                 i=1,
                 msg_id="1234",
                 timestamp=1234,
@@ -86,10 +86,9 @@ class TestConsumer(unittest.TestCase):
         eq_(datanommer.models.Message.query.count(), 1)
 
         with mock.patch("fedmsg.publish") as mocked_function:
-            with self.assertRaises(IntegrityError):
-                # The database layer should raise an exception on
-                # the unique constraint violation.
-                self.consumer.consume(msg2)
+            # datanommer.models.add() now ignores duplicate messages
+            # (messages with the same msg_id).
+            self.consumer.consume(msg2)
             eq_(datanommer.models.Message.query.count(), 1)
 
         mocked_function.assert_not_called()
