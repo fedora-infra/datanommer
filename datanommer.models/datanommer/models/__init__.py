@@ -276,34 +276,34 @@ pack_assoc_table = Table('package_messages', DeclarativeBase.metadata,
 )
 
 
-class User(DeclarativeBase):
+class Singleton(object):
+    @classmethod
+    def get_or_create(cls, name):
+        """
+        Return the instance of the class with the specified name. If it doesn't
+        already exist, create it.
+        """
+        # Use an INSERT ... SELECT to guarantee we don't get unique constraint
+        # violations if multiple instances of datanommer are trying to insert the same
+        # value at the same time.
+        not_exists = ~exists(select([cls.__table__.c.name]).where(cls.name == name))
+        insert = cls.__table__.insert().\
+                 from_select([cls.__table__.c.name],
+                             select([literal(name)]).where(not_exists))
+        session.execute(insert)
+        return cls.query.filter_by(name=name).one()
+
+
+class User(DeclarativeBase, Singleton):
     __tablename__ = 'user'
 
     name = Column(UnicodeText, primary_key=True, index=True)
 
-    @classmethod
-    def get_or_create(cls, name):
-        try:
-            return cls.query.filter_by(name=name).one()
-        except NoResultFound:
-            obj = cls(name=name)
-            session.add(obj)
-            return obj
 
-
-class Package(DeclarativeBase):
+class Package(DeclarativeBase, Singleton):
     __tablename__ = 'package'
 
     name = Column(UnicodeText, primary_key=True, index=True)
-
-    @classmethod
-    def get_or_create(cls, name):
-        try:
-            return cls.query.filter_by(name=name).one()
-        except NoResultFound:
-            obj = cls(name=name)
-            session.add(obj)
-            return obj
 
 
 class Message(DeclarativeBase, BaseMessage):

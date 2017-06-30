@@ -425,3 +425,17 @@ class TestModels(unittest.TestCase):
         # if no exception was thrown, then we successfully ignored the
         # duplicate message
         eq_(datanommer.models.Message.query.count(), 1)
+
+    def test_User_get_or_create(self):
+        eq_(datanommer.models.User.query.count(), 0)
+        datanommer.models.User.get_or_create(u'foo')
+        eq_(datanommer.models.User.query.count(), 1)
+        datanommer.models.User.get_or_create(u'foo')
+        eq_(datanommer.models.User.query.count(), 1)
+
+    def test_Package_get_or_create(self):
+        eq_(datanommer.models.Package.query.count(), 0)
+        datanommer.models.Package.get_or_create(u'foo')
+        eq_(datanommer.models.Package.query.count(), 1)
+        datanommer.models.Package.get_or_create(u'foo')
+        eq_(datanommer.models.Package.query.count(), 1)
