@@ -189,48 +189,37 @@ class TestModels(unittest.TestCase):
         if USE_SQLITE:
             fname = "sqlite:///%s" % filename
         else:
-            response = requests.get('http://209.132.184.152/faitout/new',
+            response = requests.get('http://faitout.fedorainfracloud.org/new',
                                     headers=dict(accept='application/json'))
             details = response.json()
             fname = "postgres://{username}:{password}@{host}:{port}/{dbname}"\
                 .format(**details)
             cls.dbname = details['dbname']
 
-        config['datanommer.sqlalchemy.url'] = fname
+        config['datanommer.sqlalchemy.url'] = cls.fname = fname
         fedmsg.meta.make_processors(**config)
 
     @classmethod
     def tearDownClass(cls):
         if not USE_SQLITE:
-            requests.get("http://209.132.184.152/faitout/drop/{dbname}"\
-                        .format(dbname=cls.dbname))
+            requests.get('http://faitout.fedorainfracloud.org/drop/{dbname}'\
+                         .format(dbname=cls.dbname))
 
     def setUp(self):
-        if USE_SQLITE:
-            fname = "sqlite:///%s" % filename
-        else:
-            response = requests.get('http://209.132.184.152/faitout/new',
-                                    headers=dict(accept='application/json'))
-            details = response.json()
-            import pprint
-            pprint.pprint(details)
-            fname = "postgres://{username}:{password}@{host}:{port}/{dbname}"\
-                .format(**details)
-            self.dbname2 = details['dbname']
+        if not USE_SQLITE:
+            response = requests.get('http://faitout.fedorainfracloud.org/clean/{dbname}'.\
+                                    format(dbname=self.dbname))
         # We only have to do this so that we can do it over
         # and over again for each test.
         datanommer.models.session = scoped_session(datanommer.models.maker)
-        datanommer.models.init(fname, create=True)
+        datanommer.models.init(self.fname, create=True)
 
 
     def tearDown(self):
         if USE_SQLITE:
             engine = datanommer.models.session.get_bind()
             datanommer.models.DeclarativeBase.metadata.drop_all(engine)
-        else:
-            datanommer.models.session.close()
-            requests.get("http://209.132.184.152/faitout/drop/{dbname}"\
-                        .format(dbname=self.dbname2))
+        datanommer.models.session.close()
 
         # These contain objects bound to the old session, so we have to flush.
         datanommer.models._users_seen = set()
@@ -427,3 +416,26 @@ class TestModels(unittest.TestCase):
         datanommer.models.add(msg)
         dbmsg = datanommer.models.Message.query.first()
         self.assertEquals(dbmsg.msg_id, 'abc123')
+
+    def test_add_duplicate(self):
+        # use the github message because it has a msg_id
+        msg = copy.deepcopy(github_message)
+        datanommer.models.add(msg)
+        datanommer.models.add(msg)
+        # if no exception was thrown, then we successfully ignored the
+        # duplicate message
+        eq_(datanommer.models.Message.query.count(), 1)
+
+    def test_User_get_or_create(self):
+        eq_(datanommer.models.User.query.count(), 0)
+        datanommer.models.User.get_or_create(u'foo')
+        eq_(datanommer.models.User.query.count(), 1)
+        datanommer.models.User.get_or_create(u'foo')
+        eq_(datanommer.models.User.query.count(), 1)
+
+    def test_Package_get_or_create(self):
+        eq_(datanommer.models.Package.query.count(), 0)
+        datanommer.models.Package.get_or_create(u'foo')
+        eq_(datanommer.models.Package.query.count(), 1)
+        datanommer.models.Package.get_or_create(u'foo')
+        eq_(datanommer.models.Package.query.count(), 1)
