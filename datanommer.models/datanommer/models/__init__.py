@@ -33,13 +33,12 @@ from sqlalchemy import not_, or_, between
 
 from sqlalchemy.orm import validates
 from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.exc import IntegrityError
 
 from sqlalchemy.schema import Table
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.hybrid import hybrid_property
 
-from sqlalchemy.sql import literal, select, exists
-from sqlalchemy.exc import IntegrityError
 
 import pkg_resources
 
@@ -282,15 +281,16 @@ class Singleton(object):
         Return the instance of the class with the specified name. If it doesn't
         already exist, create it.
         """
-        # Use an INSERT ... SELECT to guarantee we don't get unique constraint
-        # violations if multiple instances of datanommer are trying to insert the same
-        # value at the same time.
-        not_exists = ~exists(select([cls.__table__.c.name]).where(cls.name == name))
-        insert = cls.__table__.insert().\
-                 from_select([cls.__table__.c.name],
-                             select([literal(name)]).where(not_exists))
-        session.execute(insert)
-        return cls.query.filter_by(name=name).one()
+        try:
+            return cls.query.filter_by(name=name).one()
+        except NoResultFound:
+            try:
+                obj = cls(name=name)
+                session.add(obj)
+                return obj
+            except IntegrityError:
+                session.rollback()
+                return cls.query.filter_by(name=name).one()
 
 
 class User(DeclarativeBase, Singleton):
