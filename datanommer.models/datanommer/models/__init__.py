@@ -286,7 +286,7 @@ class Singleton(object):
         # violations if multiple instances of datanommer are trying to insert the same
         # value at the same time.
         not_exists = ~exists(select([cls.__table__.c.name]).where(cls.name == name))
-        insert = cls.__table__.insert().\
+        insert = cls.__table__.insert(inline=True).\
                  from_select([cls.__table__.c.name],
                              select([literal(name)]).where(not_exists))
         session.execute(insert)
