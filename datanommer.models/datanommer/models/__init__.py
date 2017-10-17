@@ -365,7 +365,7 @@ class Message(DeclarativeBase, BaseMessage):
         not_topics = not_topics or []
         contains = contains or []
 
-        query = Message.query
+        query = session.query(Message.id)
 
         # A little argument validation.  We could provide some defaults in
         # these mixed cases.. but instead we'll just leave it up to our caller.
@@ -437,11 +437,15 @@ class Message(DeclarativeBase, BaseMessage):
             pages = int(math.ceil(total / float(rows_per_page)))
             query = query.offset(rows_per_page * (page - 1)).limit(rows_per_page)
 
+        final_query = session.query(Message).filter(
+            Message.id.in_(query.subquery())
+        )
+
         if defer:
-            return total, page, query
+            return total, page, final_query
         else:
             # Execute!
-            messages = query.all()
+            messages = final_query.all()
             return total, pages, messages
 
 models = frozenset((
