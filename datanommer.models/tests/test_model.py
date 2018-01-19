@@ -21,6 +21,11 @@ import sqlalchemy.exc
 import unittest
 import requests
 
+# Fix missing unicode type in Python 3
+import sys
+if (sys.version_info >= (3,0)):
+    unicode = str
+
 from sqlalchemy.orm import scoped_session
 
 from nose.tools import raises

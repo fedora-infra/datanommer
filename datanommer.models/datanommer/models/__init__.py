@@ -41,6 +41,11 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.sql import literal, select, exists
 from sqlalchemy.exc import IntegrityError
 
+# Fix missing unicode type in Python 3
+import sys
+if (sys.version_info >= (3,0)):
+    unicode = str
+
 import pkg_resources
 
 import math
