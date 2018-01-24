@@ -78,8 +78,8 @@ you might have to adjust the command a little).  You can also add this \
 command to your ``~/.bashrc`` file to have it run automatically for you.
 
 
-Cloning upstream the git repo¶
-------------------------------
+Cloning upstream the git repo
+-----------------------------
 The source code is on github. 
 
 Get fedmsg::
