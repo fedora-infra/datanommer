@@ -22,8 +22,8 @@ def upgrade():
     """ Creates an index on messages.category, messages.topic and
     messages.username
     """
-    op.create_index('messages_topic_id', 'messages', 'topic')
-    op.create_index('messages_category_id', 'messages', 'category')
+    op.create_index('messages_topic_id', 'messages', ['topic'])
+    op.create_index('messages_category_id', 'messages', ['category'])
 
 
 def downgrade():
