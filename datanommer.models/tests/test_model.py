@@ -241,7 +241,7 @@ class TestModels(unittest.TestCase):
         del msg['body']['timestamp']
         datanommer.models.add(msg)
         dbmsg = datanommer.models.Message.query.first()
-        timediff = datetime.datetime.now() - dbmsg.timestamp
+        timediff = datetime.datetime.utcnow() - dbmsg.timestamp
         # 10 seconds between adding the message and checking
         # the timestamp should be more than enough.
         self.assertTrue(timediff < datetime.timedelta(seconds=10))
