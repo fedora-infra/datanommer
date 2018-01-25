@@ -265,15 +265,15 @@ class TestModels(unittest.TestCase):
         msg = copy.deepcopy(scm_message)
         datanommer.models.add(msg)
         dbmsg = datanommer.models.Message.query.first()
-        self.assertEquals(dbmsg.__json__()['username'], msg['body']['username'])
-        self.assertEquals(dbmsg.__json__()['crypto'], None)
+        self.assertEqual(dbmsg.__json__()['username'], msg['body']['username'])
+        self.assertEqual(dbmsg.__json__()['crypto'], None)
 
     def test_extract_crypto_type(self):
         msg = copy.deepcopy(github_message)
         datanommer.models.add(msg)
         dbmsg = datanommer.models.Message.query.first()
-        self.assertEquals(dbmsg.__json__()['username'], None)
-        self.assertEquals(dbmsg.__json__()['crypto'], 'x509')
+        self.assertEqual(dbmsg.__json__()['username'], None)
+        self.assertEqual(dbmsg.__json__()['crypto'], 'x509')
 
     def test_add_many_and_count_statements(self):
         statements = []
@@ -402,21 +402,21 @@ class TestModels(unittest.TestCase):
         msg = copy.deepcopy(scm_message)
         datanommer.models.add(msg)
         dbmsg = datanommer.models.Message.query.first()
-        self.assertEquals(dbmsg.headers, {})
+        self.assertEqual(dbmsg.headers, {})
 
     def test_add_headers(self):
         msg = copy.deepcopy(scm_message)
         msg['headers'] = {'foo': 'bar', 'baz': 1, 'wibble': ['zork', 'zap']}
         datanommer.models.add(msg)
         dbmsg = datanommer.models.Message.query.first()
-        self.assertEquals(dbmsg.headers, msg['headers'])
+        self.assertEqual(dbmsg.headers, msg['headers'])
 
     def test_add_headers_message_id(self):
         msg = copy.deepcopy(scm_message)
         msg['headers'] = {'message-id': 'abc123'}
         datanommer.models.add(msg)
         dbmsg = datanommer.models.Message.query.first()
-        self.assertEquals(dbmsg.msg_id, 'abc123')
+        self.assertEqual(dbmsg.msg_id, 'abc123')
 
     def test_add_duplicate(self):
         # use the github message because it has a msg_id
