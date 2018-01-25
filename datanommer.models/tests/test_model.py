@@ -27,6 +27,7 @@ from nose.tools import raises
 from nose.tools import eq_
 
 import datanommer.models
+import six
 
 # Set this to false to use faitout
 USE_SQLITE = True  # False
@@ -258,7 +259,7 @@ class TestModels(unittest.TestCase):
         datanommer.models.add(msg)
         dbmsg = datanommer.models.Message.query.first()
         year = datetime.datetime.now().year
-        self.assertTrue(dbmsg.msg_id.startswith(unicode(year) + u'-'))
+        self.assertTrue(dbmsg.msg_id.startswith(six.text_type(year) + six.u('-')))
 
     def test_extract_base_username(self):
         msg = copy.deepcopy(scm_message)
@@ -428,14 +429,14 @@ class TestModels(unittest.TestCase):
 
     def test_User_get_or_create(self):
         eq_(datanommer.models.User.query.count(), 0)
-        datanommer.models.User.get_or_create(u'foo')
+        datanommer.models.User.get_or_create(six.u('foo'))
         eq_(datanommer.models.User.query.count(), 1)
-        datanommer.models.User.get_or_create(u'foo')
+        datanommer.models.User.get_or_create(six.u('foo'))
         eq_(datanommer.models.User.query.count(), 1)
 
     def test_Package_get_or_create(self):
         eq_(datanommer.models.Package.query.count(), 0)
-        datanommer.models.Package.get_or_create(u'foo')
+        datanommer.models.Package.get_or_create(six.u('foo'))
         eq_(datanommer.models.Package.query.count(), 1)
-        datanommer.models.Package.get_or_create(u'foo')
+        datanommer.models.Package.get_or_create(six.u('foo'))
         eq_(datanommer.models.Package.query.count(), 1)
