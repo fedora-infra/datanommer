@@ -260,9 +260,9 @@ class TestCommands(unittest.TestCase):
             self.config['before'] = '2013-02-16'
             gc.return_value = self.config
 
-            time1 = datetime(2013,02,14)
-            time2 = datetime(2013,02,15)
-            time3 = datetime(2013,02,16,8)
+            time1 = datetime(2013,2,14)
+            time2 = datetime(2013,2,15)
+            time3 = datetime(2013,2,16,8)
 
             msg1 = m.Message(
                 topic='org.fedoraproject.prod.git.branch.valgrind.master',
@@ -313,9 +313,9 @@ class TestCommands(unittest.TestCase):
             self.config['since'] = '2013-02-14T08:00:00'
             gc.return_value = self.config
 
-            time1 = datetime(2013,02,14)
-            time2 = datetime(2013,02,15)
-            time3 = datetime(2013,02,16,8)
+            time1 = datetime(2013,2,14)
+            time2 = datetime(2013,2,15)
+            time3 = datetime(2013,2,16,8)
 
             msg1 = m.Message(
                 topic='org.fedoraproject.prod.git.branch.valgrind.master',
@@ -367,9 +367,9 @@ class TestCommands(unittest.TestCase):
             self.config['since'] = '2013-02-14T08:00:00'
             gc.return_value = self.config
 
-            time1 = datetime(2013,02,14)
-            time2 = datetime(2013,02,15)
-            time3 = datetime(2013,02,16,8)
+            time1 = datetime(2013,2,14)
+            time2 = datetime(2013,2,15)
+            time3 = datetime(2013,2,16,8)
 
             msg1 = m.Message(
                 topic='org.fedoraproject.prod.git.branch.valgrind.master',
@@ -559,9 +559,9 @@ class TestCommands(unittest.TestCase):
             self.config['human'] = True
             gc.return_value = self.config
 
-            time1 = datetime(2013,02,14)
-            time2 = datetime(2013,02,15,15,15,15,15)
-            time3 = datetime(2013,02,16,16,16,16,16)
+            time1 = datetime(2013,2,14)
+            time2 = datetime(2013,2,15,15,15,15,15)
+            time3 = datetime(2013,2,16,16,16,16,16)
 
             msg1 = m.Message(
                 topic='org.fedoraproject.prod.git.branch.valgrind.master',
@@ -611,9 +611,9 @@ class TestCommands(unittest.TestCase):
             self.config['timestamp'] = True
             gc.return_value = self.config
 
-            time1 = datetime(2013,02,14)
-            time2 = datetime(2013,02,15)
-            time3 = datetime(2013,02,16)
+            time1 = datetime(2013,2,14)
+            time2 = datetime(2013,2,15)
+            time3 = datetime(2013,2,16)
 
             msg1 = m.Message(
                 topic='org.fedoraproject.prod.git.branch.valgrind.master',
