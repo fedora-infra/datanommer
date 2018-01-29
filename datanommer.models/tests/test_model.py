@@ -27,6 +27,7 @@ from nose.tools import raises
 from nose.tools import eq_
 
 import datanommer.models
+import six
 
 # Set this to false to use faitout
 USE_SQLITE = True  # False
@@ -258,21 +259,21 @@ class TestModels(unittest.TestCase):
         datanommer.models.add(msg)
         dbmsg = datanommer.models.Message.query.first()
         year = datetime.datetime.now().year
-        self.assertTrue(dbmsg.msg_id.startswith(unicode(year) + u'-'))
+        self.assertTrue(dbmsg.msg_id.startswith(six.text_type(year) + six.u('-')))
 
     def test_extract_base_username(self):
         msg = copy.deepcopy(scm_message)
         datanommer.models.add(msg)
         dbmsg = datanommer.models.Message.query.first()
-        self.assertEquals(dbmsg.__json__()['username'], msg['body']['username'])
-        self.assertEquals(dbmsg.__json__()['crypto'], None)
+        self.assertEqual(dbmsg.__json__()['username'], msg['body']['username'])
+        self.assertEqual(dbmsg.__json__()['crypto'], None)
 
     def test_extract_crypto_type(self):
         msg = copy.deepcopy(github_message)
         datanommer.models.add(msg)
         dbmsg = datanommer.models.Message.query.first()
-        self.assertEquals(dbmsg.__json__()['username'], None)
-        self.assertEquals(dbmsg.__json__()['crypto'], 'x509')
+        self.assertEqual(dbmsg.__json__()['username'], None)
+        self.assertEqual(dbmsg.__json__()['crypto'], 'x509')
 
     def test_add_many_and_count_statements(self):
         statements = []
@@ -401,21 +402,21 @@ class TestModels(unittest.TestCase):
         msg = copy.deepcopy(scm_message)
         datanommer.models.add(msg)
         dbmsg = datanommer.models.Message.query.first()
-        self.assertEquals(dbmsg.headers, {})
+        self.assertEqual(dbmsg.headers, {})
 
     def test_add_headers(self):
         msg = copy.deepcopy(scm_message)
         msg['headers'] = {'foo': 'bar', 'baz': 1, 'wibble': ['zork', 'zap']}
         datanommer.models.add(msg)
         dbmsg = datanommer.models.Message.query.first()
-        self.assertEquals(dbmsg.headers, msg['headers'])
+        self.assertEqual(dbmsg.headers, msg['headers'])
 
     def test_add_headers_message_id(self):
         msg = copy.deepcopy(scm_message)
         msg['headers'] = {'message-id': 'abc123'}
         datanommer.models.add(msg)
         dbmsg = datanommer.models.Message.query.first()
-        self.assertEquals(dbmsg.msg_id, 'abc123')
+        self.assertEqual(dbmsg.msg_id, 'abc123')
 
     def test_add_duplicate(self):
         # use the github message because it has a msg_id
@@ -428,14 +429,14 @@ class TestModels(unittest.TestCase):
 
     def test_User_get_or_create(self):
         eq_(datanommer.models.User.query.count(), 0)
-        datanommer.models.User.get_or_create(u'foo')
+        datanommer.models.User.get_or_create(six.u('foo'))
         eq_(datanommer.models.User.query.count(), 1)
-        datanommer.models.User.get_or_create(u'foo')
+        datanommer.models.User.get_or_create(six.u('foo'))
         eq_(datanommer.models.User.query.count(), 1)
 
     def test_Package_get_or_create(self):
         eq_(datanommer.models.Package.query.count(), 0)
-        datanommer.models.Package.get_or_create(u'foo')
+        datanommer.models.Package.get_or_create(six.u('foo'))
         eq_(datanommer.models.Package.query.count(), 1)
-        datanommer.models.Package.get_or_create(u'foo')
+        datanommer.models.Package.get_or_create(six.u('foo'))
         eq_(datanommer.models.Package.query.count(), 1)

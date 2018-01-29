@@ -42,6 +42,7 @@ setup(name='datanommer.models',
           "sqlalchemy>=0.7",
           "fedmsg",
           "alembic",
+          "six",
       ],
       tests_require=[
           "nose",

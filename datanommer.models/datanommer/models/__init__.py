@@ -48,6 +48,7 @@ import datetime
 import traceback
 import fedmsg.encoding
 import uuid
+import six
 
 maker = sessionmaker()
 session = scoped_session(maker)
@@ -116,7 +117,7 @@ def add(envelope):
     if not msg_id and headers:
         msg_id = headers.get('message-id', None)
     if not msg_id:
-        msg_id = unicode(timestamp.year) + u'-' + unicode(uuid.uuid4())
+        msg_id = six.text_type(timestamp.year) + six.u('-') + six.text_type(uuid.uuid4())
     obj = Message(
         i=message.get('i', 0),
         msg_id=msg_id,
@@ -206,7 +207,7 @@ class BaseMessage(object):
     category = Column(UnicodeText, nullable=False, index=True)
     username = Column(UnicodeText)
     crypto = Column(UnicodeText)
-    source_name = Column(UnicodeText, default=u"datanommer")
+    source_name = Column(UnicodeText, default=six.u("datanommer"))
     source_version = Column(UnicodeText, default=source_version_default)
     _msg = Column(UnicodeText, nullable=False)
     _headers = Column(UnicodeText)
