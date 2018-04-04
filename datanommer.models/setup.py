@@ -24,7 +24,7 @@ long_description = f.read().strip()
 long_description = long_description.split('split here', 1)[1]
 f.close()
 
-version = '0.9.0'
+version = '0.9.1'
 
 setup(name='datanommer.models',
       version=version,
