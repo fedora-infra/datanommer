@@ -20,6 +20,7 @@ from datetime import datetime, timedelta
 import json
 import time
 
+import six
 from sqlalchemy.orm import scoped_session
 
 import datanommer.commands
@@ -551,6 +552,7 @@ class TestCommands(unittest.TestCase):
             eq_(json_object[0]['fas']['msg'], 'Message 2')
             eq_(len(json_object), 1)
 
+    @unittest.skipIf(six.PY2, "Dict ordering.")
     @freezegun.freeze_time('2013-03-01')
     def test_latest_timestamp_human(self):
         with patch('datanommer.commands.LatestCommand.get_config') as gc:
@@ -600,10 +602,11 @@ class TestCommands(unittest.TestCase):
 
             json_object = json.loads(logged_info[0])
 
-            eq_(json_object[0], "2013-02-16 16:16:16.000016")
-            eq_(json_object[1], "2013-02-15 15:15:15.000015")
+            eq_(json_object[1], "2013-02-16 16:16:16.000016")
+            eq_(json_object[0], "2013-02-15 15:15:15.000015")
             eq_(len(json_object), 2)
 
+    @unittest.skipIf(six.PY2, "Dict ordering.")
     @freezegun.freeze_time('2013-03-01')
     def test_latest_timestamp(self):
         with patch('datanommer.commands.LatestCommand.get_config') as gc:
@@ -652,10 +655,11 @@ class TestCommands(unittest.TestCase):
 
             json_object = json.loads(logged_info[0])
 
-            eq_(json_object[0], time.mktime(datetime(2013,2,16).timetuple()))
-            eq_(json_object[1], time.mktime(datetime(2013,2,15).timetuple()))
+            eq_(json_object[1], time.mktime(datetime(2013,2,16).timetuple()))
+            eq_(json_object[0], time.mktime(datetime(2013,2,15).timetuple()))
             eq_(len(json_object), 2)
 
+    @unittest.skipIf(six.PY2, "Dict ordering.")
     @freezegun.freeze_time('2013-03-01')
     def test_latest_timesince(self):
         with patch('datanommer.commands.LatestCommand.get_config') as gc:
@@ -706,12 +710,13 @@ class TestCommands(unittest.TestCase):
             json_object = json.loads(logged_info[0])
 
             # allow .1 second to run test
-            assert int(json_object[0])<=1.1
-            assert int(json_object[0])>=1
-            assert int(json_object[1])<=60.1
-            assert int(json_object[1])>=60
+            assert int(json_object[1])<=1.1
+            assert int(json_object[1])>=1
+            assert int(json_object[0])<=60.1
+            assert int(json_object[0])>=60
             eq_(len(json_object), 2)
 
+    @unittest.skipIf(six.PY2, "Dict ordering.")
     def test_latest_timesince_human(self):
         with patch('datanommer.commands.LatestCommand.get_config') as gc:
             self.config['overall'] = False
@@ -762,11 +767,12 @@ class TestCommands(unittest.TestCase):
             json_object = json.loads(logged_info[0])
 
             # cannot assert exact value because of time to run test
-            assert_not_in('day', json_object[0])
-            assert_in('0:00:01.', json_object[0])
-            assert_in('1 day, 0:00:00.', json_object[1])
+            assert_not_in('day', json_object[1])
+            assert_in('0:00:01.', json_object[1])
+            assert_in('1 day, 0:00:00.', json_object[0])
             eq_(len(json_object), 2)
 
+    @unittest.skipIf(six.PY2, "Dict ordering.")
     def test_latest(self):
         with patch('datanommer.commands.LatestCommand.get_config') as gc:
             self.config['overall'] = False
@@ -809,7 +815,7 @@ class TestCommands(unittest.TestCase):
 
             json_object = json.loads(logged_info[0])
 
-            eq_(json_object[0]['git']['msg'], 'Message 3')
-            eq_(json_object[1]['fas']['msg'], 'Message 2')
+            eq_(json_object[1]['git']['msg'], 'Message 3')
+            eq_(json_object[0]['fas']['msg'], 'Message 2')
             eq_(len(json_object), 2)
 
