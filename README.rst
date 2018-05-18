@@ -13,13 +13,13 @@ There are also a handful of CLI tools to dump information from the database.
 Build Status
 ------------
 
-.. |master| image:: https://secure.travis-ci.org/ralphbean/datanommer.png?branch=master
+.. |master| image:: https://img.shields.io/travis/fedora-infra/datanommer/master.svg
    :alt: Build Status - master branch
-   :target: http://travis-ci.org/#!/ralphbean/datanommer
+   :target: https://travis-ci.org/fedora-infra/datanommer/branches
 
-.. |develop| image:: https://secure.travis-ci.org/ralphbean/datanommer.png?branch=develop
+.. |develop| image:: https://img.shields.io/travis/fedora-infra/datanommer/develop.svg
    :alt: Build Status - develop branch
-   :target: http://travis-ci.org/#!/ralphbean/datanommer
+   :target: https://travis-ci.org/fedora-infra/datanommer/branches
 
 +----------+-----------+
 | Branch   | Status    |
