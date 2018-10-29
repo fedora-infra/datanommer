@@ -36,10 +36,12 @@ import datetime
 import getpass
 import pprint
 
+from six.moves import input
+
 
 def prompt_creds():
     print("I need to query FAS to get the list of packagers..")
-    username = raw_input("FAS username: ")
+    username = input("FAS username: ")
     password = getpass.getpass("FAS password: ")
     return dict(username=username, password=password)
 
