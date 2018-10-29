@@ -36,6 +36,8 @@ import datetime
 import getpass
 import pprint
 
+from six.moves import raw_input
+
 
 def prompt_creds():
     print("I need to query FAS to get the list of packagers..")
