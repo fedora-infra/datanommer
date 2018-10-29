@@ -21,6 +21,7 @@ test data.
     :author: Ralph Bean <rbean@redhat.com>
 
 """
+from __future__ import print_function
 
 import random
 import time
@@ -47,7 +48,7 @@ def main():
     while True:
         for service, thresh in probs.iteritems():
             if random.random() < thresh:
-                print service, thresh
+                print(service, thresh)
                 fedmsg.send_message(
                     topic='fake_data',
                     msg={'test': "Test data." + str(i)},
