@@ -21,6 +21,7 @@ https://fedorahosted.org/fesco/ticket/967#comment:2
 
 :Author:  Ralph Bean <rbean@redhat.com>
 """
+from __future__ import print_function
 
 
 __requires__ = 'datanommer==0.1.8'
@@ -37,7 +38,7 @@ import pprint
 
 
 def prompt_creds():
-    print "I need to query FAS to get the list of packagers.."
+    print("I need to query FAS to get the list of packagers..")
     username = raw_input("FAS username: ")
     password = getpass.getpass("FAS password: ")
     return dict(username=username, password=password)
@@ -121,6 +122,6 @@ if __name__ == '__main__':
         if packager['username'] in seen or packager['email'] in seen:
             packagers_seen.append(packager['username'])
 
-    print len(seen), "persons seen in total"
-    print len(packagers_seen), "of", len(packagers), "seen"
+    print(len(seen), "persons seen in total")
+    print(len(packagers_seen), "of", len(packagers), "seen")
 

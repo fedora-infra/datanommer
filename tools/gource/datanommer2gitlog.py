@@ -27,6 +27,7 @@ Run with python-2.7.
     $ python ../datanommer2gitlog.py
 
 """
+from __future__ import print_function
 
 import commands
 import os
@@ -48,7 +49,7 @@ def run(cmd):
 
     status, output = commands.getstatusoutput(cmd)
     if status:
-        print output
+        print(output)
     return status == 0
 
 
@@ -61,7 +62,7 @@ def read_datanommer_entries_from_filedump():
     # TODO -- un-hardcode this filename when I need to run this next time.
     #filename = "../myfile.json"
     filename = "../datanommer-dump-2012-11-22.json"
-    print "Reading %s" % filename
+    print("Reading %s" % filename)
     progress = progressbar.ProgressBar(widgets=[
         progressbar.widgets.Percentage(),
         progressbar.widgets.Bar(),
@@ -78,14 +79,14 @@ def read_datanommer_entries_from_filedump():
                     yield json.loads(line + "\n}")
                 except:
                     failed += 1
-        print " * Failed to parse %i json objects" % failed
+        print(" * Failed to parse %i json objects" % failed)
 
     def comp(a, b):
         return cmp(a['timestamp'], b['timestamp'])
 
     result = sorted(list(_entries()), cmp=comp)
-    print " * Read and sorted %i messages" % len(result)
-    print
+    print(" * Read and sorted %i messages" % len(result))
+    print()
     return result
 
 
@@ -105,7 +106,7 @@ def main():
     failed_adds, failed_commits = 0, 0
 
     entries = read_datanommer_entries_from_filedump()
-    print "Writing out fake git log."
+    print("Writing out fake git log.")
     for i, entry in enumerate(progress(entries)):
         original_msg = entry  # Do this when reading from the json dump
 
@@ -124,7 +125,7 @@ def main():
             text = text.replace('"', '')
 
         except IndexError:
-            print " * failed at applying msg2repr to obj"
+            print(" * failed at applying msg2repr to obj")
             continue
 
         users = fedmsg.text.msg2usernames(original_msg, **conf)
@@ -157,7 +158,7 @@ def main():
 
             if not run("git add %s" % filename.encode('utf-8')):
                 failed_adds += 1
-                print " * Failed the %ith add." % failed_adds
+                print(" * Failed the %ith add." % failed_adds)
 
         # It's annoying that you can't override the commit date more directly.
         # Using git commit --date=foo only sets the author date.
@@ -169,17 +170,17 @@ def main():
                 ("%s <%s@fedoraproject.org>" % (user, user)).encode('utf-8'),
             )
         except UnicodeDecodeError:
-            print " * unicode failure on %s" % text
+            print(" * unicode failure on %s" % text)
             failed_commits += 1
             continue
 
         if not run(cmd):
             failed_commits += 1
-            print " * Failed the %ith commit." % failed_commits
-            print cmd
+            print(" * Failed the %ith commit." % failed_commits)
+            print(cmd)
 
-    print "Done.  %i failed adds, %i failed commits." % (
-        failed_adds, failed_commits)
+    print("Done.  %i failed adds, %i failed commits." % (
+        failed_adds, failed_commits))
 
 if __name__ == '__main__':
     main()

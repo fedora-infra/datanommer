@@ -19,6 +19,7 @@
 :Author: Ralph Bean
 
 """
+from __future__ import print_function
 
 import collections
 
@@ -80,4 +81,4 @@ if __name__ == '__main__':
 
     # Then read them out.
     for key, value in bucket.items():
-        print "%i, %i" % (key, value)
+        print("%i, %i" % (key, value))
