@@ -60,7 +60,7 @@ Get::
     $ sudo yum install python-virtualenv openssl-devel zeromq-devel gcc
 
 **Note:** If submitting patches, you should check \
-`Contributing <http://fedmsg.com/en/latest/contributing/>`_ \
+`Contributing <https://fedmsg.readthedocs.io/en/stable/contributing/>`_ \
 for style guidelines.
 
 
@@ -261,7 +261,7 @@ have access to all the metadata processors provided there.  Install it and try:
        print " ", fedmsg.meta.msg2subtitle(message, **config)
 
 Take a look at the `list of topics and message types
-<http://fedmsg.com/en/latest/topics/>`_ that ``fedmsg.meta`` understands.
+<https://fedora-fedmsg.readthedocs.io/en/latest/>`_ that ``fedmsg.meta`` understands.
 
 Migration with Alembic
 -----------------------
