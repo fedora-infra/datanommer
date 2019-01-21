@@ -12,3 +12,4 @@ README.pdf
 *.pid
 *.log
 *.swo
+.tox/
