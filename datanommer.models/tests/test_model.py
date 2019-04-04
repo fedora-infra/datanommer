@@ -23,6 +23,7 @@ import requests
 
 from sqlalchemy.orm import scoped_session
 
+from mock import patch
 from nose.tools import raises
 from nose.tools import eq_
 
@@ -288,12 +289,18 @@ class TestModels(unittest.TestCase):
 
         # Add it to the db and check how many queries we made
         datanommer.models.add(msg)
-        eq_(len(statements), 7)
+        if 'sqlite' in datanommer.models.session.get_bind().driver:
+            eq_(len(statements), 12)
+        else:
+            eq_(len(statements), 11)
 
         # Add it again and check again
         datanommer.models.add(msg)
         pprint.pprint(statements)
-        eq_(len(statements), 10)
+        if 'sqlite' in datanommer.models.session.get_bind().driver:
+            eq_(len(statements), 16)
+        else:
+            eq_(len(statements), 14)
 
     def test_add_missing_cert(self):
         msg = copy.deepcopy(scm_message)
@@ -440,3 +447,18 @@ class TestModels(unittest.TestCase):
         eq_(datanommer.models.Package.query.count(), 1)
         datanommer.models.Package.get_or_create(six.u('foo'))
         eq_(datanommer.models.Package.query.count(), 1)
+
+    @patch('datanommer.models.log')
+    @patch('sqlalchemy.orm.query.Query.filter_by')
+    def test_singleton_nested_txns(self, filter_by, log):
+        # Hide existing instances from get_or_create(), which forces a duplicate insert
+        # and constraint violation.
+        filter_by.return_value.one_or_none.return_value = None
+        datanommer.models.Package.get_or_create(six.u('foo'))
+        datanommer.models.Package.get_or_create(six.u('foo'))
+        eq_(datanommer.models.Package.query.count(), 1)
+        log.debug.assert_called_once_with(
+            'Collision when adding %s(name="%s"), returning existing object',
+            'Package',
+            'foo'
+        )

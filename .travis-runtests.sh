@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-echo "Installing all packages in development mode"
+echo "Running tests for all packages"
 for package in datanommer.{models,consumer,commands}; do
     echo "[$package] Testing..."
     pushd $package

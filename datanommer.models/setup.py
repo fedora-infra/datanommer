@@ -47,6 +47,7 @@ setup(name='datanommer.models',
       tests_require=[
           "nose",
           "fedmsg_meta_fedora_infrastructure",
+          "mock",
       ],
       classifiers=[
           'Programming Language :: Python :: 2',
