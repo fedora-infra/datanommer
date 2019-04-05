@@ -150,8 +150,8 @@ def add(envelope):
         session.add(obj)
         session.flush()
     except IntegrityError:
-        log.warn('Skipping message from %s with duplicate id: %s',
-                 message['topic'], msg_id)
+        log.warning('Skipping message from %s with duplicate id: %s',
+                    message['topic'], msg_id)
         session.rollback()
         return
 

@@ -30,7 +30,7 @@ from nose.tools import eq_
 import datanommer.models
 import six
 
-# Set this to false to use faitout
+# Set this to false to use a local postgres instance
 USE_SQLITE = True  # False
 
 filename = ":memory:"
@@ -191,26 +191,15 @@ class TestModels(unittest.TestCase):
         if USE_SQLITE:
             fname = "sqlite:///%s" % filename
         else:
-            response = requests.get('http://faitout.fedorainfracloud.org/new',
-                                    headers=dict(accept='application/json'))
-            details = response.json()
-            fname = "postgres://{username}:{password}@{host}:{port}/{dbname}"\
-                .format(**details)
-            cls.dbname = details['dbname']
+            # Test against a local postgresql instance.
+            # You'll need to have the "psycopg2" module available in your environment.
+            fname = "postgresql://datanommer:datanommer@localhost/datanommer"
 
         config['datanommer.sqlalchemy.url'] = cls.fname = fname
         fedmsg.meta.make_processors(**config)
 
-    @classmethod
-    def tearDownClass(cls):
-        if not USE_SQLITE:
-            requests.get('http://faitout.fedorainfracloud.org/drop/{dbname}'\
-                         .format(dbname=cls.dbname))
 
     def setUp(self):
-        if not USE_SQLITE:
-            response = requests.get('http://faitout.fedorainfracloud.org/clean/{dbname}'.\
-                                    format(dbname=self.dbname))
         # We only have to do this so that we can do it over
         # and over again for each test.
         datanommer.models.session = scoped_session(datanommer.models.maker)
@@ -218,9 +207,9 @@ class TestModels(unittest.TestCase):
 
 
     def tearDown(self):
-        if USE_SQLITE:
-            engine = datanommer.models.session.get_bind()
-            datanommer.models.DeclarativeBase.metadata.drop_all(engine)
+        datanommer.models.session.rollback()
+        engine = datanommer.models.session.get_bind()
+        datanommer.models.DeclarativeBase.metadata.drop_all(engine)
         datanommer.models.session.close()
 
         # These contain objects bound to the old session, so we have to flush.
