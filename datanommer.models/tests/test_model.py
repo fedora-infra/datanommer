@@ -23,13 +23,14 @@ import requests
 
 from sqlalchemy.orm import scoped_session
 
+from mock import patch
 from nose.tools import raises
 from nose.tools import eq_
 
 import datanommer.models
 import six
 
-# Set this to false to use faitout
+# Set this to false to use a local postgres instance
 USE_SQLITE = True  # False
 
 filename = ":memory:"
@@ -190,26 +191,15 @@ class TestModels(unittest.TestCase):
         if USE_SQLITE:
             fname = "sqlite:///%s" % filename
         else:
-            response = requests.get('http://faitout.fedorainfracloud.org/new',
-                                    headers=dict(accept='application/json'))
-            details = response.json()
-            fname = "postgres://{username}:{password}@{host}:{port}/{dbname}"\
-                .format(**details)
-            cls.dbname = details['dbname']
+            # Test against a local postgresql instance.
+            # You'll need to have the "psycopg2" module available in your environment.
+            fname = "postgresql://datanommer:datanommer@localhost/datanommer"
 
         config['datanommer.sqlalchemy.url'] = cls.fname = fname
         fedmsg.meta.make_processors(**config)
 
-    @classmethod
-    def tearDownClass(cls):
-        if not USE_SQLITE:
-            requests.get('http://faitout.fedorainfracloud.org/drop/{dbname}'\
-                         .format(dbname=cls.dbname))
 
     def setUp(self):
-        if not USE_SQLITE:
-            response = requests.get('http://faitout.fedorainfracloud.org/clean/{dbname}'.\
-                                    format(dbname=self.dbname))
         # We only have to do this so that we can do it over
         # and over again for each test.
         datanommer.models.session = scoped_session(datanommer.models.maker)
@@ -217,9 +207,9 @@ class TestModels(unittest.TestCase):
 
 
     def tearDown(self):
-        if USE_SQLITE:
-            engine = datanommer.models.session.get_bind()
-            datanommer.models.DeclarativeBase.metadata.drop_all(engine)
+        datanommer.models.session.rollback()
+        engine = datanommer.models.session.get_bind()
+        datanommer.models.DeclarativeBase.metadata.drop_all(engine)
         datanommer.models.session.close()
 
         # These contain objects bound to the old session, so we have to flush.
@@ -288,12 +278,18 @@ class TestModels(unittest.TestCase):
 
         # Add it to the db and check how many queries we made
         datanommer.models.add(msg)
-        eq_(len(statements), 7)
+        if 'sqlite' in datanommer.models.session.get_bind().driver:
+            eq_(len(statements), 12)
+        else:
+            eq_(len(statements), 11)
 
         # Add it again and check again
         datanommer.models.add(msg)
         pprint.pprint(statements)
-        eq_(len(statements), 10)
+        if 'sqlite' in datanommer.models.session.get_bind().driver:
+            eq_(len(statements), 16)
+        else:
+            eq_(len(statements), 14)
 
     def test_add_missing_cert(self):
         msg = copy.deepcopy(scm_message)
@@ -440,3 +436,18 @@ class TestModels(unittest.TestCase):
         eq_(datanommer.models.Package.query.count(), 1)
         datanommer.models.Package.get_or_create(six.u('foo'))
         eq_(datanommer.models.Package.query.count(), 1)
+
+    @patch('datanommer.models.log')
+    @patch('sqlalchemy.orm.query.Query.filter_by')
+    def test_singleton_nested_txns(self, filter_by, log):
+        # Hide existing instances from get_or_create(), which forces a duplicate insert
+        # and constraint violation.
+        filter_by.return_value.one_or_none.return_value = None
+        datanommer.models.Package.get_or_create(six.u('foo'))
+        datanommer.models.Package.get_or_create(six.u('foo'))
+        eq_(datanommer.models.Package.query.count(), 1)
+        log.debug.assert_called_once_with(
+            'Collision when adding %s(name="%s"), returning existing object',
+            'Package',
+            'foo'
+        )

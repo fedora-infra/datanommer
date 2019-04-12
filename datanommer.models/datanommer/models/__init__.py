@@ -13,7 +13,7 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy import (
     Column,
     DateTime,
@@ -74,6 +74,20 @@ def init(uri=None, alembic_ini=None, engine=None, create=False):
 
     if uri and not engine:
         engine = create_engine(uri)
+
+    if 'sqlite' in engine.driver:
+        # Enable nested transaction support under SQLite
+        # See https://stackoverflow.com/questions/1654857/nested-transactions-with-sqlalchemy-and-sqlite
+        @event.listens_for(engine, "connect")
+        def do_connect(dbapi_connection, connection_record):
+            # disable pysqlite's emitting of the BEGIN statement entirely.
+            # also stops it from emitting COMMIT before any DDL.
+            dbapi_connection.isolation_level = None
+
+        @event.listens_for(engine, "begin")
+        def do_begin(conn):
+            # emit our own BEGIN
+            conn.execute("BEGIN")
 
     # We need to hang our own attribute on the sqlalchemy session to stop
     # ourselves from initializing twice.  That is only a problem is the code
@@ -136,8 +150,8 @@ def add(envelope):
         session.add(obj)
         session.flush()
     except IntegrityError:
-        log.warn('Skipping message from %s with duplicate id: %s',
-                 message['topic'], msg_id)
+        log.warning('Skipping message from %s with duplicate id: %s',
+                    message['topic'], msg_id)
         session.rollback()
         return
 
@@ -283,15 +297,19 @@ class Singleton(object):
         Return the instance of the class with the specified name. If it doesn't
         already exist, create it.
         """
-        # Use an INSERT ... SELECT to guarantee we don't get unique constraint
-        # violations if multiple instances of datanommer are trying to insert the same
-        # value at the same time.
-        not_exists = ~exists(select([cls.__table__.c.name]).where(cls.name == name))
-        insert = cls.__table__.insert(inline=True).\
-                 from_select([cls.__table__.c.name],
-                             select([literal(name)]).where(not_exists))
-        session.execute(insert)
-        return cls.query.filter_by(name=name).one()
+        obj = cls.query.filter_by(name=name).one_or_none()
+        if obj:
+            return obj
+        try:
+            with session.begin_nested():
+                obj = cls(name=name)
+                session.add(obj)
+                session.flush()
+            return obj
+        except IntegrityError:
+            log.debug('Collision when adding %s(name="%s"), returning existing object',
+                      cls.__name__, name)
+            return cls.query.filter_by(name=name).one()
 
 
 class User(DeclarativeBase, Singleton):

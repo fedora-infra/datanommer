@@ -14,10 +14,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 from setuptools import setup, find_packages
-import sys
 
-import multiprocessing
-import logging
 
 f = open('README.rst')
 long_description = f.read().strip()
@@ -39,7 +36,7 @@ setup(name='datanommer.models',
       include_package_data=True,
       zip_safe=False,
       install_requires=[
-          "sqlalchemy>=0.7",
+          "sqlalchemy>=1.0.9",
           "fedmsg",
           "alembic",
           "six",
@@ -47,6 +44,7 @@ setup(name='datanommer.models',
       tests_require=[
           "nose",
           "fedmsg_meta_fedora_infrastructure",
+          "mock",
       ],
       classifiers=[
           'Programming Language :: Python :: 2',
