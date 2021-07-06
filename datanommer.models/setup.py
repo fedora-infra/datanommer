@@ -41,14 +41,8 @@ setup(name='datanommer.models',
           "alembic",
           "six",
       ],
-      tests_require=[
-          "nose",
-          "fedmsg_meta_fedora_infrastructure",
-          "mock",
-      ],
       classifiers=[
           'Programming Language :: Python :: 2',
           'Programming Language :: Python :: 3',
       ],
-      test_suite='nose.collector',
 )

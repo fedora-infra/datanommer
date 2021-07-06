@@ -14,8 +14,8 @@
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 import unittest
-from mock import Mock
-from mock import patch
+from unittest.mock import Mock
+from unittest.mock import patch
 from datetime import datetime, timedelta
 import json
 import time
@@ -28,22 +28,6 @@ import datanommer.models as m
 import fedmsg.config
 
 import freezegun
-from nose.tools import (
-    eq_,
-    ok_,
-)
-try:
-    from nose.tools import (
-        assert_in,
-        assert_not_in,
-    )
-except ImportError:
-    # Old versions of nose don't have assert_in and friends.
-    def assert_in(item, lst, msg=None):
-        ok_(item in lst, msg)
-
-    def assert_not_in(item, lst, msg=None):
-        ok_(item not in lst, msg)
 
 
 filename = ":memory:"
@@ -63,6 +47,7 @@ class TestCommands(unittest.TestCase):
         m.init(uri=uri, create=True)
 
     def tearDown(self):
+        m.session.rollback()
         engine = m.session.get_bind()
         m.DeclarativeBase.metadata.drop_all(engine)
         m._users_seen = set()
@@ -111,8 +96,8 @@ class TestCommands(unittest.TestCase):
             command.log.info = info
             command.run()
 
-            assert_in('git has 2 entries', logged_info)
-            assert_in('fas has 1 entries', logged_info)
+            assert 'git has 2 entries' in logged_info
+            assert 'fas has 1 entries' in logged_info
 
     def test_stats_topics(self):
         with patch('datanommer.commands.StatsCommand.get_config') as gc:
@@ -158,9 +143,9 @@ class TestCommands(unittest.TestCase):
             command.log.info = info
             command.run()
 
-            assert_in('org.fedoraproject.prod.git.receive.valgrind.master has 1 entries', logged_info)
-            assert_in('org.fedoraproject.stg.fas.user.create has 1 entries', logged_info)
-            assert_in('org.fedoraproject.prod.git.branch.valgrind.master has 1 entries', logged_info)
+            assert 'org.fedoraproject.prod.git.receive.valgrind.master has 1 entries' in logged_info
+            assert 'org.fedoraproject.stg.fas.user.create has 1 entries' in logged_info
+            assert 'org.fedoraproject.prod.git.branch.valgrind.master has 1 entries' in logged_info
 
     def test_stats_cat_topics(self):
         with patch('datanommer.commands.StatsCommand.get_config') as gc:
@@ -207,9 +192,9 @@ class TestCommands(unittest.TestCase):
             command.log.info = info
             command.run()
 
-            assert_in('org.fedoraproject.prod.git.receive.valgrind.master has 1 entries', logged_info)
-            assert_not_in('org.fedoraproject.stg.fas.user.create has 1 entries', logged_info)
-            assert_in('org.fedoraproject.prod.git.branch.valgrind.master has 1 entries', logged_info)
+            assert 'org.fedoraproject.prod.git.receive.valgrind.master has 1 entries' in logged_info
+            assert 'org.fedoraproject.stg.fas.user.create has 1 entries' not in logged_info
+            assert 'org.fedoraproject.prod.git.branch.valgrind.master has 1 entries' in logged_info
 
     def test_dump(self):
         m.Message = datanommer.models.Message
@@ -250,8 +235,10 @@ class TestCommands(unittest.TestCase):
 
                     json_object = json.loads(logged_info[0])
 
-                    eq_(json_object[0]['topic'],
-                        'org.fedoraproject.prod.git.branch.valgrind.master')
+                    assert (
+                        json_object[0]['topic'] ==
+                        'org.fedoraproject.prod.git.branch.valgrind.master'
+                    )
 
     @freezegun.freeze_time('2013-03-01')
     def test_dump_before(self):
@@ -302,11 +289,11 @@ class TestCommands(unittest.TestCase):
 
             json_object = json.loads(logged_info[0])
 
-            eq_(json_object[0]['topic'],
+            assert (json_object[0]['topic'] ==
                 'org.fedoraproject.prod.git.branch.valgrind.master')
-            eq_(json_object[1]['topic'],
+            assert (json_object[1]['topic'] ==
                 'org.fedoraproject.prod.git.receive.valgrind.master')
-            eq_(len(json_object), 2)
+            assert len(json_object) == 2
 
     @freezegun.freeze_time('2013-03-01')
     def test_dump_since(self):
@@ -355,11 +342,11 @@ class TestCommands(unittest.TestCase):
 
             json_object = json.loads(logged_info[0])
 
-            eq_(json_object[0]['topic'],
+            assert (json_object[0]['topic'] ==
                 'org.fedoraproject.prod.git.receive.valgrind.master')
-            eq_(json_object[1]['topic'],
+            assert (json_object[1]['topic'] ==
                 'org.fedoraproject.prod.log.receive.valgrind.master')
-            eq_(len(json_object), 2)
+            assert len(json_object) == 2
 
     @freezegun.freeze_time('2013-03-01')
     def test_dump_timespan(self):
@@ -409,9 +396,9 @@ class TestCommands(unittest.TestCase):
 
             json_object = json.loads(logged_info[0])
 
-            eq_(json_object[0]['topic'],
+            assert (json_object[0]['topic'] ==
                 'org.fedoraproject.prod.git.receive.valgrind.master')
-            eq_(len(json_object), 1)
+            assert len(json_object) == 1
 
 
     def test_latest_overall(self):
@@ -456,8 +443,8 @@ class TestCommands(unittest.TestCase):
 
             json_object = json.loads(logged_info[0])
 
-            eq_(json_object[0]['git']['msg'], 'Message 3')
-            eq_(len(json_object), 1)
+            assert json_object[0]['git']['msg'] == 'Message 3'
+            assert len(json_object) == 1
 
     def test_latest_topic(self):
         with patch('datanommer.commands.LatestCommand.get_config') as gc:
@@ -501,8 +488,8 @@ class TestCommands(unittest.TestCase):
 
             json_object = json.loads(logged_info[0])
 
-            eq_(json_object[0]['fas']['msg'], 'Message 2')
-            eq_(len(json_object), 1)
+            assert json_object[0]['fas']['msg'] == 'Message 2'
+            assert len(json_object) == 1
 
     def test_latest_category(self):
         with patch('datanommer.commands.LatestCommand.get_config') as gc:
@@ -549,8 +536,8 @@ class TestCommands(unittest.TestCase):
 
             json_object = json.loads(logged_info[0])
 
-            eq_(json_object[0]['fas']['msg'], 'Message 2')
-            eq_(len(json_object), 1)
+            assert json_object[0]['fas']['msg'] == 'Message 2'
+            assert len(json_object) == 1
 
     @unittest.skipIf(six.PY2, "Dict ordering.")
     @freezegun.freeze_time('2013-03-01')
@@ -602,9 +589,9 @@ class TestCommands(unittest.TestCase):
 
             json_object = json.loads(logged_info[0])
 
-            eq_(json_object[1], "2013-02-16 16:16:16.000016")
-            eq_(json_object[0], "2013-02-15 15:15:15.000015")
-            eq_(len(json_object), 2)
+            assert json_object[1] == "2013-02-16 16:16:16.000016"
+            assert json_object[0] == "2013-02-15 15:15:15.000015"
+            assert len(json_object) == 2
 
     @unittest.skipIf(six.PY2, "Dict ordering.")
     @freezegun.freeze_time('2013-03-01')
@@ -655,9 +642,9 @@ class TestCommands(unittest.TestCase):
 
             json_object = json.loads(logged_info[0])
 
-            eq_(json_object[1], time.mktime(datetime(2013,2,16).timetuple()))
-            eq_(json_object[0], time.mktime(datetime(2013,2,15).timetuple()))
-            eq_(len(json_object), 2)
+            assert json_object[1] == time.mktime(datetime(2013,2,16).timetuple())
+            assert json_object[0] == time.mktime(datetime(2013,2,15).timetuple())
+            assert len(json_object) == 2
 
     @unittest.skipIf(six.PY2, "Dict ordering.")
     @freezegun.freeze_time('2013-03-01')
@@ -714,7 +701,7 @@ class TestCommands(unittest.TestCase):
             assert int(json_object[1])>=1
             assert int(json_object[0])<=60.1
             assert int(json_object[0])>=60
-            eq_(len(json_object), 2)
+            assert len(json_object) == 2
 
     @unittest.skipIf(six.PY2, "Dict ordering.")
     def test_latest_timesince_human(self):
@@ -767,10 +754,10 @@ class TestCommands(unittest.TestCase):
             json_object = json.loads(logged_info[0])
 
             # cannot assert exact value because of time to run test
-            assert_not_in('day', json_object[1])
-            assert_in('0:00:01.', json_object[1])
-            assert_in('1 day, 0:00:00.', json_object[0])
-            eq_(len(json_object), 2)
+            assert 'day' not in json_object[1]
+            assert '0:00:01.' in json_object[1]
+            assert '1 day in 0:00:00.', json_object[0]
+            assert len(json_object) == 2
 
     @unittest.skipIf(six.PY2, "Dict ordering.")
     def test_latest(self):
@@ -815,7 +802,7 @@ class TestCommands(unittest.TestCase):
 
             json_object = json.loads(logged_info[0])
 
-            eq_(json_object[1]['git']['msg'], 'Message 3')
-            eq_(json_object[0]['fas']['msg'], 'Message 2')
-            eq_(len(json_object), 2)
+            assert json_object[1]['git']['msg'] == 'Message 3'
+            assert json_object[0]['fas']['msg'] == 'Message 2'
+            assert len(json_object) == 2
 

@@ -14,13 +14,11 @@
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 import unittest
-import mock
+from unittest import mock
 import copy
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import scoped_session
-
-from nose.tools import eq_
 
 import datanommer.consumer
 import datanommer.models
@@ -61,6 +59,7 @@ class TestConsumer(unittest.TestCase):
         self.consumer = datanommer.consumer.Nommer(FakeHub())
 
     def tearDown(self):
+        datanommer.models.session.rollback()
         engine = datanommer.models.session.get_bind()
         datanommer.models.DeclarativeBase.metadata.drop_all(engine)
         datanommer.models._users_seen = set()
@@ -83,12 +82,12 @@ class TestConsumer(unittest.TestCase):
         msg2 = copy.deepcopy(example_message)
 
         self.consumer.consume(msg1)
-        eq_(datanommer.models.Message.query.count(), 1)
+        assert datanommer.models.Message.query.count() == 1
 
         with mock.patch("fedmsg.publish") as mocked_function:
             # datanommer.models.add() now ignores duplicate messages
             # (messages with the same msg_id).
             self.consumer.consume(msg2)
-            eq_(datanommer.models.Message.query.count(), 1)
+            assert datanommer.models.Message.query.count() == 1
 
         mocked_function.assert_not_called()

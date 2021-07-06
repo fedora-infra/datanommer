@@ -23,9 +23,8 @@ import requests
 
 from sqlalchemy.orm import scoped_session
 
-from mock import patch
-from nose.tools import raises
-from nose.tools import eq_
+import pytest
+from unittest.mock import patch
 
 import datanommer.models
 import six
@@ -216,9 +215,9 @@ class TestModels(unittest.TestCase):
         datanommer.models._users_seen = set()
         datanommer.models._packages_seen = set()
 
-    @raises(KeyError)
     def test_add_empty(self):
-        datanommer.models.add(dict())
+        with pytest.raises(KeyError):
+            datanommer.models.add(dict())
 
     def test_add_missing_i(self):
         msg = copy.deepcopy(scm_message)
@@ -279,17 +278,17 @@ class TestModels(unittest.TestCase):
         # Add it to the db and check how many queries we made
         datanommer.models.add(msg)
         if 'sqlite' in datanommer.models.session.get_bind().driver:
-            eq_(len(statements), 12)
+            assert len(statements) == 12
         else:
-            eq_(len(statements), 11)
+            assert len(statements) == 11
 
         # Add it again and check again
         datanommer.models.add(msg)
         pprint.pprint(statements)
         if 'sqlite' in datanommer.models.session.get_bind().driver:
-            eq_(len(statements), 16)
+            assert len(statements) == 16
         else:
-            eq_(len(statements), 14)
+            assert len(statements) == 14
 
     def test_add_missing_cert(self):
         msg = copy.deepcopy(scm_message)
@@ -298,91 +297,91 @@ class TestModels(unittest.TestCase):
 
     def test_add_and_check_for_others(self):
         # There are no users or packages at the start
-        eq_(datanommer.models.User.query.count(), 0)
-        eq_(datanommer.models.Package.query.count(), 0)
+        assert datanommer.models.User.query.count() == 0
+        assert datanommer.models.Package.query.count() == 0
 
         # Then add a message
         msg = copy.deepcopy(scm_message)
         datanommer.models.add(msg)
 
         # There should now be one of each
-        eq_(datanommer.models.User.query.count(), 1)
-        eq_(datanommer.models.Package.query.count(), 1)
+        assert datanommer.models.User.query.count() == 1
+        assert datanommer.models.Package.query.count() == 1
 
         # If we add it again, there should be no duplicates
         msg['body']['msg']['msg_id'] = 'foobar2'
         datanommer.models.add(msg)
-        eq_(datanommer.models.User.query.count(), 1)
-        eq_(datanommer.models.Package.query.count(), 1)
+        assert datanommer.models.User.query.count() == 1
+        assert datanommer.models.Package.query.count() == 1
 
         msg = copy.deepcopy(scm_message)
         msg['body']['msg']['commit']['username'] = 'ralph'
         msg['body']['msg']['msg_id'] = 'foobar3'
         datanommer.models.add(msg)
-        eq_(datanommer.models.User.query.count(), 2)
-        eq_(datanommer.models.Package.query.count(), 1)
+        assert datanommer.models.User.query.count() == 2
+        assert datanommer.models.Package.query.count() == 1
 
     def test_add_nothing(self):
-        eq_(datanommer.models.Message.query.count(), 0)
+        assert datanommer.models.Message.query.count() == 0
 
     def test_add_and_check(self):
         msg = copy.deepcopy(scm_message)
         datanommer.models.add(msg)
         datanommer.models.session.flush()
-        eq_(datanommer.models.Message.query.count(), 1)
+        assert datanommer.models.Message.query.count() == 1
 
     def test_categories(self):
         msg = copy.deepcopy(scm_message)
         datanommer.models.add(msg)
         datanommer.models.session.flush()
         obj = datanommer.models.Message.query.first()
-        eq_(obj.category, 'git')
+        assert obj.category == 'git'
 
     def test_categories_with_umb(self):
         msg = copy.deepcopy(umb_message)
         datanommer.models.add(msg)
         datanommer.models.session.flush()
         obj = datanommer.models.Message.query.first()
-        eq_(obj.category, 'brew')
+        assert obj.category == 'brew'
 
     def test_grep_all(self):
         msg = copy.deepcopy(scm_message)
         datanommer.models.add(msg)
         datanommer.models.session.flush()
         t, p, r = datanommer.models.Message.grep()
-        eq_(t, 1)
-        eq_(p, 1)
-        eq_(len(r), 1)
-        eq_(r[0].msg, scm_message['body']['msg'])
+        assert t == 1
+        assert p == 1
+        assert len(r) == 1
+        assert r[0].msg == scm_message['body']['msg']
 
     def test_grep_category(self):
         msg = copy.deepcopy(scm_message)
         datanommer.models.add(msg)
         datanommer.models.session.flush()
         t, p, r = datanommer.models.Message.grep(categories=['git'])
-        eq_(t, 1)
-        eq_(p, 1)
-        eq_(len(r), 1)
-        eq_(r[0].msg, scm_message['body']['msg'])
+        assert t == 1
+        assert p == 1
+        assert len(r) == 1
+        assert r[0].msg == scm_message['body']['msg']
 
     def test_grep_not_category(self):
         msg = copy.deepcopy(scm_message)
         datanommer.models.add(msg)
         datanommer.models.session.flush()
         t, p, r = datanommer.models.Message.grep(not_categories=['git'])
-        eq_(t, 0)
-        eq_(p, 0)
-        eq_(len(r), 0)
+        assert t == 0
+        assert p == 0
+        assert len(r) == 0
 
     def test_add_with_close_category(self):
         msg = copy.deepcopy(github_message)
         datanommer.models.add(msg)
         datanommer.models.session.flush()
         t, p, r = datanommer.models.Message.grep(categories=['github'])
-        eq_(t, 1)
-        eq_(p, 1)
-        eq_(len(r), 1)
-        eq_(r[0].msg_id, '2014-6552feeb-6dd9-4c39-9839-2c35f0a0f498')
+        assert t == 1
+        assert p == 1
+        assert len(r) == 1
+        assert r[0].msg_id == '2014-6552feeb-6dd9-4c39-9839-2c35f0a0f498'
 
     def test_timezone_awareness(self):
         msg = copy.deepcopy(github_message)
@@ -392,7 +391,7 @@ class TestModels(unittest.TestCase):
         queried = datanommer.models.Message.query.one()
 
         t = queried.timestamp
-        eq_(t, datetime.datetime(2014, 6, 18, 21, 32, 44))
+        assert t == datetime.datetime(2014, 6, 18, 21, 32, 44)
 
     def test_add_no_headers(self):
         msg = copy.deepcopy(scm_message)
@@ -421,21 +420,21 @@ class TestModels(unittest.TestCase):
         datanommer.models.add(msg)
         # if no exception was thrown, then we successfully ignored the
         # duplicate message
-        eq_(datanommer.models.Message.query.count(), 1)
+        assert datanommer.models.Message.query.count() == 1
 
     def test_User_get_or_create(self):
-        eq_(datanommer.models.User.query.count(), 0)
+        assert datanommer.models.User.query.count() == 0
         datanommer.models.User.get_or_create(six.u('foo'))
-        eq_(datanommer.models.User.query.count(), 1)
+        assert datanommer.models.User.query.count() == 1
         datanommer.models.User.get_or_create(six.u('foo'))
-        eq_(datanommer.models.User.query.count(), 1)
+        assert datanommer.models.User.query.count() == 1
 
     def test_Package_get_or_create(self):
-        eq_(datanommer.models.Package.query.count(), 0)
+        assert datanommer.models.Package.query.count() == 0
         datanommer.models.Package.get_or_create(six.u('foo'))
-        eq_(datanommer.models.Package.query.count(), 1)
+        assert datanommer.models.Package.query.count() == 1
         datanommer.models.Package.get_or_create(six.u('foo'))
-        eq_(datanommer.models.Package.query.count(), 1)
+        assert datanommer.models.Package.query.count() == 1
 
     @patch('datanommer.models.log')
     @patch('sqlalchemy.orm.query.Query.filter_by')
@@ -445,7 +444,7 @@ class TestModels(unittest.TestCase):
         filter_by.return_value.one_or_none.return_value = None
         datanommer.models.Package.get_or_create(six.u('foo'))
         datanommer.models.Package.get_or_create(six.u('foo'))
-        eq_(datanommer.models.Package.query.count(), 1)
+        assert datanommer.models.Package.query.count() == 1
         log.debug.assert_called_once_with(
             'Collision when adding %s(name="%s"), returning existing object',
             'Package',

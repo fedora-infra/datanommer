@@ -25,18 +25,6 @@ from setuptools import setup
 import sys
 
 
-tests_require = [
-    'nose',
-    'mock',
-    # The tests assume we're working with Fedora messages.
-    'fedmsg_meta_fedora_infrastructure',
-]
-
-if sys.version_info[0] == 2 and sys.version_info[1] <= 6:
-    tests_require.extend([
-        'unittest2',
-    ])
-
 f = open('README.rst')
 long_description = f.read().strip()
 long_description = long_description.split('split here', 1)[-1]
@@ -57,6 +45,4 @@ setup(name='datanommer',
           "datanommer.models",
           "datanommer.commands",
       ],
-      tests_require=tests_require,
-      test_suite='nose.collector'
 )
