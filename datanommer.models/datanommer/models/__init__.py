@@ -57,6 +57,7 @@ DeclarativeBase = declarative_base()
 DeclarativeBase.query = session.query_property()
 
 import logging
+
 log = logging.getLogger("datanommer")
 
 _users_seen, _packages_seen = set(), set()
@@ -69,13 +70,13 @@ def init(uri=None, alembic_ini=None, engine=None, create=False):
         raise ValueError("uri and engine cannot both be specified")
 
     if uri is None and not engine:
-        uri = 'sqlite:////tmp/datanommer.db'
+        uri = "sqlite:////tmp/datanommer.db"
         log.warning("No db uri given.  Using %r" % uri)
 
     if uri and not engine:
         engine = create_engine(uri)
 
-    if 'sqlite' in engine.driver:
+    if "sqlite" in engine.driver:
         # Enable nested transaction support under SQLite
         # See https://stackoverflow.com/questions/1654857/nested-transactions-with-sqlalchemy-and-sqlite
         @event.listens_for(engine, "connect")
@@ -92,7 +93,7 @@ def init(uri=None, alembic_ini=None, engine=None, create=False):
     # We need to hang our own attribute on the sqlalchemy session to stop
     # ourselves from initializing twice.  That is only a problem is the code
     # calling us isn't consistent.
-    if getattr(session, '_datanommer_initialized', None):
+    if getattr(session, "_datanommer_initialized", None):
         log.warning("Session already initialized.  Bailing")
         return
     session._datanommer_initialized = True
@@ -105,6 +106,7 @@ def init(uri=None, alembic_ini=None, engine=None, create=False):
     if alembic_ini is not None:
         from alembic.config import Config
         from alembic import command
+
         alembic_cfg = Config(alembic_ini)
         command.stamp(alembic_cfg, "head")
 
@@ -113,11 +115,11 @@ def init(uri=None, alembic_ini=None, engine=None, create=False):
 
 
 def add(envelope):
-    """ Take a dict-like fedmsg envelope and store the headers and message
-        in the table.
+    """Take a dict-like fedmsg envelope and store the headers and message
+    in the table.
     """
-    message = envelope['body']
-    timestamp = message.get('timestamp', None)
+    message = envelope["body"]
+    timestamp = message.get("timestamp", None)
     try:
         if timestamp:
             timestamp = datetime.datetime.utcfromtimestamp(timestamp)
@@ -126,32 +128,35 @@ def add(envelope):
     except Exception:
         pass
 
-    headers = envelope.get('headers', None)
-    msg_id = message.get('msg_id', None)
+    headers = envelope.get("headers", None)
+    msg_id = message.get("msg_id", None)
     if not msg_id and headers:
-        msg_id = headers.get('message-id', None)
+        msg_id = headers.get("message-id", None)
     if not msg_id:
-        msg_id = six.text_type(timestamp.year) + six.u('-') + six.text_type(uuid.uuid4())
+        msg_id = (
+            six.text_type(timestamp.year) + six.u("-") + six.text_type(uuid.uuid4())
+        )
     obj = Message(
-        i=message.get('i', 0),
+        i=message.get("i", 0),
         msg_id=msg_id,
-        topic=message['topic'],
+        topic=message["topic"],
         timestamp=timestamp,
-        username=message.get('username', None),
-        crypto=message.get('crypto', None),
-        certificate=message.get('certificate', None),
-        signature=message.get('signature', None),
+        username=message.get("username", None),
+        crypto=message.get("crypto", None),
+        certificate=message.get("certificate", None),
+        signature=message.get("signature", None),
     )
 
-    obj.msg = message['msg']
+    obj.msg = message["msg"]
     obj.headers = headers
 
     try:
         session.add(obj)
         session.flush()
     except IntegrityError:
-        log.warning('Skipping message from %s with duplicate id: %s',
-                    message['topic'], msg_id)
+        log.warning(
+            "Skipping message from %s with duplicate id: %s", message["topic"], msg_id
+        )
         session.rollback()
         return
 
@@ -161,13 +166,13 @@ def add(envelope):
     # Do a little sanity checking on fedmsg.meta results
     if None in usernames:
         # Notify developers so they can fix msg2usernames
-        log.error('NoneType found in usernames of %r' % msg_id)
+        log.error("NoneType found in usernames of %r" % msg_id)
         # And prune out the bad value
         usernames = [name for name in usernames if name is not None]
 
     if None in packages:
         # Notify developers so they can fix msg2packages
-        log.error('NoneType found in packages of %r' % msg_id)
+        log.error("NoneType found in packages of %r" % msg_id)
         # And prune out the bad value
         packages = [pkg for pkg in packages if pkg is not None]
 
@@ -192,11 +197,11 @@ def add(envelope):
     # These two blocks would normally be a simple "obj.users.append(user)" kind
     # of statement, but here we drop down out of sqlalchemy's ORM and into the
     # sql abstraction in order to gain a little performance boost.
-    values = [{'username': username, 'msg': obj.id} for username in usernames]
+    values = [{"username": username, "msg": obj.id} for username in usernames]
     if values:
         session.execute(user_assoc_table.insert(), values)
 
-    values = [{'package': package, 'msg': obj.id} for package in packages]
+    values = [{"package": package, "msg": obj.id} for package in packages]
     if values:
         session.execute(pack_assoc_table.insert(), values)
 
@@ -226,14 +231,14 @@ class BaseMessage(object):
     _msg = Column(UnicodeText, nullable=False)
     _headers = Column(UnicodeText)
 
-    @validates('topic')
+    @validates("topic")
     def get_category(self, key, topic):
-        index = 2 if 'VirtualTopic' in topic else 3
+        index = 2 if "VirtualTopic" in topic else 3
         try:
-            self.category = topic.split('.')[index]
+            self.category = topic.split(".")[index]
         except:
             traceback.print_exc()
-            self.category = 'Unclassified'
+            self.category = "Unclassified"
         return topic
 
     @hybrid_property
@@ -279,14 +284,19 @@ class BaseMessage(object):
             source_version=self.source_version,
         )
 
-user_assoc_table = Table('user_messages', DeclarativeBase.metadata,
-    Column('username', UnicodeText, ForeignKey('user.name')),
-    Column('msg', Integer, ForeignKey('messages.id'))
+
+user_assoc_table = Table(
+    "user_messages",
+    DeclarativeBase.metadata,
+    Column("username", UnicodeText, ForeignKey("user.name")),
+    Column("msg", Integer, ForeignKey("messages.id")),
 )
 
-pack_assoc_table = Table('package_messages', DeclarativeBase.metadata,
-    Column('package', UnicodeText, ForeignKey('package.name')),
-    Column('msg', Integer, ForeignKey('messages.id'))
+pack_assoc_table = Table(
+    "package_messages",
+    DeclarativeBase.metadata,
+    Column("package", UnicodeText, ForeignKey("package.name")),
+    Column("msg", Integer, ForeignKey("messages.id")),
 )
 
 
@@ -307,41 +317,56 @@ class Singleton(object):
                 session.flush()
             return obj
         except IntegrityError:
-            log.debug('Collision when adding %s(name="%s"), returning existing object',
-                      cls.__name__, name)
+            log.debug(
+                'Collision when adding %s(name="%s"), returning existing object',
+                cls.__name__,
+                name,
+            )
             return cls.query.filter_by(name=name).one()
 
 
 class User(DeclarativeBase, Singleton):
-    __tablename__ = 'user'
+    __tablename__ = "user"
 
     name = Column(UnicodeText, primary_key=True, index=True)
 
 
 class Package(DeclarativeBase, Singleton):
-    __tablename__ = 'package'
+    __tablename__ = "package"
 
     name = Column(UnicodeText, primary_key=True, index=True)
 
 
 class Message(DeclarativeBase, BaseMessage):
     __tablename__ = "messages"
-    users = relationship("User", secondary=user_assoc_table,
-                         backref=backref('messages'))
-    packages = relationship("Package", secondary=pack_assoc_table,
-                            backref=backref('messages'))
+    users = relationship(
+        "User", secondary=user_assoc_table, backref=backref("messages")
+    )
+    packages = relationship(
+        "Package", secondary=pack_assoc_table, backref=backref("messages")
+    )
 
     @classmethod
-    def grep(cls, start=None, end=None,
-             page=1, rows_per_page=100,
-             order="asc", msg_id=None,
-             users=None, not_users=None,
-             packages=None, not_packages=None,
-             categories=None, not_categories=None,
-             topics=None, not_topics=None,
-             contains=None,
-             defer=False):
-        """ Flexible query interface for messages.
+    def grep(
+        cls,
+        start=None,
+        end=None,
+        page=1,
+        rows_per_page=100,
+        order="asc",
+        msg_id=None,
+        users=None,
+        not_users=None,
+        packages=None,
+        not_packages=None,
+        categories=None,
+        not_categories=None,
+        topics=None,
+        not_topics=None,
+        contains=None,
+        defer=False,
+    ):
+        """Flexible query interface for messages.
 
         Arguments are filters.  start and end should be :mod:`datetime` objs.
 
@@ -389,8 +414,10 @@ class Message(DeclarativeBase, BaseMessage):
         # A little argument validation.  We could provide some defaults in
         # these mixed cases.. but instead we'll just leave it up to our caller.
         if (start != None and end == None) or (end != None and start == None):
-            raise ValueError("Either both start and end must be specified "
-                             "or neither must be specified")
+            raise ValueError(
+                "Either both start and end must be specified "
+                "or neither must be specified"
+            )
 
         if start and end:
             query = query.filter(between(Message.timestamp, start, end))
@@ -400,51 +427,48 @@ class Message(DeclarativeBase, BaseMessage):
 
         # Add the four positive filters as necessary
         if users:
-            query = query.filter(or_(
-                *[Message.users.any(User.name == u) for u in users]
-            ))
+            query = query.filter(
+                or_(*[Message.users.any(User.name == u) for u in users])
+            )
 
         if packages:
-            query = query.filter(or_(
-                *[Message.packages.any(Package.name == p) for p in packages]
-            ))
+            query = query.filter(
+                or_(*[Message.packages.any(Package.name == p) for p in packages])
+            )
 
         if categories:
-            query = query.filter(or_(
-                *[Message.category == category for category in categories]
-            ))
+            query = query.filter(
+                or_(*[Message.category == category for category in categories])
+            )
 
         if topics:
-            query = query.filter(or_(
-                *[Message.topic == topic for topic in topics]
-            ))
+            query = query.filter(or_(*[Message.topic == topic for topic in topics]))
 
         if contains:
-            query = query.filter(or_(
-                *[Message._msg.like('%%%s%%' % contain)
-                  for contain in contains]
-            ))
+            query = query.filter(
+                or_(*[Message._msg.like("%%%s%%" % contain) for contain in contains])
+            )
 
         # And then the four negative filters as necessary
         if not_users:
-            query = query.filter(not_(or_(
-                *[Message.users.any(User.name == u) for u in not_users]
-            )))
+            query = query.filter(
+                not_(or_(*[Message.users.any(User.name == u) for u in not_users]))
+            )
 
         if not_packs:
-            query = query.filter(not_(or_(
-                *[Message.packages.any(Package.name == p) for p in not_packs]
-            )))
+            query = query.filter(
+                not_(or_(*[Message.packages.any(Package.name == p) for p in not_packs]))
+            )
 
         if not_cats:
-            query = query.filter(not_(or_(
-                *[Message.category == category for category in not_cats]
-            )))
+            query = query.filter(
+                not_(or_(*[Message.category == category for category in not_cats]))
+            )
 
         if not_topics:
-            query = query.filter(not_(or_(
-                *[Message.topic == topic for topic in not_topics]
-            )))
+            query = query.filter(
+                not_(or_(*[Message.topic == topic for topic in not_topics]))
+            )
 
         # Finally, tag on our pagination arguments
         total = query.count()
@@ -463,11 +487,15 @@ class Message(DeclarativeBase, BaseMessage):
             messages = query.all()
             return total, pages, messages
 
-models = frozenset((
-    v for k, v in locals().items()
-    if (
-        isinstance(v, type) and
-        issubclass(v, BaseMessage) and
-        k is not "BaseMessage"
+
+models = frozenset(
+    (
+        v
+        for k, v in locals().items()
+        if (
+            isinstance(v, type)
+            and issubclass(v, BaseMessage)
+            and k is not "BaseMessage"
+        )
     )
-))
+)

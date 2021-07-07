@@ -36,11 +36,11 @@ def main():
 
     # Probabilities of us emitting an event on each topic.
     probs = {
-        'bodhi': 0.35,
-        'fedoratagger': 0.2,
-        'pkgdb': 0.1,
-        'fas': 0.2,
-        'mediawiki': 0.3,
+        "bodhi": 0.35,
+        "fedoratagger": 0.2,
+        "pkgdb": 0.1,
+        "fas": 0.2,
+        "mediawiki": 0.3,
     }
 
     # Main loop
@@ -50,12 +50,13 @@ def main():
             if random.random() < thresh:
                 print(service, thresh)
                 fedmsg.send_message(
-                    topic='fake_data',
-                    msg={'test': "Test data." + str(i)},
+                    topic="fake_data",
+                    msg={"test": "Test data." + str(i)},
                     modname=service,
                 )
                 i = i + 1
         time.sleep(random.random())
+
 
 if __name__ == "__main__":
     main()

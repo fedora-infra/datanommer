@@ -14,6 +14,6 @@
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 config = {
-    'datanommer.enabled': True,
-    'datanommer.sqlalchemy.url': 'sqlite:///datanommer.db',
+    "datanommer.enabled": True,
+    "datanommer.sqlalchemy.url": "sqlite:///datanommer.db",
 }

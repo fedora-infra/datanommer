@@ -16,33 +16,34 @@
 from setuptools import setup, find_packages
 
 
-f = open('README.rst')
+f = open("README.rst")
 long_description = f.read().strip()
-long_description = long_description.split('split here', 1)[1]
+long_description = long_description.split("split here", 1)[1]
 f.close()
 
-version = '0.9.1'
+version = "0.9.1"
 
-setup(name='datanommer.models',
-      version=version,
-      description="SQLAlchemy models for datanommer",
-      long_description=long_description,
-      author='Ralph Bean',
-      author_email='rbean@redhat.com',
-      url='http://github.com/fedora-infra/datanommer',
-      license='GPLv3+',
-      packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
-      namespace_packages=['datanommer'],
-      include_package_data=True,
-      zip_safe=False,
-      install_requires=[
-          "sqlalchemy>=1.0.9",
-          "fedmsg",
-          "alembic",
-          "six",
-      ],
-      classifiers=[
-          'Programming Language :: Python :: 2',
-          'Programming Language :: Python :: 3',
-      ],
+setup(
+    name="datanommer.models",
+    version=version,
+    description="SQLAlchemy models for datanommer",
+    long_description=long_description,
+    author="Ralph Bean",
+    author_email="rbean@redhat.com",
+    url="http://github.com/fedora-infra/datanommer",
+    license="GPLv3+",
+    packages=find_packages(exclude=["ez_setup", "examples", "tests"]),
+    namespace_packages=["datanommer"],
+    include_package_data=True,
+    zip_safe=False,
+    install_requires=[
+        "sqlalchemy>=1.0.9",
+        "fedmsg",
+        "alembic",
+        "six",
+    ],
+    classifiers=[
+        "Programming Language :: Python :: 2",
+        "Programming Language :: Python :: 3",
+    ],
 )

@@ -64,7 +64,8 @@ def load_data(fname, n):
 
     return keys, stamps
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     # The number of outputs you want.. try setting it to 5 or 10 first to see
     # how it works.
     n = 300

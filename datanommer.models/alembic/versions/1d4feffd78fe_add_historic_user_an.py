@@ -24,8 +24,8 @@ Create Date: 2013-04-12 13:00:46.452867
 """
 
 # revision identifiers, used by Alembic.
-revision = '1d4feffd78fe'
-down_revision = '5091535d0fb4'
+revision = "1d4feffd78fe"
+down_revision = "5091535d0fb4"
 
 from alembic import op
 from alembic import context
@@ -46,7 +46,7 @@ import datanommer.models as m
 
 
 def _page(q, chunk=1000):
-    """ Quick utility to page a query, 1000 items at a time.
+    """Quick utility to page a query, 1000 items at a time.
     We need this so we don't OOM (out of memory) ourselves loading the world.
     """
 
@@ -64,7 +64,7 @@ def _page(q, chunk=1000):
 def upgrade():
     """ This takes a *really* long time.  Like, hours. """
 
-    config_paths = context.config.get_main_option('fedmsg_config_dir')
+    config_paths = context.config.get_main_option("fedmsg_config_dir")
     filenames = fedmsg.config._gather_configs_in(config_paths)
 
     config = fedmsg.config.load_config(filenames=filenames)

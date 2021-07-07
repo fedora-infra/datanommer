@@ -18,27 +18,28 @@ import fedmsg.consumers
 import datanommer.models
 
 DEFAULTS = {
-    'datanommer.enabled': False,
+    "datanommer.enabled": False,
     # Put a sqlite db in the current working directory if the user doesn't
     # specify a real location.
-    'datanommer.sqlalchemy.url': 'sqlite:///datanommer.db',
+    "datanommer.sqlalchemy.url": "sqlite:///datanommer.db",
 }
 
 
 import logging
+
 log = logging.getLogger("fedmsg")
 
 
 class Nommer(fedmsg.consumers.FedmsgConsumer):
     topic = "*"
-    config_key = 'datanommer.enabled'
+    config_key = "datanommer.enabled"
 
     def __init__(self, hub):
         # The superclass __init__() subscribes the hub to the topic specified
         # by the consumer. If we have a topic we want use instead of "*", it
         # needs to be set before calling the superclass.
-        if 'datanommer.topic' in hub.config:
-            self.topic = hub.config['datanommer.topic']
+        if "datanommer.topic" in hub.config:
+            self.topic = hub.config["datanommer.topic"]
 
         super(Nommer, self).__init__(hub)
 
@@ -49,7 +50,7 @@ class Nommer(fedmsg.consumers.FedmsgConsumer):
             return
 
         # Setup a sqlalchemy DB connection (postgres, or sqlite)
-        datanommer.models.init(self.hub.config['datanommer.sqlalchemy.url'])
+        datanommer.models.init(self.hub.config["datanommer.sqlalchemy.url"])
 
     def consume(self, message):
         log.debug("Nomming %r" % message)

@@ -32,8 +32,8 @@ Create Date: 2013-09-01 10:58:03.127503
 """
 
 # revision identifiers, used by Alembic.
-revision = '2affa1daa804'
-down_revision = '310c88783271'
+revision = "2affa1daa804"
+down_revision = "310c88783271"
 
 from alembic import op
 import sqlalchemy as sa
@@ -46,15 +46,15 @@ def upgrade():
     m.init(engine=engine)
 
     # git.branch
-    branch = m.Message.topic.like(u'%.git.branch.%')
+    branch = m.Message.topic.like(u"%.git.branch.%")
     for msg in m.Message.query.filter(branch).yield_per(100):
-        prefix, suffix = msg.topic.split(u'.git.branch.')
+        prefix, suffix = msg.topic.split(u".git.branch.")
         # Fix topic
-        msg.topic = prefix + '.git.branch'
+        msg.topic = prefix + ".git.branch"
         # Fix message contents
         message = msg.msg
-        message['name'] = '.'.join(suffix.split('.')[0:-1])
-        message['branch'] = suffix.split('.')[-1]
+        message["name"] = ".".join(suffix.split(".")[0:-1])
+        message["branch"] = suffix.split(".")[-1]
         msg.msg = message
         # Drop cert and sig
         msg.certificate = None
@@ -62,25 +62,25 @@ def upgrade():
         m.session.add(msg)
 
     # git.lookaside.*.new
-    lookaside = m.Message.topic.like(u'%.git.lookaside.%.new')
+    lookaside = m.Message.topic.like(u"%.git.lookaside.%.new")
     for msg in m.Message.query.filter(lookaside).yield_per(100):
-        prefix, suffix = msg.topic.split(u'.git.lookaside.')
+        prefix, suffix = msg.topic.split(u".git.lookaside.")
         # Fix topic
-        msg.topic = prefix + '.git.lookaside.new'
+        msg.topic = prefix + ".git.lookaside.new"
         # Drop cert and sig
         msg.certificate = None
         msg.signature = None
         m.session.add(msg)
 
     # git.receive
-    receive = m.Message.topic.like(u'%.git.receive.%')
+    receive = m.Message.topic.like(u"%.git.receive.%")
     for msg in m.Message.query.filter(receive).yield_per(100):
-        prefix, suffix = msg.topic.split(u'.git.receive.')
+        prefix, suffix = msg.topic.split(u".git.receive.")
         # Fix topic
-        msg.topic = prefix + '.git.receive'
+        msg.topic = prefix + ".git.receive"
         # Fix message contents
         message = msg.msg
-        message['commit']['repo'] = '.'.join(suffix.split('.')[0:-1])
+        message["commit"]["repo"] = ".".join(suffix.split(".")[0:-1])
         msg.msg = message
         # Drop cert and sig
         msg.certificate = None

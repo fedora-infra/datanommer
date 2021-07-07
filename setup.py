@@ -25,24 +25,25 @@ from setuptools import setup
 import sys
 
 
-f = open('README.rst')
+f = open("README.rst")
 long_description = f.read().strip()
-long_description = long_description.split('split here', 1)[-1]
+long_description = long_description.split("split here", 1)[-1]
 f.close()
 
-version = '0.3.0'
+version = "0.3.0"
 
-setup(name='datanommer',
-      version=version,
-      description="A storage consumer for the Fedora Message Bus (fedmsg)",
-      long_description=long_description,
-      author='Ralph Bean',
-      author_email='rbean@redhat.com',
-      url='http://github.com/fedora-infra/datanommer',
-      license='GPLv3+',
-      install_requires=[
-          "datanommer.consumer",
-          "datanommer.models",
-          "datanommer.commands",
-      ],
+setup(
+    name="datanommer",
+    version=version,
+    description="A storage consumer for the Fedora Message Bus (fedmsg)",
+    long_description=long_description,
+    author="Ralph Bean",
+    author_email="rbean@redhat.com",
+    url="http://github.com/fedora-infra/datanommer",
+    license="GPLv3+",
+    install_requires=[
+        "datanommer.consumer",
+        "datanommer.models",
+        "datanommer.commands",
+    ],
 )

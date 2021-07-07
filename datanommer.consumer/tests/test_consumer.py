@@ -36,8 +36,8 @@ class TestConsumer(unittest.TestCase):
 
         config = fedmsg.config.load_config([], None)
         uri = "sqlite:///%s" % filename
-        config['datanommer.sqlalchemy.url'] = uri
-        config['datanommer.enabled'] = True
+        config["datanommer.sqlalchemy.url"] = uri
+        config["datanommer.enabled"] = True
         fedmsg.meta.make_processors(**config)
         cls.fedmsg_config = config
 
@@ -52,7 +52,7 @@ class TestConsumer(unittest.TestCase):
         # and over again for each test.
         datanommer.models.session = scoped_session(datanommer.models.maker)
         datanommer.models.init(
-            self.fedmsg_config['datanommer.sqlalchemy.url'],
+            self.fedmsg_config["datanommer.sqlalchemy.url"],
             create=True,
         )
         datanommer.consumer.Nommer._initialized = True  # Clearly, a lie.
@@ -75,8 +75,8 @@ class TestConsumer(unittest.TestCase):
                 timestamp=1234,
                 msg=dict(
                     foo="bar",
-                )
-            )
+                ),
+            ),
         )
         msg1 = copy.deepcopy(example_message)
         msg2 = copy.deepcopy(example_message)

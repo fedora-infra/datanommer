@@ -24,7 +24,7 @@ https://fedorahosted.org/fesco/ticket/967#comment:2
 from __future__ import print_function
 
 
-__requires__ = 'datanommer==0.1.8'
+__requires__ = "datanommer==0.1.8"
 import sys
 from pkg_resources import load_entry_point
 
@@ -58,28 +58,28 @@ def init():
     # Load stuff from /etc/fedmsg.d/ into a dict
     config = fedmsg.config.load_config(None, [])
 
-    m.init(config['datanommer.sqlalchemy.url'])
+    m.init(config["datanommer.sqlalchemy.url"])
 
 
 def handle_bodhi(msg):
     """ Given a bodhi message, return the FAS username. """
 
-    if 'bodhi.update.comment' in msg.topic:
-        username = msg.msg['comment']['author']
-    elif 'bodhi.buildroot_override' in msg.topic:
-        username = msg.msg['override']['submitter']
+    if "bodhi.update.comment" in msg.topic:
+        username = msg.msg["comment"]["author"]
+    elif "bodhi.buildroot_override" in msg.topic:
+        username = msg.msg["override"]["submitter"]
     else:
-        username = msg.msg.get('update', {}).get('submitter')
+        username = msg.msg.get("update", {}).get("submitter")
     return username
 
 
 def handle_wiki(msg):
     """ Given a wiki message, return the FAS username. """
 
-    if 'wiki.article.edit' in msg.topic:
-        username = msg.msg['user']
-    elif 'wiki.upload.complete' in msg.topic:
-        username = msg.msg['user_text']
+    if "wiki.article.edit" in msg.topic:
+        username = msg.msg["user"]
+    elif "wiki.upload.complete" in msg.topic:
+        username = msg.msg["user_text"]
     else:
         raise ValueError("Unhandled topic.")
 
@@ -89,7 +89,8 @@ def handle_wiki(msg):
 def handle_fas(msg):
     """ Given a FAS message, return the FAS username. """
 
-    return msg.msg['agent']['username']
+    return msg.msg["agent"]["username"]
+
 
 # This is a mapping of datanommer models to functions that can extract the
 # username from a message of that model type.
@@ -97,10 +98,10 @@ username_extractors = {
     m.BodhiMessage: handle_bodhi,
     m.WikiMessage: handle_wiki,
     m.FASMessage: handle_fas,
-    #m.GitMessage: handle_git,
+    # m.GitMessage: handle_git,
 }
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     init()
 
     # Get the full list of people in the packagers group from FAS.
@@ -121,9 +122,8 @@ if __name__ == '__main__':
 
     packagers_seen = []
     for packager in packagers:
-        if packager['username'] in seen or packager['email'] in seen:
-            packagers_seen.append(packager['username'])
+        if packager["username"] in seen or packager["email"] in seen:
+            packagers_seen.append(packager["username"])
 
     print(len(seen), "persons seen in total")
     print(len(packagers_seen), "of", len(packagers), "seen")
-
