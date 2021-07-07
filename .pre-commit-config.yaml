@@ -29,7 +29,7 @@ repos:
     hooks:
       - id: python-bandit-vulnerability-check
         alias: bandit
-        args: ["--ini", ".bandit.cfg", "-ll"]
+        args: ["--ini", ".bandit.cfg", "-r", "-ll", "-x", ".git,.tox,*/tests/*,*/.tox/*"]
   # - repo: local
   #   hooks:
   #     - id: bandit-local
