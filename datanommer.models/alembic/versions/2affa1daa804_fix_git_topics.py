@@ -35,8 +35,8 @@ Create Date: 2013-09-01 10:58:03.127503
 revision = "2affa1daa804"
 down_revision = "310c88783271"
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 
 import datanommer.models as m
 

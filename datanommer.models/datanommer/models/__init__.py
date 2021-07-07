@@ -13,42 +13,40 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
-from sqlalchemy import create_engine, event
+import datetime
+import math
+import traceback
+import uuid
+
+import fedmsg.encoding
+import pkg_resources
+import six
 from sqlalchemy import (
+    between,
     Column,
+    create_engine,
     DateTime,
-    Integer,
+    event,
     ForeignKey,
+    Integer,
+    not_,
+    or_,
     UnicodeText,
 )
-
-from sqlalchemy.orm import (
-    sessionmaker,
-    scoped_session,
-    relationship,
-    backref,
-)
-
-from sqlalchemy import not_, or_, between
-
-from sqlalchemy.orm import validates
-from sqlalchemy.orm.exc import NoResultFound
-
-from sqlalchemy.schema import Table
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.orm import (
+    backref,
+    relationship,
+    scoped_session,
+    sessionmaker,
+    validates,
+)
+from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.schema import Table
+from sqlalchemy.sql import exists, literal, select
 
-from sqlalchemy.sql import literal, select, exists
-from sqlalchemy.exc import IntegrityError
-
-import pkg_resources
-
-import math
-import datetime
-import traceback
-import fedmsg.encoding
-import uuid
-import six
 
 maker = sessionmaker()
 session = scoped_session(maker)
@@ -57,6 +55,7 @@ DeclarativeBase = declarative_base()
 DeclarativeBase.query = session.query_property()
 
 import logging
+
 
 log = logging.getLogger("datanommer")
 
@@ -104,8 +103,8 @@ def init(uri=None, alembic_ini=None, engine=None, create=False):
     # Loads the alembic configuration and generates the version table, with
     # the most recent revision stamped as head
     if alembic_ini is not None:
-        from alembic.config import Config
         from alembic import command
+        from alembic.config import Config
 
         alembic_cfg = Config(alembic_ini)
         command.stamp(alembic_cfg, "head")

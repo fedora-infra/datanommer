@@ -16,18 +16,18 @@
 import copy
 import datetime
 import pprint
-import sqlalchemy
-import sqlalchemy.exc
 import unittest
-import requests
-
-from sqlalchemy.orm import scoped_session
-
-import pytest
 from unittest.mock import patch
 
-import datanommer.models
+import pytest
+import requests
 import six
+import sqlalchemy
+import sqlalchemy.exc
+from sqlalchemy.orm import scoped_session
+
+import datanommer.models
+
 
 # Set this to false to use a local postgres instance
 USE_SQLITE = True  # False

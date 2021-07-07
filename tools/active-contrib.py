@@ -25,18 +25,17 @@ from __future__ import print_function
 
 
 __requires__ = "datanommer==0.1.8"
-import sys
-from pkg_resources import load_entry_point
-
-import datanommer.models as m
-import fedmsg.config
-import fedora.accounts.fas2
-
 import datetime
 import getpass
 import pprint
+import sys
 
+import fedmsg.config
+import fedora.accounts.fas2
+from pkg_resources import load_entry_point
 from six.moves import input
+
+import datanommer.models as m
 
 
 def prompt_creds():

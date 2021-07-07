@@ -13,8 +13,10 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
-from setuptools import setup, find_packages
 import sys
+
+from setuptools import find_packages, setup
+
 
 f = open("README.rst")
 long_description = f.read().strip()

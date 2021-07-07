@@ -10,8 +10,9 @@ Create Date: 2017-10-11 23:37:47.682954
 revision = "57be773be52b"
 down_revision = "6c58cdb04760"
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
+
 
 # SQL commands:
 # CREATE INDEX messages_topic_id ON messages (topic);

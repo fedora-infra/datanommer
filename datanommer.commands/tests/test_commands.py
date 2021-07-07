@@ -13,21 +13,19 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
-import unittest
-from unittest.mock import Mock
-from unittest.mock import patch
-from datetime import datetime, timedelta
 import json
 import time
+import unittest
+from datetime import datetime, timedelta
+from unittest.mock import Mock, patch
 
+import fedmsg.config
+import freezegun
 import six
 from sqlalchemy.orm import scoped_session
 
 import datanommer.commands
 import datanommer.models as m
-import fedmsg.config
-
-import freezegun
 
 
 filename = ":memory:"

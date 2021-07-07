@@ -29,15 +29,15 @@ Run with python-2.7.
 """
 from __future__ import print_function
 
-import commands
-import os
 import json
+import os
 
+import commands
+import fedmsg.config
+import fedmsg.text
 import progressbar
 
 import datanommer.models as m
-import fedmsg.config
-import fedmsg.text
 
 
 def run(cmd):

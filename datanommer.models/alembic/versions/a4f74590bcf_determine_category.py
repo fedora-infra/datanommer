@@ -36,13 +36,11 @@ def map_values(row):
 
 
 def upgrade():
-    from sqlalchemy.sql import text
-
-    import fedmsg.meta
     import fedmsg.config
-
-    from fedmsg.config import _gather_configs_in
+    import fedmsg.meta
     from alembic import context
+    from fedmsg.config import _gather_configs_in
+    from sqlalchemy.sql import text
 
     config_path = context.config.get_main_option("fedmsg_config_dir")
     filenames = _gather_configs_in(config_path)

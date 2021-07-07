@@ -13,15 +13,15 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
-import datanommer.models as m
-from sqlalchemy import func
-
-from fedmsg.encoding import pretty_dumps
-from fedmsg.commands import BaseCommand
-import fedmsg.meta
-
 import datetime
 import time
+
+import fedmsg.meta
+from fedmsg.commands import BaseCommand
+from fedmsg.encoding import pretty_dumps
+from sqlalchemy import func
+
+import datanommer.models as m
 
 
 class CreateCommand(BaseCommand):

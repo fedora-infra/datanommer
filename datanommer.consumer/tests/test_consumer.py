@@ -13,9 +13,10 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
+import copy
+import os
 import unittest
 from unittest import mock
-import copy
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import scoped_session
@@ -23,7 +24,6 @@ from sqlalchemy.orm import scoped_session
 import datanommer.consumer
 import datanommer.models
 
-import os
 
 filename = ":memory:"
 

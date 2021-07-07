@@ -13,8 +13,9 @@ down_revision = "a356c9a10463"
 import logging
 import time
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
+
 
 log = logging.getLogger("alembic.migration")
 

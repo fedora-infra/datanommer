@@ -25,9 +25,9 @@ from __future__ import print_function
 
 import random
 import time
-import simplejson
 
 import fedmsg
+import simplejson
 
 
 def main():

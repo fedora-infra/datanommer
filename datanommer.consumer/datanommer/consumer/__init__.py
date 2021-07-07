@@ -15,7 +15,9 @@
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 import fedmsg
 import fedmsg.consumers
+
 import datanommer.models
+
 
 DEFAULTS = {
     "datanommer.enabled": False,
@@ -26,6 +28,7 @@ DEFAULTS = {
 
 
 import logging
+
 
 log = logging.getLogger("fedmsg")
 

@@ -10,11 +10,12 @@ Create Date: 2015-02-27 15:04:57.632787
 revision = "1b786d5fc66"
 down_revision = "19bb834d6f9"
 
-import time
 import logging
+import time
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
+
 
 log = logging.getLogger("alembic.migration")
 

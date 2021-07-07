@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+
 # This file is a part of datanommer, a message sink for fedmsg.
 # Copyright (C) 2014, Red Hat, Inc.
 #
