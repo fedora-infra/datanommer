@@ -63,7 +63,7 @@ _users_seen, _packages_seen = set(), set()
 
 
 def init(uri=None, alembic_ini=None, engine=None, create=False):
-    """ Initialize a connection.  Create tables if requested."""
+    """Initialize a connection.  Create tables if requested."""
 
     if uri and engine:
         raise ValueError("uri and engine cannot both be specified")

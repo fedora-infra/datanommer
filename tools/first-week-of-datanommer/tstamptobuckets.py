@@ -29,7 +29,7 @@ class CollisionDict(collections.MutableMapping):
         self._dict = collections.OrderedDict(zip(keys, [0] * len(keys)))
 
     def hash_key(self, key):
-        """ "Hash" all keys in a timerange to the same value. """
+        """ "Hash" all keys in a timerange to the same value."""
         for i, destination_key in enumerate(self._dict):
             if key < destination_key:
                 return destination_key

@@ -25,7 +25,7 @@ import datanommer.models as m
 
 
 class CreateCommand(BaseCommand):
-    """ Create a database and tables for 'datanommer.sqlalchemy.url' """
+    """Create a database and tables for 'datanommer.sqlalchemy.url'"""
 
     name = "datanommer-create-db"
 

@@ -61,7 +61,7 @@ def init():
 
 
 def handle_bodhi(msg):
-    """ Given a bodhi message, return the FAS username. """
+    """Given a bodhi message, return the FAS username."""
 
     if "bodhi.update.comment" in msg.topic:
         username = msg.msg["comment"]["author"]
@@ -73,7 +73,7 @@ def handle_bodhi(msg):
 
 
 def handle_wiki(msg):
-    """ Given a wiki message, return the FAS username. """
+    """Given a wiki message, return the FAS username."""
 
     if "wiki.article.edit" in msg.topic:
         username = msg.msg["user"]
@@ -86,7 +86,7 @@ def handle_wiki(msg):
 
 
 def handle_fas(msg):
-    """ Given a FAS message, return the FAS username. """
+    """Given a FAS message, return the FAS username."""
 
     return msg.msg["agent"]["username"]
 

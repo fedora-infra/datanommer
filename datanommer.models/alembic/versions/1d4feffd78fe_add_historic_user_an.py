@@ -55,7 +55,7 @@ def _page(q, chunk=1000):
 
 
 def upgrade():
-    """ This takes a *really* long time.  Like, hours. """
+    """This takes a *really* long time.  Like, hours."""
 
     config_paths = context.config.get_main_option("fedmsg_config_dir")
     filenames = fedmsg.config._gather_configs_in(config_paths)
