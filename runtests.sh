@@ -2,7 +2,19 @@
 
 set -e
 
-echo "Running tests for all packages"
+which tox &>/dev/null || {
+    echo "You need to install tox" >&2
+    exit 2
+}
+which pre-commit &>/dev/null || {
+    echo "You need to install pre-commit" >&2
+    exit 2
+}
+
+echo "Running checks for all packages"
+pre-commit run --all-files
+
+echo "Running unit tests for all packages"
 for package in datanommer.{models,consumer,commands}; do
     echo "[$package] Testing..."
     pushd $package
