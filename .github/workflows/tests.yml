@@ -1,0 +1,67 @@
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
+
+name: Run tests
+
+jobs:
+
+  checks:
+    name: Checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Install pre-commit
+        run: pip install pre-commit
+
+      - name: Run pre-commit checks
+        run: pre-commit run --all-files
+
+
+  unit_tests:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.pyver }}
+
+      - name: Install tox
+        run: pip install tox
+
+      - name: Run unit tests for datanommer.${{ matrix.package }}
+        run: tox -e py
+        working-directory: datanommer.${{ matrix.package }}
+
+      # - name: Upload coverage to Codecov
+      #   uses: codecov/codecov-action@v1
+      #   with:
+      #     name: ${{ matrix.tox_env }}
+      #     flags: unittests
+      #     env_vars: PYTHON
+      #     fail_ci_if_error: true
+
+    strategy:
+      matrix:
+        pyver:
+          - 3.6
+          - 3.7
+          - 3.8
+          - 3.9
+        package:
+          - models
+          - consumer
+          - commands
