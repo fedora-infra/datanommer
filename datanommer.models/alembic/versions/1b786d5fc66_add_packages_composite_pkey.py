@@ -27,7 +27,7 @@ def upgrade():
     try:
         cols = ["package", "msg"]
         for col in cols:
-            query = "DELETE FROM package_messages WHERE %s is NULL" % col
+            query = "DELETE FROM package_messages WHERE %s is NULL" % col  # nosec
             log.info("Running %r", query)
             engine.execute(sa.sql.text(query))
 
