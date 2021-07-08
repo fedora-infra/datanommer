@@ -1,3 +1,56 @@
+[tool.poetry]
+name = "datanommer"
+version = "0.9.0"
+description = "datanommer is a nommer of data"
+
+license = "MIT"
+
+authors = [
+  "Fedora Infrastructure <admin@fedoraproject.org>"
+]
+
+#readme = 'README.md'  # Markdown files are supported
+
+repository = "https://github.com/fedora-infra/datanommer"
+homepage = "https://github.com/fedora-infra/datanommer"
+
+#keywords = ['security']
+
+packages = [
+    { include = "datanommer" },
+]
+
+[tool.poetry.dependencies]
+python = "^3.6.1"
+fedora-messaging = "^2.0.1"
+SQLAlchemy = "^1.4.20"
+six = "^1.16.0"
+fedmsg = "^1.1.2"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.3"
+pytest-cov = "^2.8"
+sphinx = "^3.0"
+beautifulsoup4 = "^4.9"
+vcrpy = "^4.0"
+pytest-vcr = "^1.0"
+liccheck = "^0.4.2"
+bandit = "^1.6"
+black = {version = "^19.10b0", allow-prereleases = true}
+flake8 = "^3.7"
+Faker = "^4.0.3"
+pytest-mock = "^3.0.0"
+isort = "^5.1.4"
+rstcheck = "^3.3.1"
+pre-commit = "^2.13.0"
+safety = "^1.10.3"
+
+[tool.poetry.scripts]
+datanommer-create-db = 'datanommer.commands:create'
+datanommer-dump = 'datanommer.commands:dump'
+datanommer-stats = 'datanommer.commands:stats'
+datanommer-latest = 'datanommer.commands:latest'
+
 [tool.isort]
 profile = "black"
 lines_after_imports = 2
