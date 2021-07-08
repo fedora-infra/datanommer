@@ -42,7 +42,7 @@ jobs:
       - name: Install tox
         run: pip install tox
 
-      - name: Run unit tests for datanommer.${{ matrix.package }}
+      - name: Check licenses for datanommer.${{ matrix.package }}
         run: tox -e licenses
         working-directory: datanommer.${{ matrix.package }}
 
