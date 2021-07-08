@@ -21,15 +21,15 @@ Create Date: 2013-01-14 11:14:04.738115
 
 """
 
-# revision identifiers, used by Alembic.
-revision = "198447250956"
-down_revision = None
-
 import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.schema import MetaData
 from sqlalchemy.sql import text
 
+
+# revision identifiers, used by Alembic.
+revision = "198447250956"
+down_revision = None
 
 tables = [
     "bodhi",

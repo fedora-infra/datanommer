@@ -31,14 +31,14 @@ Create Date: 2013-09-01 10:58:03.127503
 
 """
 
-# revision identifiers, used by Alembic.
-revision = "2affa1daa804"
-down_revision = "310c88783271"
-
-import sqlalchemy as sa
 from alembic import op
 
 import datanommer.models as m
+
+
+# revision identifiers, used by Alembic.
+revision = "2affa1daa804"
+down_revision = "310c88783271"
 
 
 def upgrade():

@@ -20,7 +20,6 @@ import unittest
 from unittest.mock import patch
 
 import pytest
-import requests
 import six
 import sqlalchemy
 import sqlalchemy.exc
@@ -109,7 +108,10 @@ umb_message = {
         "destination": "/topic/VirtualTopic.eng.brew.task.closed",
         "method": "newRepo",
         "priority": "4",
-        "message-id": "ID\\cmessaging-devops-broker01.web.prod.ext.phx2.redhat.com-32888-1493960489068-4\\c473057\\c0\\c0\\c1",
+        "message-id": (
+            "ID\\cmessaging-devops-broker01.web.prod.ext.phx2.redhat.com-"
+            "32888-1493960489068-4\\c473057\\c0\\c0\\c1"
+        ),
         "timestamp": "0",
         "attribute": "state",
         "new": "CLOSED",

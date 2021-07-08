@@ -6,15 +6,16 @@ Create Date: 2015-02-27 15:04:57.632787
 
 """
 
-# revision identifiers, used by Alembic.
-revision = "1b786d5fc66"
-down_revision = "19bb834d6f9"
-
 import logging
 import time
 
 import sqlalchemy as sa
 from alembic import op
+
+
+# revision identifiers, used by Alembic.
+revision = "1b786d5fc66"
+down_revision = "19bb834d6f9"
 
 
 log = logging.getLogger("alembic.migration")

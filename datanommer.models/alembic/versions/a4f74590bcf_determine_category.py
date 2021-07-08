@@ -21,11 +21,12 @@ Create Date: 2013-02-05 14:01:13.581491
 
 """
 
+from alembic import op
+
+
 # revision identifiers, used by Alembic.
 revision = "a4f74590bcf"
 down_revision = "ae2801c4cd9"
-
-from alembic import op
 
 
 def map_values(row):

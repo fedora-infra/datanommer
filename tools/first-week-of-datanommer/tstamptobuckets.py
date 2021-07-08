@@ -19,7 +19,6 @@
 :Author: Ralph Bean
 
 """
-from __future__ import print_function
 
 import collections
 

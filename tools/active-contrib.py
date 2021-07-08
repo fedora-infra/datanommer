@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # This file is a part of datanommer, a message sink for fedmsg.
 # Copyright (C) 2014, Red Hat, Inc.
 #
@@ -13,7 +15,6 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
-#!/usr/bin/env python
 """ Print a list of the contributors whose names have appeared in any event
 in the last 60 days.
 
@@ -27,12 +28,9 @@ from __future__ import print_function
 __requires__ = "datanommer==0.1.8"
 import datetime
 import getpass
-import pprint
-import sys
 
 import fedmsg.config
 import fedora.accounts.fas2
-from pkg_resources import load_entry_point
 from six.moves import input
 
 import datanommer.models as m

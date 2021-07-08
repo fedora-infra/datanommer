@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 import datetime
+import logging
 import math
 import traceback
 import uuid
@@ -43,9 +44,7 @@ from sqlalchemy.orm import (
     sessionmaker,
     validates,
 )
-from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.schema import Table
-from sqlalchemy.sql import exists, literal, select
 
 
 maker = sessionmaker()
@@ -53,8 +52,6 @@ session = scoped_session(maker)
 
 DeclarativeBase = declarative_base()
 DeclarativeBase.query = session.query_property()
-
-import logging
 
 
 log = logging.getLogger("datanommer")
@@ -76,8 +73,8 @@ def init(uri=None, alembic_ini=None, engine=None, create=False):
         engine = create_engine(uri)
 
     if "sqlite" in engine.driver:
-        # Enable nested transaction support under SQLite
-        # See https://stackoverflow.com/questions/1654857/nested-transactions-with-sqlalchemy-and-sqlite
+        # Enable nested transaction support under SQLite, see:
+        # https://stackoverflow.com/questions/1654857/nested-transactions-with-sqlalchemy-and-sqlite
         @event.listens_for(engine, "connect")
         def do_connect(dbapi_connection, connection_record):
             # disable pysqlite's emitting of the BEGIN statement entirely.
@@ -235,7 +232,7 @@ class BaseMessage(object):
         index = 2 if "VirtualTopic" in topic else 3
         try:
             self.category = topic.split(".")[index]
-        except:
+        except Exception:
             traceback.print_exc()
             self.category = "Unclassified"
         return topic
@@ -412,7 +409,7 @@ class Message(DeclarativeBase, BaseMessage):
 
         # A little argument validation.  We could provide some defaults in
         # these mixed cases.. but instead we'll just leave it up to our caller.
-        if (start != None and end == None) or (end != None and start == None):
+        if (start is not None and end is None) or (end is not None and start is None):
             raise ValueError(
                 "Either both start and end must be specified "
                 "or neither must be specified"
@@ -491,10 +488,6 @@ models = frozenset(
     (
         v
         for k, v in locals().items()
-        if (
-            isinstance(v, type)
-            and issubclass(v, BaseMessage)
-            and k is not "BaseMessage"
-        )
+        if (isinstance(v, type) and issubclass(v, BaseMessage) and k != "BaseMessage")
     )
 )

@@ -15,13 +15,6 @@
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 # Ridiculous as it may seem, we need to import multiprocessing and
 # logging here in order to get tests to pass smoothly on python 2.7.
-try:
-    import logging
-    import multiprocessing
-except Exception:
-    pass
-
-import sys
 
 from setuptools import setup
 

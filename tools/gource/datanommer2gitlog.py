@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # This file is a part of datanommer, a message sink for fedmsg.
 # Copyright (C) 2014, Red Hat, Inc.
 #
@@ -13,7 +15,6 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
-#!/usr/bin/env python
 """ datanommer2gitlog.py -- Read in datanommer's entire db...
 ...write out a corresponding fake git history.
 
@@ -27,7 +28,6 @@ Run with python-2.7.
     $ python ../datanommer2gitlog.py
 
 """
-from __future__ import print_function
 
 import json
 import os
@@ -36,8 +36,6 @@ import commands
 import fedmsg.config
 import fedmsg.text
 import progressbar
-
-import datanommer.models as m
 
 
 def run(cmd):
@@ -79,12 +77,12 @@ def read_datanommer_entries_from_filedump():
             for line in progress(lines):
                 try:
                     yield json.loads(line + "\n}")
-                except:
+                except Exception:
                     failed += 1
         print(" * Failed to parse %i json objects" % failed)
 
     def comp(a, b):
-        return cmp(a["timestamp"], b["timestamp"])
+        return (a["timestamp"] > b["timestamp"]) - (a["timestamp"] < b["timestamp"])
 
     result = sorted(list(_entries()), cmp=comp)
     print(" * Read and sorted %i messages" % len(result))

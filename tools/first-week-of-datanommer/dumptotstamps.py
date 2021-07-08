@@ -1,5 +1,4 @@
-from __future__ import print_function
-
+#!/usr/bin/env python
 
 # This file is a part of datanommer, a message sink for fedmsg.
 # Copyright (C) 2014, Red Hat, Inc.
@@ -16,12 +15,12 @@ from __future__ import print_function
 #
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
-#!/usr/bin/env python
+
 
 with open("datanommer-dump-2012-10-16.json", "r") as f:
     lines = f.readlines()
 
-lines = [l.strip() for l in lines if l.startswith('  "timestamp')]
-values = [float(l.split(":")[-1][:-1].strip()) for l in lines]
+lines = [line.strip() for line in lines if line.startswith('  "timestamp')]
+values = [float(line.split(":")[-1][:-1].strip()) for line in lines]
 for value in values:
     print(value)

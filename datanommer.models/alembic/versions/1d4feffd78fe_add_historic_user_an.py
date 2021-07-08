@@ -23,19 +23,18 @@ Create Date: 2013-04-12 13:00:46.452867
 
 """
 
-# revision identifiers, used by Alembic.
-revision = "1d4feffd78fe"
-down_revision = "5091535d0fb4"
-
 import random
 
 import fedmsg.config
-import sqlalchemy as sa
 from alembic import context, op
 from fedmsg.meta import make_processors, msg2packages, msg2usernames
-from sqlalchemy.sql import text
 
 import datanommer.models as m
+
+
+# revision identifiers, used by Alembic.
+revision = "1d4feffd78fe"
+down_revision = "5091535d0fb4"
 
 
 def _page(q, chunk=1000):

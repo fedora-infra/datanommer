@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # This file is a part of datanommer, a message sink for fedmsg.
 # Copyright (C) 2014, Red Hat, Inc.
 #
@@ -13,7 +15,7 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
-#!/usr/bin/env python
+
 """ This script just emits a bunch of random messages on an endpoint to which
 busmon is listening.  Run it while busmon is running to provide it with fake
 test data.
@@ -21,13 +23,11 @@ test data.
     :author: Ralph Bean <rbean@redhat.com>
 
 """
-from __future__ import print_function
 
 import random
 import time
 
 import fedmsg
-import simplejson
 
 
 def main():
