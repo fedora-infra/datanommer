@@ -46,9 +46,9 @@ def upgrade():
     m.init(engine=engine)
 
     # git.branch
-    branch = m.Message.topic.like(u"%.git.branch.%")
+    branch = m.Message.topic.like("%.git.branch.%")
     for msg in m.Message.query.filter(branch).yield_per(100):
-        prefix, suffix = msg.topic.split(u".git.branch.")
+        prefix, suffix = msg.topic.split(".git.branch.")
         # Fix topic
         msg.topic = prefix + ".git.branch"
         # Fix message contents
@@ -62,9 +62,9 @@ def upgrade():
         m.session.add(msg)
 
     # git.lookaside.*.new
-    lookaside = m.Message.topic.like(u"%.git.lookaside.%.new")
+    lookaside = m.Message.topic.like("%.git.lookaside.%.new")
     for msg in m.Message.query.filter(lookaside).yield_per(100):
-        prefix, suffix = msg.topic.split(u".git.lookaside.")
+        prefix, suffix = msg.topic.split(".git.lookaside.")
         # Fix topic
         msg.topic = prefix + ".git.lookaside.new"
         # Drop cert and sig
@@ -73,9 +73,9 @@ def upgrade():
         m.session.add(msg)
 
     # git.receive
-    receive = m.Message.topic.like(u"%.git.receive.%")
+    receive = m.Message.topic.like("%.git.receive.%")
     for msg in m.Message.query.filter(receive).yield_per(100):
-        prefix, suffix = msg.topic.split(u".git.receive.")
+        prefix, suffix = msg.topic.split(".git.receive.")
         # Fix topic
         msg.topic = prefix + ".git.receive"
         # Fix message contents

@@ -20,7 +20,6 @@ import unittest
 from unittest.mock import patch
 
 import pytest
-import six
 import sqlalchemy
 import sqlalchemy.exc
 from sqlalchemy.orm import scoped_session
@@ -231,7 +230,7 @@ class TestModels(unittest.TestCase):
         datanommer.models.add(msg)
         dbmsg = datanommer.models.Message.query.first()
         year = datetime.datetime.now().year
-        self.assertTrue(dbmsg.msg_id.startswith(six.text_type(year) + six.u("-")))
+        self.assertTrue(dbmsg.msg_id.startswith(str(year) + "-"))
 
     def test_extract_base_username(self):
         msg = copy.deepcopy(scm_message)
@@ -407,16 +406,16 @@ class TestModels(unittest.TestCase):
 
     def test_User_get_or_create(self):
         assert datanommer.models.User.query.count() == 0
-        datanommer.models.User.get_or_create(six.u("foo"))
+        datanommer.models.User.get_or_create("foo")
         assert datanommer.models.User.query.count() == 1
-        datanommer.models.User.get_or_create(six.u("foo"))
+        datanommer.models.User.get_or_create("foo")
         assert datanommer.models.User.query.count() == 1
 
     def test_Package_get_or_create(self):
         assert datanommer.models.Package.query.count() == 0
-        datanommer.models.Package.get_or_create(six.u("foo"))
+        datanommer.models.Package.get_or_create("foo")
         assert datanommer.models.Package.query.count() == 1
-        datanommer.models.Package.get_or_create(six.u("foo"))
+        datanommer.models.Package.get_or_create("foo")
         assert datanommer.models.Package.query.count() == 1
 
     @patch("datanommer.models.log")
@@ -425,8 +424,8 @@ class TestModels(unittest.TestCase):
         # Hide existing instances from get_or_create(), which forces a duplicate insert
         # and constraint violation.
         filter_by.return_value.one_or_none.return_value = None
-        datanommer.models.Package.get_or_create(six.u("foo"))
-        datanommer.models.Package.get_or_create(six.u("foo"))
+        datanommer.models.Package.get_or_create("foo")
+        datanommer.models.Package.get_or_create("foo")
         assert datanommer.models.Package.query.count() == 1
         log.debug.assert_called_once_with(
             'Collision when adding %s(name="%s"), returning existing object',

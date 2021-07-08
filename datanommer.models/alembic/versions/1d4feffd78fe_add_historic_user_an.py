@@ -66,7 +66,7 @@ def upgrade():
     engine = op.get_bind().engine
     m.init(engine=engine)
     for msg in _page(m.Message.query.order_by(m.Message.timestamp)):
-        print("processing %s %s" % (msg.timestamp, msg.topic))
+        print(f"processing {msg.timestamp} {msg.topic}")
 
         if msg.users and msg.packages:
             continue

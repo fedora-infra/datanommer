@@ -17,7 +17,7 @@
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-with open("datanommer-dump-2012-10-16.json", "r") as f:
+with open("datanommer-dump-2012-10-16.json") as f:
     lines = f.readlines()
 
 lines = [line.strip() for line in lines if line.startswith('  "timestamp')]

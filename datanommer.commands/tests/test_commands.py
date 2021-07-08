@@ -21,7 +21,6 @@ from unittest.mock import Mock, patch
 
 import fedmsg.config
 import freezegun
-import six
 from sqlalchemy.orm import scoped_session
 
 import datanommer.commands
@@ -551,7 +550,6 @@ class TestCommands(unittest.TestCase):
             assert json_object[0]["fas"]["msg"] == "Message 2"
             assert len(json_object) == 1
 
-    @unittest.skipIf(six.PY2, "Dict ordering.")
     @freezegun.freeze_time("2013-03-01")
     def test_latest_timestamp_human(self):
         with patch("datanommer.commands.LatestCommand.get_config") as gc:
@@ -603,7 +601,6 @@ class TestCommands(unittest.TestCase):
             assert json_object[0] == "2013-02-15 15:15:15.000015"
             assert len(json_object) == 2
 
-    @unittest.skipIf(six.PY2, "Dict ordering.")
     @freezegun.freeze_time("2013-03-01")
     def test_latest_timestamp(self):
         with patch("datanommer.commands.LatestCommand.get_config") as gc:
@@ -654,7 +651,6 @@ class TestCommands(unittest.TestCase):
             assert json_object[0] == time.mktime(datetime(2013, 2, 15).timetuple())
             assert len(json_object) == 2
 
-    @unittest.skipIf(six.PY2, "Dict ordering.")
     @freezegun.freeze_time("2013-03-01")
     def test_latest_timesince(self):
         with patch("datanommer.commands.LatestCommand.get_config") as gc:
@@ -709,7 +705,6 @@ class TestCommands(unittest.TestCase):
             assert int(json_object[0]) >= 60
             assert len(json_object) == 2
 
-    @unittest.skipIf(six.PY2, "Dict ordering.")
     def test_latest_timesince_human(self):
         with patch("datanommer.commands.LatestCommand.get_config") as gc:
             self.config["overall"] = False
@@ -763,7 +758,6 @@ class TestCommands(unittest.TestCase):
             assert "1 day in 0:00:00.", json_object[0]
             assert len(json_object) == 2
 
-    @unittest.skipIf(six.PY2, "Dict ordering.")
     def test_latest(self):
         with patch("datanommer.commands.LatestCommand.get_config") as gc:
             self.config["overall"] = False

@@ -21,7 +21,6 @@ import uuid
 
 import fedmsg.encoding
 import pkg_resources
-import six
 from sqlalchemy import (
     between,
     Column,
@@ -129,9 +128,7 @@ def add(envelope):
     if not msg_id and headers:
         msg_id = headers.get("message-id", None)
     if not msg_id:
-        msg_id = (
-            six.text_type(timestamp.year) + six.u("-") + six.text_type(uuid.uuid4())
-        )
+        msg_id = str(timestamp.year) + "-" + str(uuid.uuid4())
     obj = Message(
         i=message.get("i", 0),
         msg_id=msg_id,
@@ -211,7 +208,7 @@ def source_version_default(context):
     return dist.version
 
 
-class BaseMessage(object):
+class BaseMessage:
     id = Column(Integer, primary_key=True)
     msg_id = Column(UnicodeText, nullable=True, unique=True, default=None, index=True)
     i = Column(Integer, nullable=False)
@@ -222,7 +219,7 @@ class BaseMessage(object):
     category = Column(UnicodeText, nullable=False, index=True)
     username = Column(UnicodeText)
     crypto = Column(UnicodeText)
-    source_name = Column(UnicodeText, default=six.u("datanommer"))
+    source_name = Column(UnicodeText, default="datanommer")
     source_version = Column(UnicodeText, default=source_version_default)
     _msg = Column(UnicodeText, nullable=False)
     _headers = Column(UnicodeText)
@@ -296,7 +293,7 @@ pack_assoc_table = Table(
 )
 
 
-class Singleton(object):
+class Singleton:
     @classmethod
     def get_or_create(cls, name):
         """

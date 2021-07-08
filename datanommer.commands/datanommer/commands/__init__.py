@@ -164,10 +164,10 @@ class StatsCommand(BaseCommand):
 
         if config.get("topic", None):
             for topic, count in results:
-                self.log.info("%s has %s entries" % (topic, count))
+                self.log.info(f"{topic} has {count} entries")
         else:
             for category, count in results:
-                self.log.info("%s has %s entries" % (category, count))
+                self.log.info(f"{category} has {count} entries")
 
 
 # Extra arguments for datanommer-latest
@@ -352,7 +352,7 @@ class LatestCommand(BaseCommand):
                 timedelta = datetime.datetime.now() - val.timestamp
                 return pretty_dumps(str((timedelta.days * 86400) + timedelta.seconds))
             else:
-                return "{%s: %s}" % (pretty_dumps(key), pretty_dumps(val))
+                return f"{{{pretty_dumps(key)}: {pretty_dumps(val)}}}"
 
         results = []
         for result in sum([query.all() for query in queries], []):

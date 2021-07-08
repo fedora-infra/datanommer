@@ -53,7 +53,7 @@ class CollisionDict(collections.MutableMapping):
 
 def load_data(fname, n):
     # TODO.. alternatively read from stdin.
-    with open(fname, "r") as f:
+    with open(fname) as f:
         stamps = sorted(map(float, f.readlines()))
 
     span = stamps[-1] - stamps[0]

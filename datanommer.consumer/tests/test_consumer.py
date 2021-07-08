@@ -40,7 +40,7 @@ class TestConsumer(unittest.TestCase):
         cls.fedmsg_config = config
 
     def setUp(self):
-        class FakeHub(object):
+        class FakeHub:
             config = self.fedmsg_config
 
             def subscribe(*args, **kwargs):

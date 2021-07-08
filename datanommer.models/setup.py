@@ -40,7 +40,6 @@ setup(
         "sqlalchemy>=1.0.9",
         "fedmsg",
         "alembic",
-        "six",
     ],
     classifiers=[
         "Programming Language :: Python :: 2",

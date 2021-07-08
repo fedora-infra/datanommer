@@ -22,7 +22,6 @@ https://fedorahosted.org/fesco/ticket/967#comment:2
 
 :Author:  Ralph Bean <rbean@redhat.com>
 """
-from __future__ import print_function
 
 
 __requires__ = "datanommer==0.1.8"
@@ -31,7 +30,6 @@ import getpass
 
 import fedmsg.config
 import fedora.accounts.fas2
-from six.moves import input
 
 import datanommer.models as m
 

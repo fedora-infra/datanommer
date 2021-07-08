@@ -18,7 +18,7 @@
 """ datanommer2gitlog.py -- Read in datanommer's entire db...
 ...write out a corresponding fake git history.
 
-Run with python-2.7.
+Run with python3.
 
     $ cd ~
     $ rm -rf myrepo
@@ -31,8 +31,8 @@ Run with python-2.7.
 
 import json
 import os
+import subprocess
 
-import commands
 import fedmsg.config
 import fedmsg.text
 import progressbar
@@ -45,10 +45,10 @@ def run(cmd):
     commands, although deprecated, feels like the easiest tool to use.
     """
 
-    status, output = commands.getstatusoutput(cmd)
-    if status:
-        print(output)
-    return status == 0
+    result = subprocess.run(cmd, text=True, stderr=subprocess.STDOUT)
+    if result.returncode:
+        print(result.stdout)
+    return result.returncode == 0
 
 
 def read_datanommer_entries_from_filedump():
@@ -71,7 +71,7 @@ def read_datanommer_entries_from_filedump():
 
     def _entries():
         failed = 0
-        with open(filename, "r") as f:
+        with open(filename) as f:
             raw = f.read()
             lines = raw.split("\n}\n")
             for line in progress(lines):
@@ -102,8 +102,8 @@ def main():
     fedmsg.text.make_processors(**conf)
 
     # Check that this actually is a git repo before doing anything.
-    if not run("git status"):
-        raise IOError("Not a git repository.")
+    if not run(["git", "status"]):
+        raise OSError("Not a git repository.")
 
     failed_adds, failed_commits = 0, 0
 
@@ -158,7 +158,7 @@ def main():
             with open(filename, "a") as f:
                 f.write(text + "\n")
 
-            if not run("git add %s" % filename.encode("utf-8")):
+            if not run(["git", "add", filename]):
                 failed_adds += 1
                 print(" * Failed the %ith add." % failed_adds)
 
@@ -167,10 +167,14 @@ def main():
         os.environ["GIT_AUTHOR_DATE"] = "%i+0000" % entry["timestamp"]
         os.environ["GIT_COMMITTER_DATE"] = "%i+0000" % entry["timestamp"]
         try:
-            cmd = """git commit --message "%s" --author "%s" """ % (
+            cmd = [
+                "git",
+                "commit",
+                "--message",
                 text,
-                ("%s <%s@fedoraproject.org>" % (user, user)).encode("utf-8"),
-            )
+                "--author",
+                f"{user} <{user}@fedoraproject.org>",
+            ]
         except UnicodeDecodeError:
             print(" * unicode failure on %s" % text)
             failed_commits += 1

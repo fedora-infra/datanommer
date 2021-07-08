@@ -43,7 +43,7 @@ class Nommer(fedmsg.consumers.FedmsgConsumer):
         if "datanommer.topic" in hub.config:
             self.topic = hub.config["datanommer.topic"]
 
-        super(Nommer, self).__init__(hub)
+        super().__init__(hub)
 
         # If fedmsg doesn't think we should be enabled, then we should quit
         # before setting up all the extra special zmq machinery.
