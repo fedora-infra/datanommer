@@ -21,6 +21,19 @@ long_description = f.read().strip()
 long_description = long_description.split("split here", 1)[1]
 f.close()
 
+
+def get_requires(filename="requirements.txt"):
+    result = []
+    with open(filename) as f:
+        for line in f:
+            line = line.strip()
+            line = line.partition("#")[0]
+            if not line:
+                continue
+            result.append(line)
+    return result
+
+
 version = "0.9.1"
 
 setup(
@@ -36,11 +49,7 @@ setup(
     namespace_packages=["datanommer"],
     include_package_data=True,
     zip_safe=False,
-    install_requires=[
-        "sqlalchemy>=1.0.9",
-        "fedmsg",
-        "alembic",
-    ],
+    install_requires=get_requires(),
     classifiers=[
         "Programming Language :: Python :: 2",
         "Programming Language :: Python :: 3",

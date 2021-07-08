@@ -28,6 +28,32 @@ jobs:
         run: pre-commit run --all-files
 
 
+  licenses:
+    name: Licenses
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Install tox
+        run: pip install tox
+
+      - name: Run unit tests for datanommer.${{ matrix.package }}
+        run: tox -e licenses
+        working-directory: datanommer.${{ matrix.package }}
+
+    strategy:
+      matrix:
+        package:
+          - models
+          - consumer
+          - commands
+
+
   unit_tests:
     name: Unit tests
     runs-on: ubuntu-latest
@@ -43,7 +69,7 @@ jobs:
         run: pip install tox
 
       - name: Run unit tests for datanommer.${{ matrix.package }}
-        run: tox -vv -e py
+        run: tox -e py
         working-directory: datanommer.${{ matrix.package }}
 
       # - name: Upload coverage to Codecov
