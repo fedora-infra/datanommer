@@ -13,3 +13,4 @@ README.pdf
 *.log
 *.swo
 .tox/
+.vagrant/
