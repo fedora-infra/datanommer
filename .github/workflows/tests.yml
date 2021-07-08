@@ -43,7 +43,7 @@ jobs:
         run: pip install tox
 
       - name: Run unit tests for datanommer.${{ matrix.package }}
-        run: tox -e py
+        run: tox -vv -e py
         working-directory: datanommer.${{ matrix.package }}
 
       # - name: Upload coverage to Codecov
