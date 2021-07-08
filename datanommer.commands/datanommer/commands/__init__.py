@@ -355,7 +355,7 @@ class LatestCommand(BaseCommand):
                 return f"{{{pretty_dumps(key)}: {pretty_dumps(val)}}}"
 
         results = []
-        for result in sum([query.all() for query in queries], []):
+        for result in sum((query.all() for query in queries), []):
             results.append(formatter(result.category, result))
 
         self.log.info("[%s]" % ",".join(results))

@@ -421,46 +421,46 @@ class Message(DeclarativeBase, BaseMessage):
         # Add the four positive filters as necessary
         if users:
             query = query.filter(
-                or_(*[Message.users.any(User.name == u) for u in users])
+                or_(*(Message.users.any(User.name == u) for u in users))
             )
 
         if packages:
             query = query.filter(
-                or_(*[Message.packages.any(Package.name == p) for p in packages])
+                or_(*(Message.packages.any(Package.name == p) for p in packages))
             )
 
         if categories:
             query = query.filter(
-                or_(*[Message.category == category for category in categories])
+                or_(*(Message.category == category for category in categories))
             )
 
         if topics:
-            query = query.filter(or_(*[Message.topic == topic for topic in topics]))
+            query = query.filter(or_(*(Message.topic == topic for topic in topics)))
 
         if contains:
             query = query.filter(
-                or_(*[Message._msg.like("%%%s%%" % contain) for contain in contains])
+                or_(*(Message._msg.like("%%%s%%" % contain) for contain in contains))
             )
 
         # And then the four negative filters as necessary
         if not_users:
             query = query.filter(
-                not_(or_(*[Message.users.any(User.name == u) for u in not_users]))
+                not_(or_(*(Message.users.any(User.name == u) for u in not_users)))
             )
 
         if not_packs:
             query = query.filter(
-                not_(or_(*[Message.packages.any(Package.name == p) for p in not_packs]))
+                not_(or_(*(Message.packages.any(Package.name == p) for p in not_packs)))
             )
 
         if not_cats:
             query = query.filter(
-                not_(or_(*[Message.category == category for category in not_cats]))
+                not_(or_(*(Message.category == category for category in not_cats)))
             )
 
         if not_topics:
             query = query.filter(
-                not_(or_(*[Message.topic == topic for topic in not_topics]))
+                not_(or_(*(Message.topic == topic for topic in not_topics)))
             )
 
         # Finally, tag on our pagination arguments
