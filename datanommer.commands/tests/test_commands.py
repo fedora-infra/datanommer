@@ -20,7 +20,6 @@ from datetime import datetime, timedelta
 from unittest.mock import Mock, patch
 
 import fedmsg.config
-import freezegun
 from sqlalchemy.orm import scoped_session
 
 import datanommer.commands
@@ -242,7 +241,6 @@ class TestCommands(unittest.TestCase):
                         == "org.fedoraproject.prod.git.branch.valgrind.master"
                     )
 
-    @freezegun.freeze_time("2013-03-01")
     def test_dump_before(self):
         m.Message = datanommer.models.Message
 
@@ -287,7 +285,10 @@ class TestCommands(unittest.TestCase):
             command = datanommer.commands.DumpCommand()
 
             command.log.info = info
-            command.run()
+            with patch("datanommer.commands.datetime") as mock_dt:
+                mock_dt.utcnow.return_value = datetime(2013, 3, 1)
+                mock_dt.now.return_value = datetime(2013, 3, 1)
+                command.run()
 
             json_object = json.loads(logged_info[0])
 
@@ -301,7 +302,6 @@ class TestCommands(unittest.TestCase):
             )
             assert len(json_object) == 2
 
-    @freezegun.freeze_time("2013-03-01")
     def test_dump_since(self):
         with patch("datanommer.commands.DumpCommand.get_config") as gc:
             self.config["since"] = "2013-02-14T08:00:00"
@@ -344,7 +344,10 @@ class TestCommands(unittest.TestCase):
             command = datanommer.commands.DumpCommand()
 
             command.log.info = info
-            command.run()
+            with patch("datanommer.commands.datetime") as mock_dt:
+                mock_dt.utcnow.return_value = datetime(2013, 3, 1)
+                mock_dt.now.return_value = datetime(2013, 3, 1)
+                command.run()
 
             json_object = json.loads(logged_info[0])
 
@@ -358,7 +361,6 @@ class TestCommands(unittest.TestCase):
             )
             assert len(json_object) == 2
 
-    @freezegun.freeze_time("2013-03-01")
     def test_dump_timespan(self):
         with patch("datanommer.commands.DumpCommand.get_config") as gc:
             self.config["before"] = "2013-02-16"
@@ -402,7 +404,10 @@ class TestCommands(unittest.TestCase):
             command = datanommer.commands.DumpCommand()
 
             command.log.info = info
-            command.run()
+            with patch("datanommer.commands.datetime") as mock_dt:
+                mock_dt.utcnow.return_value = datetime(2013, 3, 1)
+                mock_dt.now.return_value = datetime(2013, 3, 1)
+                command.run()
 
             json_object = json.loads(logged_info[0])
 
@@ -550,7 +555,6 @@ class TestCommands(unittest.TestCase):
             assert json_object[0]["fas"]["msg"] == "Message 2"
             assert len(json_object) == 1
 
-    @freezegun.freeze_time("2013-03-01")
     def test_latest_timestamp_human(self):
         with patch("datanommer.commands.LatestCommand.get_config") as gc:
             self.config["overall"] = False
@@ -593,7 +597,10 @@ class TestCommands(unittest.TestCase):
             command = datanommer.commands.LatestCommand()
 
             command.log.info = info
-            command.run()
+            with patch("datanommer.commands.datetime") as mock_dt:
+                mock_dt.utcnow.return_value = datetime(2013, 3, 1)
+                mock_dt.now.return_value = datetime(2013, 3, 1)
+                command.run()
 
             json_object = json.loads(logged_info[0])
 
@@ -601,7 +608,6 @@ class TestCommands(unittest.TestCase):
             assert json_object[0] == "2013-02-15 15:15:15.000015"
             assert len(json_object) == 2
 
-    @freezegun.freeze_time("2013-03-01")
     def test_latest_timestamp(self):
         with patch("datanommer.commands.LatestCommand.get_config") as gc:
             self.config["overall"] = False
@@ -643,7 +649,10 @@ class TestCommands(unittest.TestCase):
             command = datanommer.commands.LatestCommand()
 
             command.log.info = info
-            command.run()
+            with patch("datanommer.commands.datetime") as mock_dt:
+                mock_dt.utcnow.return_value = datetime(2013, 3, 1)
+                mock_dt.now.return_value = datetime(2013, 3, 1)
+                command.run()
 
             json_object = json.loads(logged_info[0])
 
@@ -651,14 +660,13 @@ class TestCommands(unittest.TestCase):
             assert json_object[0] == time.mktime(datetime(2013, 2, 15).timetuple())
             assert len(json_object) == 2
 
-    @freezegun.freeze_time("2013-03-01")
     def test_latest_timesince(self):
         with patch("datanommer.commands.LatestCommand.get_config") as gc:
             self.config["overall"] = False
             self.config["timesince"] = True
             gc.return_value = self.config
 
-            now = datetime.now()
+            now = datetime(2013, 3, 1)
             time1 = now - timedelta(days=1)
             time2 = now - timedelta(seconds=60)
             time3 = now - timedelta(seconds=1)
@@ -694,7 +702,10 @@ class TestCommands(unittest.TestCase):
             command = datanommer.commands.LatestCommand()
 
             command.log.info = info
-            command.run()
+            with patch("datanommer.commands.datetime") as mock_dt:
+                mock_dt.utcnow.return_value = now
+                mock_dt.now.return_value = now
+                command.run()
 
             json_object = json.loads(logged_info[0])
 
