@@ -13,8 +13,8 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
-import datetime
 import time
+from datetime import datetime, timedelta
 
 import fedmsg.meta
 from fedmsg.commands import BaseCommand
@@ -334,8 +334,8 @@ class LatestCommand(BaseCommand):
             queries = [m.Message.query]
 
         # Only check messages from the last year to speed up queries
-        a_year = datetime.timedelta(days=365)
-        earliest = datetime.datetime.utcnow() - a_year
+        a_year = timedelta(days=365)
+        earliest = datetime.utcnow() - a_year
         queries = [q.filter(m.Message.timestamp > earliest) for q in queries]
 
         # Order and limit to the latest.
@@ -347,9 +347,9 @@ class LatestCommand(BaseCommand):
             elif config.get("timestamp", None):
                 return pretty_dumps(time.mktime(val.timestamp.timetuple()))
             elif config.get("timesince", None) and config.get("human", None):
-                return pretty_dumps(str(datetime.datetime.now() - val.timestamp))
+                return pretty_dumps(str(datetime.now() - val.timestamp))
             elif config.get("timesince", None):
-                timedelta = datetime.datetime.now() - val.timestamp
+                timedelta = datetime.now() - val.timestamp
                 return pretty_dumps(str((timedelta.days * 86400) + timedelta.seconds))
             else:
                 return f"{{{pretty_dumps(key)}: {pretty_dumps(val)}}}"
