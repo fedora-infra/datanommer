@@ -2,4 +2,4 @@
 show-source = True
 max-line-length = 100
 exclude = .git,.tox,dist,*egg
-ignore = E203
+extend-ignore = E203
