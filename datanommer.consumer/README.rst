@@ -1,8 +1,6 @@
 datanommer.consumer
 ===================
 
-.. split here
-
 This package contains the fedmsg-hub consumer plugin for datanommer.
 
 Datanommer is a storage consumer for the Fedora Infrastructure Message Bus

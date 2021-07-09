@@ -10,8 +10,7 @@ repos:
     rev: 21.6b0
     hooks:
       - id: black
-        language_version: python3
-        args: ["-c"]
+        args: ["--check", "--diff"]
 
   - repo: https://github.com/pycqa/flake8
     rev: 3.9.2
@@ -22,7 +21,7 @@ repos:
     rev: 5.9.2
     hooks:
       - id: isort
-        args: ["-c"]
+        args: ["-c", "--df"]
 
   - repo: https://github.com/PyCQA/bandit
     rev: 1.7.0

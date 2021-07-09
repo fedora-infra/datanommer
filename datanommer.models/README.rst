@@ -1,8 +1,6 @@
 datanommer.models
 =================
 
-.. split here
-
 This package contains the SQLAlchemy data model for datanommer.
 
 Datanommer is a storage consumer for the Fedora Infrastructure Message Bus

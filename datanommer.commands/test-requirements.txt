@@ -1,2 +1,0 @@
-pytest
-fedmsg_meta_fedora_infrastructure

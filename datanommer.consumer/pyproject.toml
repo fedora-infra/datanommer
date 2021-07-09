@@ -1,3 +1,49 @@
+[tool.poetry]
+name = "datanommer.consumer"
+version = "0.8.1"
+description = "Consumer for datanommer"
+authors = [
+  "Fedora Infrastructure <admin@fedoraproject.org>"
+]
+license = "GPL-3.0-or-later"
+readme = "README.rst"
+repository = "https://github.com/fedora-infra/datanommer"
+homepage = "https://github.com/fedora-infra/datanommer"
+packages = [
+    { include = "datanommer" },
+]
+include = [
+    "fedmsg.d/*",
+    "tests/*",
+    "tools/*",
+    "tox.ini",
+]
+
+[tool.poetry.dependencies]
+python = "^3.6.2"
+"datanommer.models" = "^0.9.1"
+fedmsg = "^1.1.2"
+
+[tool.poetry.dev-dependencies]
+pre-commit = "^2.13.0"
+"datanommer.models" = {path = "../datanommer.models"}
+black = "^21.6b0"
+isort = "^5.9.2"
+flake8 = "^3.9.2"
+pytest = "^6.2.4"
+psutil = "^5.8.0"
+"moksha.hub" = "^1.5.17"
+liccheck = "^0.6.0"
+
+[tool.poetry.plugins."moksha.consumer"]
+"noms" = "datanommer.consumer:Nommer"
+
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+
 [tool.liccheck]
 authorized_licenses = [
   "bsd",
@@ -33,6 +79,7 @@ authorized_licenses = [
   "Mozilla Public License 2.0 (MPL 2.0)",
   "lgpl",
   "CC0 (copyright waived)",
+  "Public Domain",
   "Public Domain <http://unlicense.org>",
 ]
 

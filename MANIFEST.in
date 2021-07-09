@@ -1,4 +1,0 @@
-include README.rst
-include LICENSE
-include fedmsg.d/datanommer.py
-recursive-include tests *

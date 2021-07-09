@@ -1,4 +1,0 @@
-include README.rst
-include LICENSE
-recursive-include tools *.py
-recursive-include tests *.py

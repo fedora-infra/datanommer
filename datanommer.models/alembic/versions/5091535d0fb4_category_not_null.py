@@ -1,3 +1,5 @@
+#
+#
 # This file is a part of datanommer, a message sink for fedmsg.
 # Copyright (C) 2014, Red Hat, Inc.
 #
@@ -13,12 +15,12 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""category not null
+
+"""Category not null
 
 Revision ID: 5091535d0fb4
 Revises: a4f74590bcf
 Create Date: 2013-02-23 23:31:48.450673
-
 """
 
 from alembic import op

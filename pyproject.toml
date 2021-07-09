@@ -1,4 +1,45 @@
+[tool.poetry]
+name = "datanommer"
+version = "0.3.0"
+description = "A storage consumer for the Fedora Message Bus"
+authors = [
+  "Fedora Infrastructure <admin@fedoraproject.org>"
+]
+license = "GPLv3+"
+readme = "README.rst"
+repository = "https://github.com/fedora-infra/datanommer"
+homepage = "https://github.com/fedora-infra/datanommer"
+
+include = [
+    "tools/*",
+    "fedmsg.d/*",
+    "tests/*",
+]
+
+[tool.poetry.dependencies]
+python = "^3.6.2"
+"datanommer.consumer" = "^0.8.1"
+"datanommer.models" = "^0.9.1"
+"datanommer.commands" = "^0.7.2"
+
+[tool.poetry.dev-dependencies]
+pre-commit = "^2.13.0"
+"datanommer.commands" = {path = "datanommer.commands"}
+"datanommer.consumer" = {path = "datanommer.consumer"}
+"datanommer.models" = {path = "datanommer.models"}
+black = "^21.6b0"
+isort = "^5.9.2"
+flake8 = "^3.9.2"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
 [tool.isort]
 profile = "black"
 lines_after_imports = 2
 force_alphabetical_sort_within_sections = true
+known_first_party = ["datanommer"]
+
+[tool.black]
+target-version = ["py36"]

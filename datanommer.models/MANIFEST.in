@@ -1,6 +1,0 @@
-include README.rst
-include LICENSE
-include alembic.ini
-recursive-include fedmsg.d *
-recursive-include tests *.py
-recursive-include alembic *.py README
