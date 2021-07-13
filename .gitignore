@@ -13,3 +13,8 @@ README.pdf
 *.log
 *.swo
 .tox/
+
+# Coverage
+.coverage
+htmlcov
+coverage.xml
