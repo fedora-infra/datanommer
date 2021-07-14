@@ -34,6 +34,7 @@ pytest = "^6.2.4"
 psutil = "^5.8.0"
 "moksha.hub" = "^1.5.17"
 liccheck = "^0.6.0"
+pytest-cov = "^2.12.1"
 
 [tool.poetry.plugins."moksha.consumer"]
 "noms" = "datanommer.consumer:Nommer"

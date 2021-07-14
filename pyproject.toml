@@ -43,3 +43,20 @@ known_first_party = ["datanommer"]
 
 [tool.black]
 target-version = ["py36"]
+
+[tool.pytest.ini_options]
+addopts = "-v --cov-config ../pyproject.toml --cov --cov-report term-missing --cov-report html --cov-report xml"
+
+[tool.coverage.run]
+branch = true
+source = ["datanommer"]
+
+[tool.coverage.paths]
+source = ["datanommer"]
+
+[tool.coverage.report]
+fail_under = 74
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == .__main__.:",
+]

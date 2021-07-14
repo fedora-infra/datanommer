@@ -32,6 +32,7 @@ flake8 = "^3.9.2"
 pytest = "^6.2.4"
 fedmsg-meta-fedora-infrastructure = "^0.31.0"
 liccheck = "^0.6.0"
+pytest-cov = "^2.12.1"
 
 
 [build-system]
