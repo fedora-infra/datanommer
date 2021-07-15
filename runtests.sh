@@ -10,6 +10,10 @@ which pre-commit &>/dev/null || {
     echo "You need to install pre-commit" >&2
     exit 2
 }
+which krb5-config &> /dev/null || {
+    echo "You need to install krb5-devel" >&2
+    exit 2
+}
 
 echo "Running checks for all packages"
 pre-commit run --all-files
