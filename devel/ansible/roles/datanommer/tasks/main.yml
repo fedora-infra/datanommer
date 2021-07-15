@@ -1,0 +1,57 @@
+---
+- name: Install RPM packages
+  dnf:
+      name:
+      - fedora-messaging
+      - gcc
+      - git
+      - poetry
+      - python3-devel
+      - python3-pip
+      - vim
+      - krb5-devel
+      state: present
+
+- name: Install the .bashrc
+  copy:
+    src: .bashrc
+    dest: /home/vagrant/.bashrc
+    mode: 0644
+    owner: vagrant
+    group: vagrant
+
+- name: Create a directory for the virtualenv
+  file:
+    name: /srv/venv
+    state: directory
+    mode: 0755
+    owner: vagrant
+    group: vagrant
+
+- name: Create the virtualenv and install poetry
+  pip:
+    name: poetry
+    virtualenv: /srv/venv
+  become: yes
+  become_user: vagrant
+
+- name: Install datanommer.models with poetry
+  shell: /srv/venv/bin/poetry install
+  args:
+    chdir: /home/vagrant/datanommer/datanommer.models/
+  become: yes
+  become_user: vagrant
+
+- name: Install datanommer.commands with poetry
+  shell: /srv/venv/bin/poetry install
+  args:
+    chdir: /home/vagrant/datanommer/datanommer.commands/
+  become: yes
+  become_user: vagrant
+
+- name: Install datanommer.consumer with poetry
+  shell: /srv/venv/bin/poetry install
+  args:
+    chdir: /home/vagrant/datanommer/datanommer.consumer/
+  become: yes
+  become_user: vagrant
