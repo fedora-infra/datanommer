@@ -1,3 +1,5 @@
+**Datanommer is currently in the process of a major migration away from fedmsg to Fedora Messaging. As such, the below readme is outdated, and may not be useful until it is updated** 
+
 datanommer
 ==========
 
