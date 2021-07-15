@@ -1,0 +1,6 @@
+---
+- hosts: datanommer
+  become: true
+  become_method: sudo
+  roles:
+    - datanommer
