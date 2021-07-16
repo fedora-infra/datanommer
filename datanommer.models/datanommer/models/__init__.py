@@ -23,39 +23,34 @@ import fedmsg.encoding
 import pkg_resources
 from sqlalchemy import (
     between,
+    cast,
     Column,
     create_engine,
     DateTime,
+    DDL,
     event,
-    ForeignKey,
+    func,
     Integer,
     not_,
     or_,
+    Unicode,
     UnicodeText,
+    UniqueConstraint,
 )
+from sqlalchemy.dialects import postgresql
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import (
-    backref,
-    relationship,
-    scoped_session,
-    sessionmaker,
-    validates,
-)
-from sqlalchemy.schema import Table
+from sqlalchemy.orm import scoped_session, sessionmaker, validates
 
+
+log = logging.getLogger("datanommer")
 
 maker = sessionmaker()
 session = scoped_session(maker)
 
 DeclarativeBase = declarative_base()
 DeclarativeBase.query = session.query_property()
-
-
-log = logging.getLogger("datanommer")
-
-_users_seen, _packages_seen = set(), set()
 
 
 def init(uri=None, alembic_ini=None, engine=None, create=False):
@@ -65,25 +60,10 @@ def init(uri=None, alembic_ini=None, engine=None, create=False):
         raise ValueError("uri and engine cannot both be specified")
 
     if uri is None and not engine:
-        uri = "sqlite:////tmp/datanommer.db"
-        log.warning("No db uri given.  Using %r" % uri)
+        raise ValueError("One of uri or engine must be specified")
 
     if uri and not engine:
         engine = create_engine(uri)
-
-    if "sqlite" in engine.driver:
-        # Enable nested transaction support under SQLite, see:
-        # https://stackoverflow.com/questions/1654857/nested-transactions-with-sqlalchemy-and-sqlite
-        @event.listens_for(engine, "connect")
-        def do_connect(dbapi_connection, connection_record):
-            # disable pysqlite's emitting of the BEGIN statement entirely.
-            # also stops it from emitting COMMIT before any DDL.
-            dbapi_connection.isolation_level = None
-
-        @event.listens_for(engine, "begin")
-        def do_begin(conn):
-            # emit our own BEGIN
-            conn.execute("BEGIN")
 
     # We need to hang our own attribute on the sqlalchemy session to stop
     # ourselves from initializing twice.  That is only a problem is the code
@@ -143,16 +123,6 @@ def add(envelope):
     obj.msg = message["msg"]
     obj.headers = headers
 
-    try:
-        session.add(obj)
-        session.flush()
-    except IntegrityError:
-        log.warning(
-            "Skipping message from %s with duplicate id: %s", message["topic"], msg_id
-        )
-        session.rollback()
-        return
-
     usernames = fedmsg.meta.msg2usernames(message)
     packages = fedmsg.meta.msg2packages(message)
 
@@ -169,37 +139,28 @@ def add(envelope):
         # And prune out the bad value
         packages = [pkg for pkg in packages if pkg is not None]
 
-    # If we've never seen one of these users before, then:
-    # 1) make sure they exist in the db (create them if necessary)
-    # 2) mark an in memory cache so we can remember that they exist without
-    #    having to hit the db.
-    for username in usernames:
-        if username not in _users_seen:
-            # Create the user in the DB if necessary
-            User.get_or_create(username)
-            # Then just mark an in memory cache noting that we've seen them.
-            _users_seen.add(username)
+    def _make_array(value):
+        if value:
+            return postgresql.array(value)
+        else:
+            # Cast it, otherwise you'll get:
+            # sqlalchemy.exc.ProgrammingError: (psycopg2.errors.IndeterminateDatatype)
+            # cannot determine type of empty array
+            return cast(postgresql.array(value), postgresql.ARRAY(Unicode))
 
-    for package in packages:
-        if package not in _packages_seen:
-            Package.get_or_create(package)
-            _packages_seen.add(package)
+    obj.users = _make_array(usernames)
+    obj.packages = _make_array(packages)
 
-    session.flush()
-
-    # These two blocks would normally be a simple "obj.users.append(user)" kind
-    # of statement, but here we drop down out of sqlalchemy's ORM and into the
-    # sql abstraction in order to gain a little performance boost.
-    values = [{"username": username, "msg": obj.id} for username in usernames]
-    if values:
-        session.execute(user_assoc_table.insert(), values)
-
-    values = [{"package": package, "msg": obj.id} for package in packages]
-    if values:
-        session.execute(pack_assoc_table.insert(), values)
-
+    try:
+        session.add(obj)
+        session.flush()
+    except IntegrityError:
+        log.warning(
+            "Skipping message from %s with duplicate id: %s", message["topic"], msg_id
+        )
+        session.rollback()
+        return
     # TODO -- can we avoid committing every time?
-    session.flush()
     session.commit()
 
 
@@ -208,21 +169,26 @@ def source_version_default(context):
     return dist.version
 
 
-class BaseMessage:
-    id = Column(Integer, primary_key=True)
-    msg_id = Column(UnicodeText, nullable=True, unique=True, default=None, index=True)
+class Message(DeclarativeBase):
+    __tablename__ = "messages"
+    __table_args__ = (UniqueConstraint("msg_id", "timestamp"),)
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    msg_id = Column(Unicode, nullable=True, default=None, index=True)
     i = Column(Integer, nullable=False)
-    topic = Column(UnicodeText, nullable=False, index=True)
-    timestamp = Column(DateTime, nullable=False, index=True)
+    topic = Column(Unicode, nullable=False, index=True)
+    timestamp = Column(DateTime, nullable=False, index=True, primary_key=True)
     certificate = Column(UnicodeText)
     signature = Column(UnicodeText)
-    category = Column(UnicodeText, nullable=False, index=True)
-    username = Column(UnicodeText)
+    category = Column(Unicode, nullable=False, index=True)
+    username = Column(Unicode)
     crypto = Column(UnicodeText)
-    source_name = Column(UnicodeText, default="datanommer")
-    source_version = Column(UnicodeText, default=source_version_default)
+    source_name = Column(Unicode, default="datanommer")
+    source_version = Column(Unicode, default=source_version_default)
     _msg = Column(UnicodeText, nullable=False)
     _headers = Column(UnicodeText)
+    users = Column(postgresql.ARRAY(Unicode), index=True)
+    packages = Column(postgresql.ARRAY(Unicode), index=True)
 
     @validates("topic")
     def get_category(self, key, topic):
@@ -275,69 +241,9 @@ class BaseMessage:
             headers=self.headers,
             source_name=self.source_name,
             source_version=self.source_version,
+            users=self.users,
+            packages=self.packages,
         )
-
-
-user_assoc_table = Table(
-    "user_messages",
-    DeclarativeBase.metadata,
-    Column("username", UnicodeText, ForeignKey("user.name")),
-    Column("msg", Integer, ForeignKey("messages.id")),
-)
-
-pack_assoc_table = Table(
-    "package_messages",
-    DeclarativeBase.metadata,
-    Column("package", UnicodeText, ForeignKey("package.name")),
-    Column("msg", Integer, ForeignKey("messages.id")),
-)
-
-
-class Singleton:
-    @classmethod
-    def get_or_create(cls, name):
-        """
-        Return the instance of the class with the specified name. If it doesn't
-        already exist, create it.
-        """
-        obj = cls.query.filter_by(name=name).one_or_none()
-        if obj:
-            return obj
-        try:
-            with session.begin_nested():
-                obj = cls(name=name)
-                session.add(obj)
-                session.flush()
-            return obj
-        except IntegrityError:
-            log.debug(
-                'Collision when adding %s(name="%s"), returning existing object',
-                cls.__name__,
-                name,
-            )
-            return cls.query.filter_by(name=name).one()
-
-
-class User(DeclarativeBase, Singleton):
-    __tablename__ = "user"
-
-    name = Column(UnicodeText, primary_key=True, index=True)
-
-
-class Package(DeclarativeBase, Singleton):
-    __tablename__ = "package"
-
-    name = Column(UnicodeText, primary_key=True, index=True)
-
-
-class Message(DeclarativeBase, BaseMessage):
-    __tablename__ = "messages"
-    users = relationship(
-        "User", secondary=user_assoc_table, backref=backref("messages")
-    )
-    packages = relationship(
-        "Package", secondary=pack_assoc_table, backref=backref("messages")
-    )
 
     @classmethod
     def grep(
@@ -420,14 +326,10 @@ class Message(DeclarativeBase, BaseMessage):
 
         # Add the four positive filters as necessary
         if users:
-            query = query.filter(
-                or_(*(Message.users.any(User.name == u) for u in users))
-            )
+            query = query.filter(or_(*(Message.users.any(u) for u in users)))
 
         if packages:
-            query = query.filter(
-                or_(*(Message.packages.any(Package.name == p) for p in packages))
-            )
+            query = query.filter(or_(*(Message.packages.any(p) for p in packages)))
 
         if categories:
             query = query.filter(
@@ -444,13 +346,11 @@ class Message(DeclarativeBase, BaseMessage):
 
         # And then the four negative filters as necessary
         if not_users:
-            query = query.filter(
-                not_(or_(*(Message.users.any(User.name == u) for u in not_users)))
-            )
+            query = query.filter(not_(or_(*(Message.users.any(u) for u in not_users))))
 
         if not_packs:
             query = query.filter(
-                not_(or_(*(Message.packages.any(Package.name == p) for p in not_packs)))
+                not_(or_(*(Message.packages.any(p) for p in not_packs)))
             )
 
         if not_cats:
@@ -480,11 +380,17 @@ class Message(DeclarativeBase, BaseMessage):
             messages = query.all()
             return total, pages, messages
 
+    @classmethod
+    def get_array(cls, name):
+        return session.query(func.unnest(getattr(cls, name)).distinct())
 
-models = frozenset(
-    (
-        v
-        for k, v in locals().items()
-        if (isinstance(v, type) and issubclass(v, BaseMessage) and k != "BaseMessage")
+
+def _setup_hypertable(table_class):
+    event.listen(
+        table_class.__table__,
+        "after_create",
+        DDL(f"SELECT create_hypertable('{table_class.__tablename__}', 'timestamp');"),
     )
-)
+
+
+_setup_hypertable(Message)
