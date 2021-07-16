@@ -13,6 +13,7 @@ README.pdf
 *.log
 *.swo
 .tox/
+.vagrant
 
 # Coverage
 .coverage
