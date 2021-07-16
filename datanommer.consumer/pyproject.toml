@@ -35,6 +35,9 @@ psutil = "^5.8.0"
 "moksha.hub" = "^1.5.17"
 liccheck = "^0.6.0"
 pytest-cov = "^2.12.1"
+pytest-mock = "^3.6.1"
+pytest-postgresql = "^3.1.1"
+psycopg2 = "^2.9.1"
 
 [tool.poetry.plugins."moksha.consumer"]
 "noms" = "datanommer.consumer:Nommer"
