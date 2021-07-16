@@ -19,7 +19,7 @@ include = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.6.2"
+python = "^3.7"
 fedmsg = "^1.1.2"
 SQLAlchemy = ">=1.0.9"
 alembic = "^1.6.5"
