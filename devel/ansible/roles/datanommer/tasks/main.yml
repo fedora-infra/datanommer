@@ -12,6 +12,7 @@
       - krb5-devel
       - libpq-devel
       - timescaledb
+      - tox
       state: present
 
 - name: Install the .bashrc
