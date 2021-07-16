@@ -10,6 +10,8 @@
       - python3-pip
       - vim
       - krb5-devel
+      - libpq-devel
+      - timescaledb
       state: present
 
 - name: Install the .bashrc
