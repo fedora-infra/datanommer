@@ -11,7 +11,6 @@
       - vim
       - krb5-devel
       - libpq-devel
-      - timescaledb
       - tox
       state: present
 
