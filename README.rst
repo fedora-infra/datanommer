@@ -1,4 +1,4 @@
-**Datanommer is currently in the process of a major migration away from fedmsg to Fedora Messaging. As such, the below readme is outdated, and may not be useful until it is updated** 
+**Datanommer is currently in the process of a major migration away from fedmsg to Fedora Messaging. As such, the below readme is outdated, and may not be useful until it is updated**
 
 datanommer
 ==========
@@ -82,7 +82,7 @@ command to your ``~/.bashrc`` file to have it run automatically for you.
 
 Cloning upstream the git repo
 -----------------------------
-The source code is on github. 
+The source code is on github.
 
 Get fedmsg::
 
@@ -101,7 +101,7 @@ For development, avoid editing master branch. Checkout develop branch::
     (datanommer)$ git checkout develop
     (datanommer)$ python setup.py develop
 
-Switch to datanommer:: 
+Switch to datanommer::
 
     (datanommer)$ cd ../datanommer
 
@@ -140,7 +140,7 @@ In another, type::
     (datanommer)$ fedmsg-hub
 
 In a third, emit a message, which gets picked up by the relay, rebroadcasted, \
-consumed by datanommer, and inserted into datanommer.db::
+consumed by datanommer, and inserted into the datanommer database::
 
     (datanommer)$ echo "this is a test" | fedmsg-logger
 
@@ -148,14 +148,14 @@ Try the commands. Was the message stored?::
 
     (datanommer)$ datanommer-stats
 
-LoggerMessage should have entries.:: 
+LoggerMessage should have entries.::
 
     (datanommer)$ datanommer-dump
 
 Inspect the database::
 
-    (datanommer)$ sqlite3 datanommer.db
-    > select* from messages;
+    (datanommer)$ psql -U datanommer messages
+    > select * from messages;
 
 You should see a line similar to::
 
@@ -181,7 +181,7 @@ for ``datanommer.models``:
 .. code-block:: python
 
    import datanommer.models as m
-   url = 'sqlite:///some_database.db'
+   url = "postgresql://datanommer:datanommer@localhost/messages"
    m.init(url)
 
 In our production environment, datanommer's db URL is kept in
@@ -281,13 +281,13 @@ If your models are up to date, you should see::
 
     INFO  [alembic.migration] Context impl SQLiteImpl.
     INFO  [alembic.migration] Will assume transactional DDL.
-    Current revision for sqlite:///../datanommer.db: 198447250956 -> ae2801c4cd9 (head), add category column
+    Current revision for postgresql://datanommer:datanommer@localhost/messages: 198447250956 -> ae2801c4cd9 (head), add category column
 
 If your result is::
 
     INFO  [alembic.migration] Context impl SQLiteImpl.
     INFO  [alembic.migration] Will assume transactional DDL.
-    Current revision for sqlite:///../datanommer.db: None
+    Current revision for postgresql://datanommer:datanommer@localhost/messages: None
 
 then migrate to the most recent version with::
 
