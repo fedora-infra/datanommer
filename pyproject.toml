@@ -12,7 +12,6 @@ homepage = "https://github.com/fedora-infra/datanommer"
 
 include = [
     "tools/*",
-    "fedmsg.d/*",
     "tests/*",
 ]
 

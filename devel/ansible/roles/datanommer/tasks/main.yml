@@ -12,6 +12,7 @@
       - krb5-devel
       - libpq-devel
       - tox
+      - python-psycopg2
       state: present
 
 - name: Install the .bashrc
@@ -57,3 +58,38 @@
     chdir: /home/vagrant/datanommer/datanommer.consumer/
   become: yes
   become_user: vagrant
+
+- name: Use the stage fedora-messaging queue to consume
+  copy:
+    remote_src: True
+    src: /etc/fedora-messaging/fedora.stg.toml
+    dest: /etc/fedora-messaging/config.toml
+
+
+- name: configure datanommer_sqlalchemy_url in fedora-messaging config
+  lineinfile:
+    path: /etc/fedora-messaging/config.toml
+    regexp: "example_key = \"for my consumer\""
+    line: "datanommer_sqlalchemy_url = \"postgresql://datanommer:datanommer@localhost/messages\""
+
+- name: Create datanommer db
+  shell: /srv/venv/bin/poetry run datanommer-create-db
+  args:
+    chdir: /home/vagrant/datanommer/
+  become: yes
+  become_user: vagrant
+
+
+- name: Install the systemd unit files for datanommer consumer
+  copy:
+      src: "datanommer.service"
+      dest: /etc/systemd/system/datanommer.service
+      mode: 0644
+  
+
+- name: Start datanommer service using systemd
+  systemd:
+    state: started
+    name: datanommer
+    daemon_reload: yes
+    enabled: yes

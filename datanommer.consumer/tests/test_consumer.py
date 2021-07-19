@@ -13,49 +13,38 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
-import copy
 
 import pytest
+from fedora_messaging import message
 
 import datanommer.consumer
 import datanommer.models
 
 
 @pytest.fixture
-def consumer(fedmsg_config):
-    class FakeHub:
-        config = fedmsg_config
-
-        def subscribe(*args, **kwargs):
-            pass
-
-    datanommer.consumer.Nommer._initialized = True  # Clearly, a lie.
-    return datanommer.consumer.Nommer(FakeHub())
+def consumer(mocker):
+    mock_get_url = mocker.patch("datanommer.consumer.get_datanommer_sqlalchemy_url")
+    mock_get_url.return_value = "sqlite:///fake.db"
+    return datanommer.consumer.Nommer()
 
 
-def test_duplicate_msg_id(datanommer_models, consumer, mocker):
-    example_message = dict(
-        topic="topic.lol.lol.lol",
-        body=dict(
-            topic="topic.lol.lol.lol",
-            i=1,
-            msg_id="1234",
-            timestamp=1234,
-            msg=dict(
-                foo="bar",
-            ),
-        ),
+def test_consume(datanommer_models, consumer):
+    example_message = message.Message(
+        topic="nice.message", body={"encouragement": "You're doing great!"}
     )
-    msg1 = copy.deepcopy(example_message)
-    msg2 = copy.deepcopy(example_message)
 
-    consumer.consume(msg1)
+    consumer = datanommer.consumer.Nommer()
+
+    consumer(example_message)
     assert datanommer.models.Message.query.count() == 1
 
-    mocked_function = mocker.patch("fedmsg.publish")
-    # datanommer.models.add() now ignores duplicate messages
-    # (messages with the same msg_id).
-    consumer.consume(msg2)
-    assert datanommer.models.Message.query.count() == 1
 
-    mocked_function.assert_not_called()
+def test_add_exception(datanommer_models, consumer, mocker):
+    example_message = message.Message(
+        topic="nice.message", body={"encouragement": "You're doing great!"}
+    )
+
+    datanommer.models.add = mocker.Mock(side_effect=Exception("an exception"))
+    consumer = datanommer.consumer.Nommer()
+    with pytest.raises(Exception):
+        consumer(example_message)

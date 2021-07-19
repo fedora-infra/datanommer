@@ -13,7 +13,6 @@ packages = [
     { include = "datanommer" },
 ]
 include = [
-    "fedmsg.d/*",
     "tests/*",
     "tools/*",
     "tox.ini",
@@ -22,7 +21,7 @@ include = [
 [tool.poetry.dependencies]
 python = "^3.7"
 "datanommer.models" = "^0.9.1"
-fedmsg = "^1.1.2"
+fedora-messaging = "^2.1.0"
 
 [tool.poetry.dev-dependencies]
 pre-commit = "^2.13.0"
@@ -85,6 +84,7 @@ authorized_licenses = [
   "CC0 (copyright waived)",
   "Public Domain",
   "Public Domain <http://unlicense.org>",
+  "Zope Public",
 ]
 
 [tool.liccheck.authorized_packages]
