@@ -15,47 +15,31 @@
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 import logging
 
-import fedmsg
-import fedmsg.consumers
+from fedora_messaging import config
 
-import datanommer.models
-
-
-DEFAULTS = {
-    "datanommer.enabled": False,
-    "datanommer.sqlalchemy.url": "postgresql://datanommer:datanommer@localhost/messages",
-}
+import datanommer.models as m
 
 
-log = logging.getLogger("fedmsg")
+def get_datanommer_sqlalchemy_url():
+    try:
+        return config.conf["consumer_config"]["datanommer_sqlalchemy_url"]
+    except KeyError:
+        raise ValueError(
+            "datanommer_sqlalchemy_url not defined in the fedora-messaging config"
+        )
 
 
-class Nommer(fedmsg.consumers.FedmsgConsumer):
-    topic = "*"
-    config_key = "datanommer.enabled"
+log = logging.getLogger("datanommer-consumer")
 
-    def __init__(self, hub):
-        # The superclass __init__() subscribes the hub to the topic specified
-        # by the consumer. If we have a topic we want use instead of "*", it
-        # needs to be set before calling the superclass.
-        if "datanommer.topic" in hub.config:
-            self.topic = hub.config["datanommer.topic"]
 
-        super().__init__(hub)
+class Nommer:
+    def __init__(self):
+        m.init(get_datanommer_sqlalchemy_url())
 
-        # If fedmsg doesn't think we should be enabled, then we should quit
-        # before setting up all the extra special zmq machinery.
-        # _initialized is set in moksha.api.hub.consumer
-        if not getattr(self, "_initialized", False):
-            return
-
-        # Setup a sqlalchemy DB connection (postgres)
-        datanommer.models.init(self.hub.config["datanommer.sqlalchemy.url"])
-
-    def consume(self, message):
-        log.debug("Nomming %r" % message)
+    def __call__(self, message):
+        log.info("Nomming %r" % message)
         try:
-            datanommer.models.add(message)
+            m.add_fedora_message(message)
         except Exception:
-            datanommer.models.session.rollback()
+            m.session.rollback()
             raise

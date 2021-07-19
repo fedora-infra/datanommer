@@ -13,71 +13,77 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
+import logging
 import time
 from datetime import datetime, timedelta
 
-import fedmsg.meta
-from fedmsg.commands import BaseCommand
+import click
 from fedmsg.encoding import pretty_dumps
+from fedora_messaging import config as fedora_messaging_config
 from sqlalchemy import func
 
 import datanommer.models as m
 
 
-class CreateCommand(BaseCommand):
+log = logging.getLogger("datanommer")
+
+
+def get_datanommer_sqlalchemy_url():
+    try:
+        return fedora_messaging_config.conf["consumer_config"][
+            "datanommer_sqlalchemy_url"
+        ]
+    except KeyError:
+        raise ValueError(
+            "datanommer_sqlalchemy_url not defined in the fedora-messaging config"
+        )
+
+
+@click.command()
+def create():
     """Create a database and tables for 'datanommer.sqlalchemy.url'"""
+    datanommer_sqlalchemy_url = get_datanommer_sqlalchemy_url()
+    click.echo(
+        f"Creating Datanommer database and tables at {datanommer_sqlalchemy_url}"
+    )
+    m.init(datanommer_sqlalchemy_url, create=True)
 
-    name = "datanommer-create-db"
 
-    def run(self):
-        m.init(self.config["datanommer.sqlalchemy.url"], create=True)
-
-
-class DumpCommand(BaseCommand):
+@click.command()
+@click.option(
+    "--since", default=None, help="Only after datetime, ex 2013-02-14T08:05:59.87"
+)
+@click.option(
+    "--before", default=None, help="Only before datetime, ex 2013-02-14T08:05:59.87"
+)
+def dump(since, before):
     """Dump the contents of the datanommer database as JSON.
 
     You can also specify a timespan with the --since and --before arguments:
 
         $ datanommer-dump --before 2013-02-15 --since 2013-02-11T08:00:00 > datanommer-dump.json
     """
+    datanommer_sqlalchemy_url = get_datanommer_sqlalchemy_url()
+    m.init(datanommer_sqlalchemy_url)
 
-    name = "datanommer-dump"
-    extra_args = extra_args = [
-        (
-            ["--since"],
-            {
-                "dest": "since",
-                "default": None,
-                "help": "Only after datetime, ex 2013-02-14T08:05:59.87",
-            },
-        ),
-        (
-            ["--before"],
-            {
-                "dest": "before",
-                "default": None,
-                "help": "Only before datetime, ex 2013-02-14T08:05:59.87",
-            },
-        ),
-    ]
+    query = m.Message.query
+    if before:
+        query = query.filter(m.Message.timestamp <= before)
 
-    def run(self):
-        m.init(self.config["datanommer.sqlalchemy.url"])
-        config = self.config
+    if since:
+        query = query.filter(m.Message.timestamp >= since)
 
-        query = m.Message.query
-        if config.get("before", None):
-            query = query.filter(m.Message.timestamp <= config.get("before"))
-
-        if config.get("since", None):
-            query = query.filter(m.Message.timestamp >= config.get("since"))
-
-        results = query.all()
-
-        self.log.info(pretty_dumps(results))
+    click.echo(pretty_dumps(query.all()))
 
 
-class StatsCommand(BaseCommand):
+@click.command()
+@click.option("--topic", is_flag=True, help="Shows the stats per topic")
+@click.option(
+    "--category",
+    default=None,
+    help="Shows the stats within only the specified category",
+)
+def stats(topic, category):
     """Produce stats on the contents of the datanommer database.
 
     The default is to display the stats per category. You can also display
@@ -115,65 +121,63 @@ class StatsCommand(BaseCommand):
         fas has 46 entries
 
     """
+    datanommer_sqlalchemy_url = get_datanommer_sqlalchemy_url()
 
-    name = "datanommer-stats"
-    extra_args = extra_args = [
-        (
-            ["--topic"],
-            {
-                "dest": "topic",
-                "default": False,
-                "action": "store_true",
-                "help": "Shows the stats per topic",
-            },
-        ),
-        (
-            ["--category"],
-            {
-                "dest": "category",
-                "default": None,
-                "help": "Shows the stats within only the specified category",
-            },
-        ),
-    ]
+    m.init(datanommer_sqlalchemy_url)
 
-    def run(self):
-        m.init(self.config["datanommer.sqlalchemy.url"])
-        config = self.config
-
-        if config.get("topic", None):
-            if config.get("category", None):
-                query = m.session.query(
-                    m.Message.topic, func.count(m.Message.topic)
-                ).filter(m.Message.category == config.get("category"))
-            else:
-                query = m.session.query(m.Message.topic, func.count(m.Message.topic))
-            query = query.group_by(m.Message.topic)
+    if topic:
+        if category:
+            query = m.session.query(
+                m.Message.topic, func.count(m.Message.topic)
+            ).filter(m.Message.category == category)
         else:
-            if config.get("category", None):
-                query = m.session.query(
-                    m.Message.category, func.count(m.Message.category)
-                ).filter(m.Message.category == config.get("category"))
-            else:
-                query = m.session.query(
-                    m.Message.category, func.count(m.Message.category)
-                )
-            query = query.group_by(m.Message.category)
-
-        results = query.all()
-
-        if config.get("topic", None):
-            for topic, count in results:
-                self.log.info(f"{topic} has {count} entries")
+            query = m.session.query(m.Message.topic, func.count(m.Message.topic))
+        query = query.group_by(m.Message.topic)
+    else:
+        if category:
+            query = m.session.query(
+                m.Message.category, func.count(m.Message.category)
+            ).filter(m.Message.category == category)
         else:
-            for category, count in results:
-                self.log.info(f"{category} has {count} entries")
+            query = m.session.query(m.Message.category, func.count(m.Message.category))
+        query = query.group_by(m.Message.category)
+
+    results = query.all()
+
+    if topic:
+        for topic, count in results:
+            click.echo(f"{topic} has {count} entries")
+    else:
+        for category, count in results:
+            click.echo(f"{category} has {count} entries")
 
 
-# Extra arguments for datanommer-latest
-
-
-class LatestCommand(BaseCommand):
+@click.command()
+@click.option(
+    "--topic", default=None, help="Show the latest for only a specific topic."
+)
+@click.option(
+    "--category", default=None, help="Show the latest for only a specific category."
+)
+@click.option(
+    "--overall",
+    is_flag=True,
+    help="Show only the latest message out of all message types.",
+)
+@click.option(
+    "--timestamp", is_flag=True, help="Show only the timestamp of the message(s)."
+)
+@click.option(
+    "--timesince",
+    is_flag=True,
+    help="Show the number of seconds since the last message",
+)
+@click.option(
+    "--human",
+    is_flag=True,
+    help="When combined with --timestamp or --timesince,show a human readable date.",
+)
+def latest(topic, category, overall, timestamp, timesince, human):
     """Print the latest message(s) ingested by datanommer.
 
     The default is to display the latest message in each message category. The
@@ -252,130 +256,105 @@ class LatestCommand(BaseCommand):
         $ datanommer-latest --category wiki --timesince --human
         [13:40:59.519447]
     """
+    datanommer_sqlalchemy_url = get_datanommer_sqlalchemy_url()
 
-    name = "datanommer-latest"
-    extra_args = extra_args = [
-        (
-            ["--topic"],
-            {
-                "dest": "topic",
-                "default": None,
-                "help": "Show the latest for only a specific topic.",
-            },
-        ),
-        (
-            ["--category"],
-            {
-                "dest": "category",
-                "default": None,
-                "help": "Show the latest for only a specific category.",
-            },
-        ),
-        (
-            ["--overall"],
-            {
-                "dest": "overall",
-                "default": False,
-                "action": "store_true",
-                "help": "Show only the latest message out of all message types.",
-            },
-        ),
-        (
-            ["--timestamp"],
-            {
-                "dest": "timestamp",
-                "default": False,
-                "action": "store_true",
-                "help": "Show only the timestamp of the message(s).",
-            },
-        ),
-        (
-            ["--timesince"],
-            {
-                "dest": "timesince",
-                "default": False,
-                "action": "store_true",
-                "help": "Show the number of seconds since the last message",
-            },
-        ),
-        (
-            ["--human"],
-            {
-                "dest": "human",
-                "default": False,
-                "action": "store_true",
-                "help": "When combined with --timestamp or --timesince,"
-                + "show a human readable date.",
-            },
-        ),
-    ]
+    m.init(datanommer_sqlalchemy_url)
 
-    def run(self):
-        m.init(self.config["datanommer.sqlalchemy.url"])
-        config = self.config
+    if topic:
+        queries = [m.Message.query.filter(m.Message.topic == topic)]
 
-        if config.get("topic", None):
-            queries = [m.Message.query.filter(m.Message.topic == config.get("topic"))]
+    elif category:
+        queries = [m.Message.query.filter(m.Message.category == category)]
+    elif not overall:
+        # If no args..
+        # fedmsg.meta.make_processors(**config)
+        # categories = [p.__name__.lower() for p in fedmsg.meta.processors]
+        # FIXME: Not sure how to get the list of categories here,
+        # so hardcode a list for now
+        categories = [
+            "anitya",
+            "ansible",
+            "askbot",
+            "autobot",
+            "fedbadges",
+            "bodhi",
+            "buildsys",
+            "bugzilla",
+            "ci.pipeline",
+            "compose",
+            "pungi",
+            "copr",
+            "datanommer",
+            "fedora_elections",
+            "faf",
+            "fas",
+            "fedimg",
+            "fedocal",
+            "fedoracollege",
+            "fmn",
+            "github",
+            "greenwave",
+            "hotness",
+            "infragit",
+            "jenkins",
+            "irc",
+            "kerneltest",
+            "koschei",
+            "mailman",
+            "mbs",
+            "mdapi",
+            "wiki",
+            "mirrormanager",
+            "nagios",
+            "nuancier",
+            "odcs",
+            "openqa",
+            "pagure",
+            "pdc",
+            "planet",
+            "rats",
+            "releng",
+            "git",
+            "summershum",
+            "meetbot",
+            "fedoratagger",
+            "taskotron",
+            "trac",
+            "waiverdb",
+            "zanata",
+        ]
 
-        elif config.get("category", None):
-            queries = [
-                m.Message.query.filter(m.Message.category == config.get("category"))
-            ]
-        elif not config.get("overall", False):
-            # If no args..
-            fedmsg.meta.make_processors(**config)
-            categories = [p.__name__.lower() for p in fedmsg.meta.processors]
-            queries = [
-                m.Message.query.filter(m.Message.category == category)
-                for category in categories
-            ]
+        queries = [
+            m.Message.query.filter(m.Message.category == category)
+            for category in categories
+        ]
+    else:
+        # Show only the single latest message, regardless of type.
+        queries = [m.Message.query]
+
+    # Only check messages from the last year to speed up queries
+    a_year = timedelta(days=365)
+    earliest = datetime.utcnow() - a_year
+    queries = [q.filter(m.Message.timestamp > earliest) for q in queries]
+
+    # Order and limit to the latest.
+    queries = [q.order_by(m.Message.timestamp.desc()).limit(1) for q in queries]
+
+    def formatter(key, val):
+        if timestamp and human:
+            return pretty_dumps(str(val.timestamp))
+        elif timestamp:
+            return pretty_dumps(time.mktime(val.timestamp.timetuple()))
+        elif timesince and human:
+            return pretty_dumps(str(datetime.now() - val.timestamp))
+        elif timesince:
+            timedelta = datetime.now() - val.timestamp
+            return pretty_dumps(str((timedelta.days * 86400) + timedelta.seconds))
         else:
-            # Show only the single latest message, regardless of type.
-            queries = [m.Message.query]
+            return f"{{{pretty_dumps(key)}: {pretty_dumps(val.msg)}}}"
 
-        # Only check messages from the last year to speed up queries
-        a_year = timedelta(days=365)
-        earliest = datetime.utcnow() - a_year
-        queries = [q.filter(m.Message.timestamp > earliest) for q in queries]
+    results = []
+    for result in sum((query.all() for query in queries), []):
+        results.append(formatter(result.category, result))
 
-        # Order and limit to the latest.
-        queries = [q.order_by(m.Message.timestamp.desc()).limit(1) for q in queries]
-
-        def formatter(key, val):
-            if config.get("timestamp", None) and config.get("human", None):
-                return pretty_dumps(str(val.timestamp))
-            elif config.get("timestamp", None):
-                return pretty_dumps(time.mktime(val.timestamp.timetuple()))
-            elif config.get("timesince", None) and config.get("human", None):
-                return pretty_dumps(str(datetime.now() - val.timestamp))
-            elif config.get("timesince", None):
-                timedelta = datetime.now() - val.timestamp
-                return pretty_dumps(str((timedelta.days * 86400) + timedelta.seconds))
-            else:
-                return f"{{{pretty_dumps(key)}: {pretty_dumps(val)}}}"
-
-        results = []
-        for result in sum((query.all() for query in queries), []):
-            results.append(formatter(result.category, result))
-
-        self.log.info("[%s]" % ",".join(results))
-
-
-def create():
-    command = CreateCommand()
-    command.execute()
-
-
-def dump():
-    command = DumpCommand()
-    command.execute()
-
-
-def stats():
-    command = StatsCommand()
-    command.execute()
-
-
-def latest():
-    command = LatestCommand()
-    command.execute()
+    click.echo("[%s]" % ",".join(results))

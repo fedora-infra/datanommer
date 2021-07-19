@@ -164,6 +164,58 @@ def add(envelope):
     session.commit()
 
 
+def add_fedora_message(message):
+    """Take a the fedora-messaging Message and store in the message
+    table.
+    """
+    headers = message._properties.headers
+    sent_at = headers.get("sent-at", None)
+
+    if sent_at:
+        sent_at = datetime.datetime.fromisoformat(sent_at)
+    else:
+        sent_at = datetime.datetime.utcnow()
+
+    obj = Message(
+        i=0,
+        msg_id=message.id,
+        topic=message.topic,
+        timestamp=sent_at,
+    )
+
+    obj.msg = message.body
+    obj.headers = headers
+
+    usernames = message.usernames
+    packages = message.packages
+
+    def _make_array(value):
+        if value:
+            return postgresql.array(value)
+        else:
+            # Cast it, otherwise you'll get:
+            # sqlalchemy.exc.ProgrammingError: (psycopg2.errors.IndeterminateDatatype)
+            # cannot determine type of empty array
+            return cast(postgresql.array(value), postgresql.ARRAY(Unicode))
+
+    obj.users = _make_array(usernames)
+    obj.packages = _make_array(packages)
+
+    try:
+        session.add(obj)
+        session.flush()
+    except IntegrityError:
+        log.warning(
+            "Skipping message from %s with duplicate id: %s",
+            message.topic,
+            message.id,
+        )
+        session.rollback()
+        return
+    # TODO -- can we avoid committing every time?
+    session.commit()
+
+
 def source_version_default(context):
     dist = pkg_resources.get_distribution("datanommer.models")
     return dist.version

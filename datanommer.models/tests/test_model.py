@@ -19,8 +19,9 @@ import datetime
 import pytest
 import sqlalchemy
 import sqlalchemy.exc
+from fedora_messaging import message as fedora_message
 
-from datanommer.models import add, Message, session
+from datanommer.models import add, add_fedora_message, Message, session
 
 
 scm_message = {
@@ -386,4 +387,13 @@ def test_add_duplicate(datanommer_models):
     add(msg)
     # if no exception was thrown, then we successfully ignored the
     # duplicate message
+    assert Message.query.count() == 1
+
+
+def test_add_fedora_message(datanommer_models):
+    example_message = fedora_message.Message(
+        topic="nice.message", body={"encouragement": "You're doing great!"}
+    )
+
+    add_fedora_message(example_message)
     assert Message.query.count() == 1
