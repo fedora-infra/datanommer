@@ -19,5 +19,5 @@ pull_request_rules:
   - check-success=Unit tests (3.8, commands)
   - check-success=Unit tests (3.9, models)
   - check-success=Unit tests (3.9, consumer)
-  - check-success=Unit tests (3.9, commands
+  - check-success=Unit tests (3.9, commands)
   name: default
