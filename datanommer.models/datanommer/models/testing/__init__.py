@@ -25,27 +25,18 @@ pgsql = factories.postgresql(
 
 
 @pytest.fixture()
-def fedmsg_config(pgsql):
-    import fedmsg.config
-    import fedmsg.meta
-
-    url = (
+def datanommer_db_url(pgsql):
+    return (
         f"postgresql+psycopg2://{pgsql.info.user}:@"
         f"{pgsql.info.host}:{pgsql.info.port}"
         f"/{pgsql.info.dbname}"
     )
-    config = fedmsg.config.load_config(invalidate_cache=True)
-    config["datanommer.enabled"] = True
-    # conf.load_config({"datanommer.sqlalchemy.url": url})
-    config["datanommer.sqlalchemy.url"] = url
-    fedmsg.meta.make_processors(**config)
-    return config
 
 
 @pytest.fixture()
-def datanommer_models(fedmsg_config):
+def datanommer_models(datanommer_db_url):
     dm.session = scoped_session(dm.maker)
-    dm.init(fedmsg_config["datanommer.sqlalchemy.url"], create=True)
+    dm.init(datanommer_db_url, create=True)
     yield dm.session
     dm.session.rollback()
     # engine = dm.session.get_bind()
