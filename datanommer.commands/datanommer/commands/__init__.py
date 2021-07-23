@@ -275,61 +275,11 @@ def latest(topic, category, overall, timestamp, timesince, human):
         queries = [m.Message.query.filter(m.Message.category == category)]
     elif not overall:
         # If no args..
-        # fedmsg.meta.make_processors(**config)
-        # categories = [p.__name__.lower() for p in fedmsg.meta.processors]
-        # FIXME: Not sure how to get the list of categories here,
-        # so hardcode a list for now
         categories = [
-            "anitya",
-            "ansible",
-            "askbot",
-            "autobot",
-            "fedbadges",
-            "bodhi",
-            "buildsys",
-            "bugzilla",
-            "ci.pipeline",
-            "compose",
-            "pungi",
-            "copr",
-            "datanommer",
-            "fedora_elections",
-            "faf",
-            "fas",
-            "fedimg",
-            "fedocal",
-            "fedoracollege",
-            "fmn",
-            "github",
-            "greenwave",
-            "hotness",
-            "infragit",
-            "jenkins",
-            "irc",
-            "kerneltest",
-            "koschei",
-            "mailman",
-            "mbs",
-            "mdapi",
-            "wiki",
-            "mirrormanager",
-            "nagios",
-            "nuancier",
-            "odcs",
-            "openqa",
-            "pagure",
-            "pdc",
-            "planet",
-            "rats",
-            "releng",
-            "git",
-            "summershum",
-            "meetbot",
-            "fedoratagger",
-            "taskotron",
-            "trac",
-            "waiverdb",
-            "zanata",
+            c[0]
+            for c in m.session.query(m.Message.category)
+            .distinct()
+            .order_by(m.Message.category)
         ]
         queries = [
             m.Message.query.filter(m.Message.category == category)
