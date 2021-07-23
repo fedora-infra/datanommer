@@ -26,7 +26,7 @@ fedmsg = "^1.1.2"
 
 [tool.poetry.dev-dependencies]
 pre-commit = "^2.13.0"
-"datanommer.models" = {path = "../datanommer.models"}
+"datanommer.models" = {path = "../datanommer.models", develop = true}
 black = "^21.6b0"
 isort = "^5.9.2"
 flake8 = "^3.9.2"
