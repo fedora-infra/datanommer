@@ -186,8 +186,6 @@ def test_dump(datanommer_models, mocker, get_url):
 def test_dump_before(datanommer_models, mocker, get_url):
     m.Message = datanommer.models.Message
 
-    # mocked_config["before"] = "2013-02-16"
-
     time1 = datetime(2013, 2, 14)
     time2 = datetime(2013, 2, 15)
     time3 = datetime(2013, 2, 16, 8)
@@ -360,8 +358,6 @@ def test_latest_overall(datanommer_models, get_url):
     result = runner.invoke(datanommer.commands.latest, ["--overall"])
 
     json_object = json.loads(result.output)
-
-    print(f"asdasd{result.output}")
 
     assert json_object[0]["git"] == "Message 3"
     assert len(json_object) == 1
