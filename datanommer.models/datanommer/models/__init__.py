@@ -18,6 +18,7 @@ import logging
 import math
 import traceback
 import uuid
+from warnings import warn
 
 import fedmsg.encoding
 import pkg_resources
@@ -207,7 +208,7 @@ class Message(DeclarativeBase):
     def from_msg_id(cls, msg_id):
         return cls.query.filter(cls.msg_id == msg_id).first()
 
-    def __json__(self, request=None):
+    def as_dict(self, request=None):
         return dict(
             i=self.i,
             msg_id=self.msg_id,
@@ -224,6 +225,14 @@ class Message(DeclarativeBase):
             users=self.users,
             packages=self.packages,
         )
+
+    def __json__(self, request=None):
+        warn(
+            "The __json__() method has been renamed to as_dict(), and will be removed "
+            "in the next major version",
+            DeprecationWarning,
+        )
+        return self.as_dict(request)
 
     @classmethod
     def grep(
