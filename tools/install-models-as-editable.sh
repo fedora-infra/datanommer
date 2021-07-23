@@ -6,6 +6,7 @@
 set -e
 set -x
 
-pushd ../datanommer.models
+CURDIR=`pwd`
+cd ../datanommer.models
 poetry install
-popd
+cd "$CURDIR"
