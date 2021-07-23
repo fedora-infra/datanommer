@@ -89,3 +89,55 @@ authorized_licenses = [
 
 [tool.liccheck.authorized_packages]
 "moksha.hub" = ">=1.5.0"
+
+
+[tool.towncrier]
+package = "datanommer.consumer"
+directory = "news/"
+filename = "news.rst"
+title_format = "datanommer.consumer v{version}"
+issue_format = "{issue}"
+template = "../tools/towncrier/_template.rst.j2"
+underlines = "=^-"
+wrap = true
+all_bullets = true
+
+  [[tool.towncrier.type]]
+  directory = "bic"
+  name = "Backwards Incompatible Changes"
+  showcontent = true
+
+  [[tool.towncrier.type]]
+  directory = "dependency"
+  name = "Dependency Changes"
+  showcontent = true
+
+  [[tool.towncrier.type]]
+  directory = "feature"
+  name = "Features"
+  showcontent = true
+
+  [[tool.towncrier.type]]
+  directory = "bug"
+  name = "Bug Fixes"
+  showcontent = true
+
+  [[tool.towncrier.type]]
+  directory = "dev"
+  name = "Development Improvements"
+  showcontent = true
+
+  [[tool.towncrier.type]]
+  directory = "docs"
+  name = "Documentation Improvements"
+  showcontent = true
+
+  [[tool.towncrier.type]]
+  directory = "other"
+  name = "Other Changes"
+  showcontent = true
+
+  [[tool.towncrier.type]]
+  directory = "author"
+  name = "Contributors"
+  showcontent = true

@@ -331,3 +331,21 @@ def latest(config_path, topic, category, overall, timestamp, timesince, human):
         results.append(formatter(result.category, result))
 
     click.echo("[%s]" % ",".join(results))
+
+
+# Set the version
+try:  # pragma: no cover
+    import importlib.metadata
+
+    __version__ = importlib.metadata.version("datanommer.commands")
+except ImportError:  # pragma: no cover
+    try:
+        import pkg_resources
+
+        try:
+            __version__ = pkg_resources.get_distribution("datanommer.commands").version
+        except pkg_resources.DistributionNotFound:
+            # The app is not installed, but the flask dev server can run it nonetheless.
+            __version__ = None
+    except ImportError:
+        __version__ = None

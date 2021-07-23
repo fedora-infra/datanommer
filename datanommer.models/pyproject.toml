@@ -77,3 +77,56 @@ authorized_licenses = [
   "Public Domain <http://unlicense.org>",
   "Zope Public",
 ]
+
+
+[tool.towncrier]
+package = "datanommer.models"
+directory = "news/"
+filename = "news.rst"
+version = "1.0.0-alpha.1"
+title_format = "datanommer.models v{version}"
+issue_format = "{issue}"
+template = "../tools/towncrier/_template.rst.j2"
+underlines = "=^-"
+wrap = true
+all_bullets = true
+
+  [[tool.towncrier.type]]
+  directory = "bic"
+  name = "Backwards Incompatible Changes"
+  showcontent = true
+
+  [[tool.towncrier.type]]
+  directory = "dependency"
+  name = "Dependency Changes"
+  showcontent = true
+
+  [[tool.towncrier.type]]
+  directory = "feature"
+  name = "Features"
+  showcontent = true
+
+  [[tool.towncrier.type]]
+  directory = "bug"
+  name = "Bug Fixes"
+  showcontent = true
+
+  [[tool.towncrier.type]]
+  directory = "dev"
+  name = "Development Improvements"
+  showcontent = true
+
+  [[tool.towncrier.type]]
+  directory = "docs"
+  name = "Documentation Improvements"
+  showcontent = true
+
+  [[tool.towncrier.type]]
+  directory = "other"
+  name = "Other Changes"
+  showcontent = true
+
+  [[tool.towncrier.type]]
+  directory = "author"
+  name = "Contributors"
+  showcontent = true
