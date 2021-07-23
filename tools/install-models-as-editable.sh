@@ -4,9 +4,11 @@
 # those tox creates.
 
 set -e
-set -x
 
 CURDIR=`pwd`
+
+set -x
+
 cd ../datanommer.models
-"$CURDIR"/.tox/.tox/bin/poetry install
+poetry install
 cd "$CURDIR"
