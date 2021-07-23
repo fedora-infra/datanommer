@@ -44,9 +44,7 @@ def test_add_exception(datanommer_models, consumer, mocker):
         topic="nice.message", body={"encouragement": "You're doing great!"}
     )
 
-    datanommer.models.add_fedora_message = mocker.Mock(
-        side_effect=Exception("an exception")
-    )
+    datanommer.models.add = mocker.Mock(side_effect=Exception("an exception"))
     consumer = datanommer.consumer.Nommer()
     with pytest.raises(Exception):
         consumer(example_message)

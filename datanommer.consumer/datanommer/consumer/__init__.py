@@ -39,7 +39,7 @@ class Nommer:
     def __call__(self, message):
         log.info("Nomming %r" % message)
         try:
-            m.add_fedora_message(message)
+            m.add(message)
         except Exception:
             m.session.rollback()
             raise
