@@ -25,12 +25,15 @@ import datanommer.models as m
 
 
 @pytest.fixture
-def get_url(mocker):
-    mock_get_url = mocker.patch("datanommer.commands.get_datanommer_sqlalchemy_url")
-    mock_get_url.return_value = "sqlite:///fake.db"
+def mock_init(mocker):
+    mocker.patch("datanommer.commands.m.init")
+    mocker.patch.dict(
+        datanommer.commands.fedora_messaging_config.conf["consumer_config"],
+        {"datanommer_sqlalchemy_url": ""},
+    )
 
 
-def test_stats(datanommer_models, get_url):
+def test_stats(datanommer_models, mock_init):
     msg1 = m.Message(
         topic="org.fedoraproject.prod.git.branch.valgrind.master",
         category="git",
@@ -66,7 +69,7 @@ def test_stats(datanommer_models, get_url):
     assert "fas has 1 entries" in result.output
 
 
-def test_stats_topics(datanommer_models, get_url):
+def test_stats_topics(datanommer_models, mock_init):
 
     msg1 = m.Message(
         topic="org.fedoraproject.prod.git.branch.valgrind.master",
@@ -110,7 +113,7 @@ def test_stats_topics(datanommer_models, get_url):
     )
 
 
-def test_stats_cat_topics(datanommer_models, get_url):
+def test_stats_cat_topics(datanommer_models, mock_init):
     msg1 = m.Message(
         topic="org.fedoraproject.prod.git.branch.valgrind.master",
         category="git",
@@ -153,7 +156,7 @@ def test_stats_cat_topics(datanommer_models, get_url):
     )
 
 
-def test_dump(datanommer_models, mocker, get_url):
+def test_dump(datanommer_models, mocker, mock_init):
     m.Message = datanommer.models.Message
     now = datetime.utcnow()
 
@@ -183,7 +186,7 @@ def test_dump(datanommer_models, mocker, get_url):
     )
 
 
-def test_dump_before(datanommer_models, mocker, get_url):
+def test_dump_before(datanommer_models, mocker, mock_init):
     m.Message = datanommer.models.Message
 
     time1 = datetime(2013, 2, 14)
@@ -229,7 +232,7 @@ def test_dump_before(datanommer_models, mocker, get_url):
     assert len(json_object) == 2
 
 
-def test_dump_since(datanommer_models, mocker, get_url):
+def test_dump_since(datanommer_models, mocker, mock_init):
     time1 = datetime(2013, 2, 14)
     time2 = datetime(2013, 2, 15)
     time3 = datetime(2013, 2, 16, 8)
@@ -273,7 +276,7 @@ def test_dump_since(datanommer_models, mocker, get_url):
     assert len(json_object) == 2
 
 
-def test_dump_timespan(datanommer_models, mocker, get_url):
+def test_dump_timespan(datanommer_models, mocker, mock_init):
 
     time1 = datetime(2013, 2, 14)
     time2 = datetime(2013, 2, 15)
@@ -318,7 +321,7 @@ def test_dump_timespan(datanommer_models, mocker, get_url):
     assert len(json_object) == 1
 
 
-def test_dump_invalid_dates(datanommer_models, mocker, get_url):
+def test_dump_invalid_dates(datanommer_models, mocker, mock_init):
     runner = CliRunner()
     result = runner.invoke(datanommer.commands.dump, ["--before", "2013-02-16asdasd"])
     assert result.output == "Error: Invalid date format\n"
@@ -327,7 +330,7 @@ def test_dump_invalid_dates(datanommer_models, mocker, get_url):
     assert result.output == "Error: Invalid date format\n"
 
 
-def test_latest_overall(datanommer_models, get_url):
+def test_latest_overall(datanommer_models, mock_init):
 
     msg1 = m.Message(
         topic="org.fedoraproject.prod.git.branch.valgrind.master",
@@ -363,7 +366,7 @@ def test_latest_overall(datanommer_models, get_url):
     assert len(json_object) == 1
 
 
-def test_latest_topic(datanommer_models, get_url):
+def test_latest_topic(datanommer_models, mock_init):
 
     msg1 = m.Message(
         topic="org.fedoraproject.prod.git.branch.valgrind.master",
@@ -401,7 +404,7 @@ def test_latest_topic(datanommer_models, get_url):
     assert len(json_object) == 1
 
 
-def test_latest_category(datanommer_models, get_url):
+def test_latest_category(datanommer_models, mock_init):
     msg1 = m.Message(
         topic="org.fedoraproject.prod.git.branch.valgrind.master",
         category="git",
@@ -439,7 +442,7 @@ def test_latest_category(datanommer_models, get_url):
     assert len(json_object) == 1
 
 
-def test_latest_timestamp_human(datanommer_models, mocker, get_url):
+def test_latest_timestamp_human(datanommer_models, mocker, mock_init):
     time1 = datetime(2013, 2, 14)
     time2 = datetime(2013, 2, 15, 15, 15, 15, 15)
     time3 = datetime(2013, 2, 16, 16, 16, 16, 16)
@@ -483,7 +486,7 @@ def test_latest_timestamp_human(datanommer_models, mocker, get_url):
     assert len(json_object) == 2
 
 
-def test_latest_timestamp(datanommer_models, mocker, get_url):
+def test_latest_timestamp(datanommer_models, mocker, mock_init):
 
     time1 = datetime(2013, 2, 14)
     time2 = datetime(2013, 2, 15)
@@ -528,7 +531,7 @@ def test_latest_timestamp(datanommer_models, mocker, get_url):
     assert len(json_object) == 2
 
 
-def test_latest_timesince(datanommer_models, mocker, get_url):
+def test_latest_timesince(datanommer_models, mocker, mock_init):
 
     now = datetime(2013, 3, 1)
     time1 = now - timedelta(days=1)
@@ -577,7 +580,7 @@ def test_latest_timesince(datanommer_models, mocker, get_url):
     assert len(json_object) == 2
 
 
-def test_latest_timesince_human(datanommer_models, get_url):
+def test_latest_timesince_human(datanommer_models, mock_init):
 
     now = datetime.now()
     time1 = now - timedelta(days=2)
@@ -619,7 +622,7 @@ def test_latest_timesince_human(datanommer_models, get_url):
     assert len(json_object) == 2
 
 
-def test_latest(datanommer_models, get_url):
+def test_latest(datanommer_models, mock_init):
     msg1 = m.Message(
         topic="org.fedoraproject.prod.git.branch.valgrind.master",
         timestamp=datetime.utcnow(),
