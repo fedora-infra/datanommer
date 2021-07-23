@@ -34,7 +34,7 @@ def get_datanommer_sqlalchemy_url():
             "datanommer_sqlalchemy_url"
         ]
     except KeyError:
-        raise ValueError(
+        raise click.ClickException(
             "datanommer_sqlalchemy_url not defined in the fedora-messaging config"
         )
 
@@ -43,9 +43,7 @@ def get_datanommer_sqlalchemy_url():
 def create():
     """Create a database and tables for 'datanommer.sqlalchemy.url'"""
     datanommer_sqlalchemy_url = get_datanommer_sqlalchemy_url()
-    click.echo(
-        f"Creating Datanommer database and tables at {datanommer_sqlalchemy_url}"
-    )
+    click.echo("Creating Datanommer database and tables")
     m.init(datanommer_sqlalchemy_url, create=True)
 
 
