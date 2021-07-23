@@ -66,9 +66,19 @@ def dump(since, before):
 
     query = m.Message.query
     if before:
+        try:
+            before = datetime.fromisoformat(before)
+        except ValueError:
+            raise click.ClickException("Invalid date format")
+
         query = query.filter(m.Message.timestamp <= before)
 
     if since:
+        try:
+            since = datetime.fromisoformat(since)
+        except ValueError:
+            raise click.ClickException("Invalid date format")
+
         query = query.filter(m.Message.timestamp >= since)
 
     click.echo(pretty_dumps(query.all()))
@@ -321,7 +331,6 @@ def latest(topic, category, overall, timestamp, timesince, human):
             "waiverdb",
             "zanata",
         ]
-
         queries = [
             m.Message.query.filter(m.Message.category == category)
             for category in categories

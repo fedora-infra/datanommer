@@ -320,6 +320,15 @@ def test_dump_timespan(datanommer_models, mocker, get_url):
     assert len(json_object) == 1
 
 
+def test_dump_invalid_dates(datanommer_models, mocker, get_url):
+    runner = CliRunner()
+    result = runner.invoke(datanommer.commands.dump, ["--before", "2013-02-16asdasd"])
+    assert result.output == "Error: Invalid date format\n"
+
+    result = runner.invoke(datanommer.commands.dump, ["--since", "2013-02-16asdasd"])
+    assert result.output == "Error: Invalid date format\n"
+
+
 def test_latest_overall(datanommer_models, get_url):
 
     msg1 = m.Message(
