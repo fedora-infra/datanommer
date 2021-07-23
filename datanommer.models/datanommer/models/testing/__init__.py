@@ -11,6 +11,7 @@ import datanommer.models as dm
 def postgresql_proc_with_timescaledb(postgresql_proc):
     with open(os.path.join(postgresql_proc.datadir, "postgresql.conf"), "a") as pgconf:
         pgconf.write("\nshared_preload_libraries = 'timescaledb'\n")
+        pgconf.write("timescaledb.telemetry_level=off\n")
     postgresql_proc.stop()
     postgresql_proc.start()
     yield postgresql_proc
