@@ -8,5 +8,5 @@ set -x
 
 CURDIR=`pwd`
 cd ../datanommer.models
-poetry install
+"$CURDIR"/.tox/.tox/bin/poetry install
 cd "$CURDIR"
