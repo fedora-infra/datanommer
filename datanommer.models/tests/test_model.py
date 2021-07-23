@@ -360,7 +360,7 @@ def test_add_no_headers(datanommer_models):
     msg = copy.deepcopy(scm_message)
     add(msg)
     dbmsg = Message.query.first()
-    assert dbmsg.headers == {}
+    assert dbmsg.headers is None
 
 
 def test_add_headers(datanommer_models):

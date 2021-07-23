@@ -39,9 +39,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import scoped_session, sessionmaker, validates
+from sqlalchemy.orm import declarative_base, scoped_session, sessionmaker, validates
 
 
 log = logging.getLogger("datanommer")
@@ -185,13 +183,18 @@ class Message(DeclarativeBase):
     crypto = Column(UnicodeText)
     source_name = Column(Unicode, default="datanommer")
     source_version = Column(Unicode, default=source_version_default)
-    _msg = Column(UnicodeText, nullable=False)
-    _headers = Column(UnicodeText)
+    msg = Column(postgresql.JSONB, nullable=False)
+    headers = Column(postgresql.JSONB(none_as_null=True))
     users = Column(postgresql.ARRAY(Unicode), index=True)
     packages = Column(postgresql.ARRAY(Unicode), index=True)
 
     @validates("topic")
     def get_category(self, key, topic):
+        """Update the category when the topic is set.
+
+        The method seems... unnatural. But even zzzeek says it's OK to do it:
+        https://stackoverflow.com/a/6442201
+        """
         index = 2 if "VirtualTopic" in topic else 3
         try:
             self.category = topic.split(".")[index]
@@ -199,29 +202,6 @@ class Message(DeclarativeBase):
             traceback.print_exc()
             self.category = "Unclassified"
         return topic
-
-    @hybrid_property
-    def msg(self):
-        return fedmsg.encoding.loads(self._msg)
-
-    @msg.setter
-    def msg(self, dict_like_msg):
-        self._msg = fedmsg.encoding.dumps(dict_like_msg)
-
-    @hybrid_property
-    def headers(self):
-        hdrs = self._headers
-        if hdrs:
-            return fedmsg.encoding.loads(hdrs)
-        else:
-            return {}
-
-    @headers.setter
-    def headers(self, headers):
-        if headers:
-            self._headers = fedmsg.encoding.dumps(headers)
-        else:
-            self._headers = None
 
     @classmethod
     def from_msg_id(cls, msg_id):
