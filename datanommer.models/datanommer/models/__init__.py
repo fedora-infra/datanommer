@@ -88,6 +88,16 @@ def init(uri=None, alembic_ini=None, engine=None, create=False):
         DeclarativeBase.metadata.create_all(engine)
 
 
+def _make_array(value):
+    if value:
+        return postgresql.array(value)
+    else:
+        # Cast it, otherwise you'll get:
+        # sqlalchemy.exc.ProgrammingError: (psycopg2.errors.IndeterminateDatatype)
+        # cannot determine type of empty array
+        return cast(postgresql.array(value), postgresql.ARRAY(Unicode))
+
+
 def add(envelope):
     """Take a dict-like fedmsg envelope and store the headers and message
     in the table.
@@ -137,15 +147,6 @@ def add(envelope):
         log.error("NoneType found in packages of %r" % msg_id)
         # And prune out the bad value
         packages = [pkg for pkg in packages if pkg is not None]
-
-    def _make_array(value):
-        if value:
-            return postgresql.array(value)
-        else:
-            # Cast it, otherwise you'll get:
-            # sqlalchemy.exc.ProgrammingError: (psycopg2.errors.IndeterminateDatatype)
-            # cannot determine type of empty array
-            return cast(postgresql.array(value), postgresql.ARRAY(Unicode))
 
     obj.users = _make_array(usernames)
     obj.packages = _make_array(packages)
