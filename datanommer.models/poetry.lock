@@ -117,6 +117,26 @@ optional = false
 python-versions = "*"
 
 [[package]]
+name = "bodhi"
+version = "5.5"
+description = "bodhi common package"
+category = "dev"
+optional = false
+python-versions = "*"
+
+[[package]]
+name = "bodhi-messages"
+version = "5.5"
+description = "JSON schema for messages sent by Bodhi"
+category = "dev"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+bodhi = "*"
+fedora-messaging = "*"
+
+[[package]]
 name = "bravado"
 version = "11.0.3"
 description = "Library for accessing Swagger-enabled API's"
@@ -1266,7 +1286,7 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "87d07dbe2b12a4e06e00811a8f70adc429d3954e249238c581dd7f8c839edc9f"
+content-hash = "aefeb2735a37e012426e05aa89c2df64c9da8a6f002bc0dc7e9a81e1a2171b61"
 
 [metadata.files]
 alembic = [
@@ -1304,6 +1324,12 @@ black = [
 ]
 blinker = [
     {file = "blinker-1.4.tar.gz", hash = "sha256:471aee25f3992bd325afa3772f1063dbdbbca947a041b8b89466dc00d606f8b6"},
+]
+bodhi = [
+    {file = "bodhi-5.5-py3-none-any.whl", hash = "sha256:51166207dd6028d9a6ff8d5e236a217a7f2991b7f6b176b1ad4d01369b8716d1"},
+]
+bodhi-messages = [
+    {file = "bodhi_messages-5.5-py3-none-any.whl", hash = "sha256:2d8db6da54db23f094d3e583da1302b3e03203fa63147c9e002cb4a432404894"},
 ]
 bravado = [
     {file = "bravado-11.0.3-py2.py3-none-any.whl", hash = "sha256:8ac8bbb645e49607917a5c07808116c708521f51e80d9c29bc4a168ff4dd22c6"},
