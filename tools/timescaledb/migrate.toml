@@ -1,0 +1,2 @@
+source_url = "postgresql://datanommer:datanommer@localhost/datanommer"
+dest_url = "postgresql://datanommer:datanommer@localhost/messages"
