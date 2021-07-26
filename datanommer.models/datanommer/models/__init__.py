@@ -17,8 +17,8 @@ import datetime
 import logging
 import math
 import traceback
+from warnings import warn
 
-import fedmsg.encoding
 import pkg_resources
 from sqlalchemy import (
     between,
