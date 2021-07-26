@@ -17,12 +17,15 @@ import datetime
 
 from bodhi.messages.schemas.update import UpdateCommentV1
 from fedora_messaging import message as fedora_message
+from sqlalchemy.exc import IntegrityError
 
 from datanommer.models import add, Message, session
 
 
 def generate_message(
-    topic="nice.message", body={"encouragement": "You're doing great!"}, headers=None
+    topic="org.fedoraproject.test.a.nice.message",
+    body={"encouragement": "You're doing great!"},
+    headers=None,
 ):
     return fedora_message.Message(topic=topic, body=body, headers=headers)
 
@@ -181,10 +184,23 @@ def test_grep_not_topics(datanommer_models):
     assert len(r) == 0
 
 
-def test_add_duplicate(datanommer_models):
+def test_add_duplicate(datanommer_models, caplog):
     example_message = generate_message()
     add(example_message)
     add(example_message)
     # if no exception was thrown, then we successfully ignored the
     # duplicate message
     assert Message.query.count() == 1
+    assert (
+        "Skipping message from org.fedoraproject.test.a.nice.message"
+        in caplog.records[0].message
+    )
+
+
+def test_add_integrity_error(datanommer_models, mocker, caplog):
+    mock_session_add = mocker.patch("datanommer.models.session.add")
+    mock_session_add.side_effect = IntegrityError("asdf", "asd", "asdas")
+    example_message = generate_message()
+    add(example_message)
+    assert "Unknown Integrity Error: message" in caplog.records[0].message
+    assert Message.query.count() == 0

@@ -133,12 +133,23 @@ def add(message):
     try:
         session.add(obj)
         session.flush()
-    except IntegrityError:
-        log.warning(
-            "Skipping message from %s with duplicate id: %s",
-            message.topic,
-            message.id,
-        )
+    except IntegrityError as e:
+        if (
+            'duplicate key value violates unique constraint "1_1_messages_msg_id_timestamp_key"'
+            in str(e)
+        ):
+            log.warning(
+                "Skipping message from %s with duplicate id: %s",
+                message.topic,
+                message.id,
+            )
+        else:
+            log.warning(
+                "Unknown Integrity Error: message %s with id %s",
+                message.topic,
+                message.id,
+            )
+            log.warning(traceback.format_exc())
         session.rollback()
         return
     # TODO -- can we avoid committing every time?
