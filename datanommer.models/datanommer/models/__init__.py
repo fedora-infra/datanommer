@@ -17,11 +17,6 @@ import datetime
 import logging
 import math
 import traceback
-<<<<<<< HEAD
-import uuid
-from warnings import warn
-=======
->>>>>>> 6b00e01 (remove rewrite of add to add_fedora_message)
 
 import fedmsg.encoding
 import pkg_resources
@@ -123,11 +118,17 @@ def add(message):
     obj.msg = message.body
     obj.headers = headers
 
-    usernames = message.usernames
-    packages = message.packages
+    def _make_array(value):
+        if value:
+            return postgresql.array(value)
+        else:
+            # Cast it, otherwise you'll get:
+            # sqlalchemy.exc.ProgrammingError: (psycopg2.errors.IndeterminateDatatype)
+            # cannot determine type of empty array
+            return cast(postgresql.array(value), postgresql.ARRAY(Unicode))
 
-    obj.users = _make_array(usernames)
-    obj.packages = _make_array(packages)
+    obj.users = _make_array(message.usernames)
+    obj.packages = _make_array(message.packages)
 
     try:
         session.add(obj)
