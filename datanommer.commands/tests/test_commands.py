@@ -18,6 +18,7 @@ import time
 from datetime import datetime, timedelta
 
 import pytest
+from click import ClickException
 from click.testing import CliRunner
 from fedora_messaging import message as fedora_message
 
@@ -40,6 +41,30 @@ def mock_init(mocker):
         datanommer.commands.fedora_messaging_config.conf["consumer_config"],
         {"datanommer_sqlalchemy_url": ""},
     )
+
+
+def test_get_datanommer_sqlalchemy_url_keyerror(mocker):
+    mocker.patch.dict(
+        datanommer.commands.fedora_messaging_config.conf["consumer_config"],
+        {},
+        clear=True,
+    )
+    with pytest.raises(ClickException):
+        datanommer.commands.get_datanommer_sqlalchemy_url()
+
+
+def test_create(mocker):
+    mock_model_init = mocker.patch("datanommer.commands.m.init")
+    mocker.patch.dict(
+        datanommer.commands.fedora_messaging_config.conf["consumer_config"],
+        {"datanommer_sqlalchemy_url": "TESTURL"},
+    )
+
+    runner = CliRunner()
+    result = runner.invoke(datanommer.commands.create, [])
+
+    assert result.output == "Creating Datanommer database and tables\n"
+    mock_model_init.assert_called_once_with("TESTURL", create=True)
 
 
 def test_stats(datanommer_models, mock_init):
@@ -99,7 +124,7 @@ def test_stats_topics(datanommer_models, mock_init):
     )
 
 
-def test_stats_cat_topics(datanommer_models, mock_init):
+def test_stats_category_topics(datanommer_models, mock_init):
     msg1 = generate_message(
         topic="org.fedoraproject.prod.git.branch.valgrind.master",
         body={"Message 1": "Message 1"},
@@ -129,6 +154,30 @@ def test_stats_cat_topics(datanommer_models, mock_init):
         "org.fedoraproject.prod.git.branch.valgrind.master has 1 entries"
         in result.output
     )
+
+
+def test_stats_category(datanommer_models, mock_init):
+    msg1 = generate_message(
+        topic="org.fedoraproject.prod.git.branch.valgrind.master",
+        body={"Message 1": "Message 1"},
+    )
+    m.add(msg1)
+
+    msg2 = generate_message(
+        topic="org.fedoraproject.stg.fas.user.create", body={"Message 2": "Message 2"}
+    )
+    m.add(msg2)
+
+    msg3 = generate_message(
+        topic="org.fedoraproject.prod.git.receive.valgrind.master",
+        body={"Message 3": "Message 3"},
+    )
+    m.add(msg3)
+
+    runner = CliRunner()
+    result = runner.invoke(datanommer.commands.stats, ["--category", "git"])
+
+    assert result.output == "git has 2 entries\n"
 
 
 def test_dump(datanommer_models, mocker, mock_init):
