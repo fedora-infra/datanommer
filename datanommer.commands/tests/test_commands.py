@@ -19,9 +19,18 @@ from datetime import datetime, timedelta
 
 import pytest
 from click.testing import CliRunner
+from fedora_messaging import message as fedora_message
 
 import datanommer.commands
 import datanommer.models as m
+
+
+def generate_message(
+    topic="org.fedoraproject.test.a.nice.message",
+    body={"encouragement": "You're doing great!"},
+    headers=None,
+):
+    return fedora_message.Message(topic=topic, body=body, headers=headers)
 
 
 @pytest.fixture
@@ -34,33 +43,22 @@ def mock_init(mocker):
 
 
 def test_stats(datanommer_models, mock_init):
-    msg1 = m.Message(
+    msg1 = generate_message(
         topic="org.fedoraproject.prod.git.branch.valgrind.master",
-        category="git",
-        timestamp=datetime.utcnow(),
-        i=1,
+        body={"Message 1": "Message 1"},
     )
+    m.add(msg1)
 
-    msg2 = m.Message(
-        topic="org.fedoraproject.stg.fas.user.create",
-        category="fas",
-        timestamp=datetime.utcnow(),
-        i=1,
+    msg2 = generate_message(
+        topic="org.fedoraproject.stg.fas.user.create", body={"Message 2": "Message 2"}
     )
+    m.add(msg2)
 
-    msg3 = m.Message(
+    msg3 = generate_message(
         topic="org.fedoraproject.prod.git.receive.valgrind.master",
-        category="git",
-        timestamp=datetime.utcnow(),
-        i=1,
+        body={"Message 3": "Message 3"},
     )
-
-    msg1.msg = "Message 1"
-    msg2.msg = "Message 2"
-    msg3.msg = "Message 3"
-
-    m.session.add_all([msg1, msg2, msg3])
-    m.session.flush()
+    m.add(msg3)
 
     runner = CliRunner()
     result = runner.invoke(datanommer.commands.stats, [])
@@ -70,34 +68,22 @@ def test_stats(datanommer_models, mock_init):
 
 
 def test_stats_topics(datanommer_models, mock_init):
-
-    msg1 = m.Message(
+    msg1 = generate_message(
         topic="org.fedoraproject.prod.git.branch.valgrind.master",
-        category="git",
-        timestamp=datetime.utcnow(),
-        i=1,
+        body={"Message 1": "Message 1"},
     )
+    m.add(msg1)
 
-    msg2 = m.Message(
-        topic="org.fedoraproject.stg.fas.user.create",
-        category="fas",
-        timestamp=datetime.utcnow(),
-        i=1,
+    msg2 = generate_message(
+        topic="org.fedoraproject.stg.fas.user.create", body={"Message 2": "Message 2"}
     )
+    m.add(msg2)
 
-    msg3 = m.Message(
+    msg3 = generate_message(
         topic="org.fedoraproject.prod.git.receive.valgrind.master",
-        category="git",
-        timestamp=datetime.utcnow(),
-        i=1,
+        body={"Message 3": "Message 3"},
     )
-
-    msg1.msg = "Message 1"
-    msg2.msg = "Message 2"
-    msg3.msg = "Message 3"
-
-    m.session.add_all([msg1, msg2, msg3])
-    m.session.flush()
+    m.add(msg3)
 
     runner = CliRunner()
     result = runner.invoke(datanommer.commands.stats, ["--topic"])
@@ -114,33 +100,22 @@ def test_stats_topics(datanommer_models, mock_init):
 
 
 def test_stats_cat_topics(datanommer_models, mock_init):
-    msg1 = m.Message(
+    msg1 = generate_message(
         topic="org.fedoraproject.prod.git.branch.valgrind.master",
-        category="git",
-        timestamp=datetime.utcnow(),
-        i=1,
+        body={"Message 1": "Message 1"},
     )
+    m.add(msg1)
 
-    msg2 = m.Message(
-        topic="org.fedoraproject.stg.fas.user.create",
-        category="fas",
-        timestamp=datetime.utcnow(),
-        i=1,
+    msg2 = generate_message(
+        topic="org.fedoraproject.stg.fas.user.create", body={"Message 2": "Message 2"}
     )
+    m.add(msg2)
 
-    msg3 = m.Message(
+    msg3 = generate_message(
         topic="org.fedoraproject.prod.git.receive.valgrind.master",
-        category="git",
-        timestamp=datetime.utcnow(),
-        i=1,
+        body={"Message 3": "Message 3"},
     )
-
-    msg1.msg = "Message 1"
-    msg2.msg = "Message 2"
-    msg3.msg = "Message 3"
-
-    m.session.add_all([msg1, msg2, msg3])
-    m.session.flush()
+    m.add(msg3)
 
     runner = CliRunner()
     result = runner.invoke(datanommer.commands.stats, ["--topic", "--category", "git"])
@@ -157,27 +132,17 @@ def test_stats_cat_topics(datanommer_models, mock_init):
 
 
 def test_dump(datanommer_models, mocker, mock_init):
-    m.Message = datanommer.models.Message
-    now = datetime.utcnow()
+    msg1 = generate_message(topic="org.fedoraproject.prod.git.branch.valgrind.master")
+    m.add(msg1)
 
-    msg1 = m.Message(
-        topic="org.fedoraproject.prod.git.branch.valgrind.master", timestamp=now
-    )
-
-    msg2 = m.Message(
-        topic="org.fedoraproject.prod.git.receive.valgrind.master", timestamp=now
-    )
-
-    msg1.msg = "Message 1"
-    msg2.msg = "Message 2"
-    objects = [msg1, msg2]
-
-    mocker.patch("datanommer.models.Message.query")
-
-    m.Message.query.all = mocker.Mock(return_value=objects)
+    msg2 = generate_message(topic="org.fedoraproject.prod.git.branch.valgrind.master")
+    m.add(msg2)
 
     runner = CliRunner()
     result = runner.invoke(datanommer.commands.dump, [])
+
+    print(result.output)
+    print(result.stdout)
 
     json_object = json.loads(result.output)
 
@@ -187,36 +152,18 @@ def test_dump(datanommer_models, mocker, mock_init):
 
 
 def test_dump_before(datanommer_models, mocker, mock_init):
-    m.Message = datanommer.models.Message
 
-    time1 = datetime(2013, 2, 14)
-    time2 = datetime(2013, 2, 15)
-    time3 = datetime(2013, 2, 16, 8)
+    msg1 = generate_message(topic="org.fedoraproject.prod.git.branch.valgrind.master")
+    msg1._properties.headers["sent-at"] = datetime(2013, 2, 14).isoformat()
+    m.add(msg1)
 
-    msg1 = m.Message(
-        topic="org.fedoraproject.prod.git.branch.valgrind.master",
-        timestamp=time1,
-        i=4,
-    )
+    msg2 = generate_message(topic="org.fedoraproject.prod.git.receive.valgrind.master")
+    msg2._properties.headers["sent-at"] = datetime(2013, 2, 15).isoformat()
+    m.add(msg2)
 
-    msg2 = m.Message(
-        topic="org.fedoraproject.prod.git.receive.valgrind.master",
-        timestamp=time2,
-        i=3,
-    )
-
-    msg3 = m.Message(
-        topic="org.fedoraproject.prod.log.receive.valgrind.master",
-        timestamp=time3,
-        i=2,
-    )
-
-    msg1.msg = "Message 1"
-    msg2.msg = "Message 2"
-    msg3.msg = "Message 3"
-
-    m.session.add_all([msg1, msg2, msg3])
-    m.session.flush()
+    msg3 = generate_message(topic="org.fedoraproject.prod.log.receive.valgrind.master")
+    msg3._properties.headers["sent-at"] = datetime(2013, 2, 16, 8).isoformat()
+    m.add(msg3)
 
     runner = CliRunner()
     result = runner.invoke(datanommer.commands.dump, ["--before", "2013-02-16"])
@@ -233,34 +180,17 @@ def test_dump_before(datanommer_models, mocker, mock_init):
 
 
 def test_dump_since(datanommer_models, mocker, mock_init):
-    time1 = datetime(2013, 2, 14)
-    time2 = datetime(2013, 2, 15)
-    time3 = datetime(2013, 2, 16, 8)
+    msg1 = generate_message(topic="org.fedoraproject.prod.git.branch.valgrind.master")
+    msg1._properties.headers["sent-at"] = datetime(2013, 2, 14).isoformat()
+    m.add(msg1)
 
-    msg1 = m.Message(
-        topic="org.fedoraproject.prod.git.branch.valgrind.master",
-        timestamp=time1,
-        i=4,
-    )
+    msg2 = generate_message(topic="org.fedoraproject.prod.git.receive.valgrind.master")
+    msg2._properties.headers["sent-at"] = datetime(2013, 2, 15).isoformat()
+    m.add(msg2)
 
-    msg2 = m.Message(
-        topic="org.fedoraproject.prod.git.receive.valgrind.master",
-        timestamp=time2,
-        i=3,
-    )
-
-    msg3 = m.Message(
-        topic="org.fedoraproject.prod.log.receive.valgrind.master",
-        timestamp=time3,
-        i=2,
-    )
-
-    msg1.msg = "Message 1"
-    msg2.msg = "Message 2"
-    msg3.msg = "Message 3"
-
-    m.session.add_all([msg1, msg2, msg3])
-    m.session.flush()
+    msg3 = generate_message(topic="org.fedoraproject.prod.log.receive.valgrind.master")
+    msg3._properties.headers["sent-at"] = datetime(2013, 2, 16, 8).isoformat()
+    m.add(msg3)
 
     runner = CliRunner()
     result = runner.invoke(datanommer.commands.dump, ["--since", "2013-02-14T08:00:00"])
@@ -277,35 +207,17 @@ def test_dump_since(datanommer_models, mocker, mock_init):
 
 
 def test_dump_timespan(datanommer_models, mocker, mock_init):
+    msg1 = generate_message(topic="org.fedoraproject.prod.git.branch.valgrind.master")
+    msg1._properties.headers["sent-at"] = datetime(2013, 2, 14).isoformat()
+    m.add(msg1)
 
-    time1 = datetime(2013, 2, 14)
-    time2 = datetime(2013, 2, 15)
-    time3 = datetime(2013, 2, 16, 8)
+    msg2 = generate_message(topic="org.fedoraproject.prod.git.receive.valgrind.master")
+    msg2._properties.headers["sent-at"] = datetime(2013, 2, 15).isoformat()
+    m.add(msg2)
 
-    msg1 = m.Message(
-        topic="org.fedoraproject.prod.git.branch.valgrind.master",
-        timestamp=time1,
-        i=4,
-    )
-
-    msg2 = m.Message(
-        topic="org.fedoraproject.prod.git.receive.valgrind.master",
-        timestamp=time2,
-        i=3,
-    )
-
-    msg3 = m.Message(
-        topic="org.fedoraproject.prod.log.receive.valgrind.master",
-        timestamp=time3,
-        i=2,
-    )
-
-    msg1.msg = "Message 1"
-    msg2.msg = "Message 2"
-    msg3.msg = "Message 3"
-
-    m.session.add_all([msg1, msg2, msg3])
-    m.session.flush()
+    msg3 = generate_message(topic="org.fedoraproject.prod.log.receive.valgrind.master")
+    msg3._properties.headers["sent-at"] = datetime(2013, 2, 16, 8).isoformat()
+    m.add(msg3)
 
     runner = CliRunner()
     result = runner.invoke(
@@ -332,66 +244,49 @@ def test_dump_invalid_dates(datanommer_models, mocker, mock_init):
 
 def test_latest_overall(datanommer_models, mock_init):
 
-    msg1 = m.Message(
+    msg1 = generate_message(
         topic="org.fedoraproject.prod.git.branch.valgrind.master",
-        timestamp=datetime.utcnow(),
-        i=1,
+        body={"Message 1": "Message 1"},
     )
+    m.add(msg1)
 
-    msg2 = m.Message(
-        topic="org.fedoraproject.stg.fas.user.create",
-        timestamp=datetime.utcnow(),
-        i=1,
+    msg2 = generate_message(
+        topic="org.fedoraproject.stg.fas.user.create", body={"Message 2": "Message 2"}
     )
+    m.add(msg2)
 
-    msg3 = m.Message(
+    msg3 = generate_message(
         topic="org.fedoraproject.prod.git.receive.valgrind.master",
-        timestamp=datetime.utcnow(),
-        i=1,
+        body={"Message 3": "Message 3"},
     )
-
-    msg1.msg = "Message 1"
-    msg2.msg = "Message 2"
-    msg3.msg = "Message 3"
-
-    m.session.add_all([msg1, msg2, msg3])
-    m.session.flush()
+    m.add(msg3)
 
     runner = CliRunner()
     result = runner.invoke(datanommer.commands.latest, ["--overall"])
 
     json_object = json.loads(result.output)
 
-    assert json_object[0]["git"] == "Message 3"
+    assert json_object[0]["git"] == {"Message 3": "Message 3"}
     assert len(json_object) == 1
 
 
 def test_latest_topic(datanommer_models, mock_init):
-
-    msg1 = m.Message(
+    msg1 = generate_message(
         topic="org.fedoraproject.prod.git.branch.valgrind.master",
-        timestamp=datetime.utcnow(),
-        i=1,
+        body={"Message 1": "Message 1"},
     )
+    m.add(msg1)
 
-    msg2 = m.Message(
-        topic="org.fedoraproject.stg.fas.user.create",
-        timestamp=datetime.utcnow(),
-        i=1,
+    msg2 = generate_message(
+        topic="org.fedoraproject.stg.fas.user.create", body={"Message 2": "Message 2"}
     )
+    m.add(msg2)
 
-    msg3 = m.Message(
+    msg3 = generate_message(
         topic="org.fedoraproject.prod.git.receive.valgrind.master",
-        timestamp=datetime.utcnow(),
-        i=1,
+        body={"Message 3": "Message 3"},
     )
-
-    msg1.msg = "Message 1"
-    msg2.msg = "Message 2"
-    msg3.msg = "Message 3"
-
-    m.session.add_all([msg1, msg2, msg3])
-    m.session.flush()
+    m.add(msg3)
 
     runner = CliRunner()
     result = runner.invoke(
@@ -400,75 +295,53 @@ def test_latest_topic(datanommer_models, mock_init):
 
     json_object = json.loads(result.output)
 
-    assert json_object[0]["fas"] == "Message 2"
+    assert json_object[0]["fas"] == {"Message 2": "Message 2"}
     assert len(json_object) == 1
 
 
 def test_latest_category(datanommer_models, mock_init):
-    msg1 = m.Message(
+    msg1 = generate_message(
         topic="org.fedoraproject.prod.git.branch.valgrind.master",
-        category="git",
-        timestamp=datetime.utcnow(),
-        i=1,
+        body={"Message 1": "Message 1"},
     )
+    m.add(msg1)
 
-    msg2 = m.Message(
-        topic="org.fedoraproject.stg.fas.user.create",
-        category="fas",
-        timestamp=datetime.utcnow(),
-        i=1,
+    msg2 = generate_message(
+        topic="org.fedoraproject.stg.fas.user.create", body={"Message 2": "Message 2"}
     )
+    m.add(msg2)
 
-    msg3 = m.Message(
+    msg3 = generate_message(
         topic="org.fedoraproject.prod.git.receive.valgrind.master",
-        category="git",
-        timestamp=datetime.utcnow(),
-        i=1,
+        body={"Message 3": "Message 3"},
     )
-
-    msg1.msg = "Message 1"
-    msg2.msg = "Message 2"
-    msg3.msg = "Message 3"
-
-    m.session.add_all([msg1, msg2, msg3])
-    m.session.flush()
+    m.add(msg3)
 
     runner = CliRunner()
     result = runner.invoke(datanommer.commands.latest, ["--category", "fas"])
 
     json_object = json.loads(result.output)
 
-    assert json_object[0]["fas"] == "Message 2"
+    assert json_object[0]["fas"] == {"Message 2": "Message 2"}
     assert len(json_object) == 1
 
 
 def test_latest_timestamp_human(datanommer_models, mocker, mock_init):
-    time1 = datetime(2013, 2, 14)
-    time2 = datetime(2013, 2, 15, 15, 15, 15, 15)
-    time3 = datetime(2013, 2, 16, 16, 16, 16, 16)
+    msg1 = generate_message(topic="org.fedoraproject.prod.git.branch.valgrind.master")
+    msg1._properties.headers["sent-at"] = datetime(2013, 2, 14).isoformat()
+    m.add(msg1)
 
-    msg1 = m.Message(
-        topic="org.fedoraproject.prod.git.branch.valgrind.master",
-        timestamp=time1,
-        i=1,
-    )
+    msg2 = generate_message(topic="org.fedoraproject.stg.fas.user.create")
+    msg2._properties.headers["sent-at"] = datetime(
+        2013, 2, 15, 15, 15, 15, 15
+    ).isoformat()
+    m.add(msg2)
 
-    msg2 = m.Message(
-        topic="org.fedoraproject.stg.fas.user.create", timestamp=time2, i=1
-    )
-
-    msg3 = m.Message(
-        topic="org.fedoraproject.prod.git.receive.valgrind.master",
-        timestamp=time3,
-        i=1,
-    )
-
-    msg1.msg = "Message 1"
-    msg2.msg = "Message 2"
-    msg3.msg = "Message 3"
-
-    m.session.add_all([msg1, msg2, msg3])
-    m.session.flush()
+    msg3 = generate_message(topic="org.fedoraproject.prod.git.receive.valgrind.master")
+    msg3._properties.headers["sent-at"] = datetime(
+        2013, 2, 16, 16, 16, 16, 16
+    ).isoformat()
+    m.add(msg3)
 
     # datanommer-latest defaults to the last year, so mock the
     # datetime calls to go back to 2013
@@ -487,33 +360,17 @@ def test_latest_timestamp_human(datanommer_models, mocker, mock_init):
 
 
 def test_latest_timestamp(datanommer_models, mocker, mock_init):
+    msg1 = generate_message(topic="org.fedoraproject.prod.git.branch.valgrind.master")
+    msg1._properties.headers["sent-at"] = datetime(2013, 2, 14).isoformat()
+    m.add(msg1)
 
-    time1 = datetime(2013, 2, 14)
-    time2 = datetime(2013, 2, 15)
-    time3 = datetime(2013, 2, 16)
+    msg2 = generate_message(topic="org.fedoraproject.stg.fas.user.create")
+    msg2._properties.headers["sent-at"] = datetime(2013, 2, 15).isoformat()
+    m.add(msg2)
 
-    msg1 = m.Message(
-        topic="org.fedoraproject.prod.git.branch.valgrind.master",
-        timestamp=time1,
-        i=1,
-    )
-
-    msg2 = m.Message(
-        topic="org.fedoraproject.stg.fas.user.create", timestamp=time2, i=1
-    )
-
-    msg3 = m.Message(
-        topic="org.fedoraproject.prod.git.receive.valgrind.master",
-        timestamp=time3,
-        i=1,
-    )
-
-    msg1.msg = "Message 1"
-    msg2.msg = "Message 2"
-    msg3.msg = "Message 3"
-
-    m.session.add_all([msg1, msg2, msg3])
-    m.session.flush()
+    msg3 = generate_message(topic="org.fedoraproject.prod.git.receive.valgrind.master")
+    msg3._properties.headers["sent-at"] = datetime(2013, 2, 16).isoformat()
+    m.add(msg3)
 
     # datanommer-latest defaults to the last year, so mock the
     # datetime calls to go back to 2013
@@ -534,32 +391,21 @@ def test_latest_timestamp(datanommer_models, mocker, mock_init):
 def test_latest_timesince(datanommer_models, mocker, mock_init):
 
     now = datetime(2013, 3, 1)
+
+    msg1 = generate_message(topic="org.fedoraproject.prod.git.branch.valgrind.master")
     time1 = now - timedelta(days=1)
+    msg1._properties.headers["sent-at"] = time1.isoformat()
+    m.add(msg1)
+
+    msg2 = generate_message(topic="org.fedoraproject.stg.fas.user.create")
     time2 = now - timedelta(seconds=60)
+    msg2._properties.headers["sent-at"] = time2.isoformat()
+    m.add(msg2)
+
+    msg3 = generate_message(topic="org.fedoraproject.prod.git.receive.valgrind.master")
     time3 = now - timedelta(seconds=1)
-
-    msg1 = m.Message(
-        topic="org.fedoraproject.prod.git.branch.valgrind.master",
-        timestamp=time1,
-        i=1,
-    )
-
-    msg2 = m.Message(
-        topic="org.fedoraproject.stg.fas.user.create", timestamp=time2, i=1
-    )
-
-    msg3 = m.Message(
-        topic="org.fedoraproject.prod.git.receive.valgrind.master",
-        timestamp=time3,
-        i=1,
-    )
-
-    msg1.msg = "Message 1"
-    msg2.msg = "Message 2"
-    msg3.msg = "Message 3"
-
-    m.session.add_all([msg1, msg2, msg3])
-    m.session.flush()
+    msg3._properties.headers["sent-at"] = time3.isoformat()
+    m.add(msg3)
 
     # datanommer-latest defaults to the last year, so mock the
     # datetime calls to go back to 2013
@@ -581,34 +427,22 @@ def test_latest_timesince(datanommer_models, mocker, mock_init):
 
 
 def test_latest_timesince_human(datanommer_models, mock_init):
-
     now = datetime.now()
+
+    msg1 = generate_message(topic="org.fedoraproject.prod.git.branch.valgrind.master")
     time1 = now - timedelta(days=2)
+    msg1._properties.headers["sent-at"] = time1.isoformat()
+    m.add(msg1)
+
+    msg2 = generate_message(topic="org.fedoraproject.stg.fas.user.create")
     time2 = now - timedelta(days=1)
+    msg2._properties.headers["sent-at"] = time2.isoformat()
+    m.add(msg2)
+
+    msg3 = generate_message(topic="org.fedoraproject.prod.git.receive.valgrind.master")
     time3 = now - timedelta(seconds=1)
-
-    msg1 = m.Message(
-        topic="org.fedoraproject.prod.git.branch.valgrind.master",
-        timestamp=time1,
-        i=1,
-    )
-
-    msg2 = m.Message(
-        topic="org.fedoraproject.stg.fas.user.create", timestamp=time2, i=1
-    )
-
-    msg3 = m.Message(
-        topic="org.fedoraproject.prod.git.receive.valgrind.master",
-        timestamp=time3,
-        i=1,
-    )
-
-    msg1.msg = "Message 1"
-    msg2.msg = "Message 2"
-    msg3.msg = "Message 3"
-
-    m.session.add_all([msg1, msg2, msg3])
-    m.session.flush()
+    msg3._properties.headers["sent-at"] = time3.isoformat()
+    m.add(msg3)
 
     runner = CliRunner()
     result = runner.invoke(datanommer.commands.latest, ["--timesince", "--human"])
@@ -623,36 +457,30 @@ def test_latest_timesince_human(datanommer_models, mock_init):
 
 
 def test_latest(datanommer_models, mock_init):
-    msg1 = m.Message(
+    msg1 = generate_message(
         topic="org.fedoraproject.prod.git.branch.valgrind.master",
-        timestamp=datetime.utcnow(),
-        i=1,
+        body={"Message 1": "Message 1"},
     )
+    time1 = datetime.now() - timedelta(days=2)
+    msg1._properties.headers["sent-at"] = time1.isoformat()
+    m.add(msg1)
 
-    msg2 = m.Message(
-        topic="org.fedoraproject.stg.fas.user.create",
-        timestamp=datetime.utcnow(),
-        i=1,
+    msg2 = generate_message(
+        topic="org.fedoraproject.stg.fas.user.create", body={"Message 2": "Message 2"}
     )
+    m.add(msg2)
 
-    msg3 = m.Message(
+    msg3 = generate_message(
         topic="org.fedoraproject.prod.git.receive.valgrind.master",
-        timestamp=datetime.utcnow(),
-        i=1,
+        body={"Message 3": "Message 3"},
     )
-
-    msg1.msg = "Message 1"
-    msg2.msg = "Message 2"
-    msg3.msg = "Message 3"
-
-    m.session.add_all([msg1, msg2, msg3])
-    m.session.flush()
+    m.add(msg3)
 
     runner = CliRunner()
     result = runner.invoke(datanommer.commands.latest, [])
 
     json_object = json.loads(result.output)
 
-    assert json_object[1]["git"] == "Message 3"
-    assert json_object[0]["fas"] == "Message 2"
+    assert json_object[1]["git"] == {"Message 3": "Message 3"}
+    assert json_object[0]["fas"] == {"Message 2": "Message 2"}
     assert len(json_object) == 2
