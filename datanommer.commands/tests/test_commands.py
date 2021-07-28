@@ -18,6 +18,7 @@ import time
 from datetime import datetime, timedelta
 
 import pytest
+from bodhi.messages.schemas.update import UpdateCommentV1
 from click import ClickException
 from click.testing import CliRunner
 from fedora_messaging import message as fedora_message
@@ -32,6 +33,32 @@ def generate_message(
     headers=None,
 ):
     return fedora_message.Message(topic=topic, body=body, headers=headers)
+
+
+def generate_bodhi_update_complete_message():
+    msg = UpdateCommentV1(
+        body={
+            "comment": {
+                "karma": -1,
+                "text": "text",
+                "timestamp": "2019-03-18 16:54:48",
+                "update": {
+                    "alias": "FEDORA-EPEL-2021-f2d195dada",
+                    "builds": [
+                        {"nvr": "abrt-addon-python3-2.1.11-50.el7"},
+                        {"nvr": "kernel-10.4.0-2.el7"},
+                    ],
+                    "status": "pending",
+                    "release": {"name": "F35"},
+                    "request": "testing",
+                    "user": {"name": "ryanlerch"},
+                },
+                "user": {"name": "dudemcpants"},
+            }
+        }
+    )
+    msg.topic = f"org.fedoraproject.stg.{msg.topic}"
+    return msg
 
 
 @pytest.fixture
@@ -187,11 +214,11 @@ def test_dump(datanommer_models, mocker, mock_init):
     msg2 = generate_message(topic="org.fedoraproject.prod.git.branch.valgrind.master")
     m.add(msg2)
 
+    msg3 = generate_bodhi_update_complete_message()
+    m.add(msg3)
+
     runner = CliRunner()
     result = runner.invoke(datanommer.commands.dump, [])
-
-    print(result.output)
-    print(result.stdout)
 
     json_object = json.loads(result.output)
 
@@ -315,7 +342,7 @@ def test_latest_overall(datanommer_models, mock_init):
 
     json_object = json.loads(result.output)
 
-    assert json_object[0]["git"] == {"Message 3": "Message 3"}
+    assert json_object[0]["git"]["body"] == {"Message 3": "Message 3"}
     assert len(json_object) == 1
 
 
@@ -344,7 +371,7 @@ def test_latest_topic(datanommer_models, mock_init):
 
     json_object = json.loads(result.output)
 
-    assert json_object[0]["fas"] == {"Message 2": "Message 2"}
+    assert json_object[0]["fas"]["body"] == {"Message 2": "Message 2"}
     assert len(json_object) == 1
 
 
@@ -371,7 +398,7 @@ def test_latest_category(datanommer_models, mock_init):
 
     json_object = json.loads(result.output)
 
-    assert json_object[0]["fas"] == {"Message 2": "Message 2"}
+    assert json_object[0]["fas"]["body"] == {"Message 2": "Message 2"}
     assert len(json_object) == 1
 
 
@@ -530,6 +557,6 @@ def test_latest(datanommer_models, mock_init):
 
     json_object = json.loads(result.output)
 
-    assert json_object[1]["git"] == {"Message 3": "Message 3"}
-    assert json_object[0]["fas"] == {"Message 2": "Message 2"}
+    assert json_object[1]["git"]["body"] == {"Message 3": "Message 3"}
+    assert json_object[0]["fas"]["body"] == {"Message 2": "Message 2"}
     assert len(json_object) == 2

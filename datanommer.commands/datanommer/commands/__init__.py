@@ -13,12 +13,12 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
+import json
 import logging
 import time
 from datetime import datetime, timedelta
 
 import click
-from fedmsg.encoding import pretty_dumps
 from fedora_messaging import config as fedora_messaging_config
 from sqlalchemy import func
 
@@ -81,7 +81,8 @@ def dump(since, before):
 
         query = query.filter(m.Message.timestamp >= since)
 
-    click.echo(pretty_dumps(query.all()))
+    results = [json.dumps(msg.as_fedora_message_dict()) for msg in query.all()]
+    click.echo("[%s]" % ",".join(results))
 
 
 @click.command()
@@ -299,16 +300,16 @@ def latest(topic, category, overall, timestamp, timesince, human):
 
     def formatter(key, val):
         if timestamp and human:
-            return pretty_dumps(str(val.timestamp))
+            return json.dumps(str(val.timestamp))
         elif timestamp:
-            return pretty_dumps(time.mktime(val.timestamp.timetuple()))
+            return json.dumps(time.mktime(val.timestamp.timetuple()))
         elif timesince and human:
-            return pretty_dumps(str(datetime.now() - val.timestamp))
+            return json.dumps(str(datetime.now() - val.timestamp))
         elif timesince:
             timedelta = datetime.now() - val.timestamp
-            return pretty_dumps(str((timedelta.days * 86400) + timedelta.seconds))
+            return json.dumps(str((timedelta.days * 86400) + timedelta.seconds))
         else:
-            return f"{{{pretty_dumps(key)}: {pretty_dumps(val.msg)}}}"
+            return f'{{"{key}": {json.dumps(val.as_fedora_message_dict())}}}'
 
     results = []
     for result in sum((query.all() for query in queries), []):

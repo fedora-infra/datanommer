@@ -222,6 +222,15 @@ class Message(DeclarativeBase):
             packages=self.packages,
         )
 
+    def as_fedora_message_dict(self):
+        return dict(
+            body=self.msg,
+            headers=self.headers,
+            id=self.msg_id,
+            queue=None,
+            topic=self.topic,
+        )
+
     def __json__(self, request=None):
         warn(
             "The __json__() method has been renamed to as_dict(), and will be removed "
