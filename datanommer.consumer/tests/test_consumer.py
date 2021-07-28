@@ -48,3 +48,13 @@ def test_add_exception(datanommer_models, consumer, mocker):
     consumer = datanommer.consumer.Nommer()
     with pytest.raises(Exception):
         consumer(example_message)
+
+
+def test_get_datanommer_sqlalchemy_url_keyerror(mocker):
+    mocker.patch.dict(
+        datanommer.consumer.config.conf["consumer_config"],
+        {},
+        clear=True,
+    )
+    with pytest.raises(ValueError):
+        datanommer.consumer.get_datanommer_sqlalchemy_url()
