@@ -17,11 +17,10 @@ import datetime
 import logging
 import math
 import traceback
-import uuid
 from warnings import warn
 
-import fedmsg.encoding
 import pkg_resources
+from psycopg2.errors import UniqueViolation
 from sqlalchemy import (
     between,
     cast,
@@ -98,70 +97,66 @@ def _make_array(value):
         return cast(postgresql.array(value), postgresql.ARRAY(Unicode))
 
 
-def add(envelope):
-    """Take a dict-like fedmsg envelope and store the headers and message
-    in the table.
+def add(message):
+    """Take a the fedora-messaging Message and store in the message
+    table.
     """
-    message = envelope["body"]
-    timestamp = message.get("timestamp", None)
-    try:
-        if timestamp:
-            timestamp = datetime.datetime.utcfromtimestamp(timestamp)
-        else:
-            timestamp = datetime.datetime.utcnow()
-    except Exception:
-        pass
+    headers = message._properties.headers
+    sent_at = headers.get("sent-at", None)
 
-    headers = envelope.get("headers", None)
-    msg_id = message.get("msg_id", None)
-    if not msg_id and headers:
-        msg_id = headers.get("message-id", None)
-    if not msg_id:
-        msg_id = str(timestamp.year) + "-" + str(uuid.uuid4())
+    if sent_at:
+        # fromisoformat doesn't parse Z suffix (yet) see:
+        # https://discuss.python.org/t/parse-z-timezone-suffix-in-datetime/2220
+        try:
+            sent_at = datetime.datetime.fromisoformat(sent_at.replace("Z", "+00:00"))
+        except ValueError:
+            log.exception("Failed to parse sent-at timestamp value")
+            return
+    else:
+        sent_at = datetime.datetime.utcnow()
+
     obj = Message(
-        i=message.get("i", 0),
-        msg_id=msg_id,
-        topic=message["topic"],
-        timestamp=timestamp,
-        username=message.get("username", None),
-        crypto=message.get("crypto", None),
-        certificate=message.get("certificate", None),
-        signature=message.get("signature", None),
+        i=0,
+        msg_id=message.id,
+        topic=message.topic,
+        timestamp=sent_at,
     )
 
-    obj.msg = message["msg"]
+    obj.msg = message.body
     obj.headers = headers
 
-    usernames = fedmsg.meta.msg2usernames(message)
-    packages = fedmsg.meta.msg2packages(message)
+    def _make_array(value):
+        if value:
+            return postgresql.array(value)
+        else:
+            # Cast it, otherwise you'll get:
+            # sqlalchemy.exc.ProgrammingError: (psycopg2.errors.IndeterminateDatatype)
+            # cannot determine type of empty array
+            return cast(postgresql.array(value), postgresql.ARRAY(Unicode))
 
-    # Do a little sanity checking on fedmsg.meta results
-    if None in usernames:
-        # Notify developers so they can fix msg2usernames
-        log.error("NoneType found in usernames of %r" % msg_id)
-        # And prune out the bad value
-        usernames = [name for name in usernames if name is not None]
-
-    if None in packages:
-        # Notify developers so they can fix msg2packages
-        log.error("NoneType found in packages of %r" % msg_id)
-        # And prune out the bad value
-        packages = [pkg for pkg in packages if pkg is not None]
-
-    obj.users = _make_array(usernames)
-    obj.packages = _make_array(packages)
+    obj.users = _make_array(message.usernames)
+    obj.packages = _make_array(message.packages)
 
     try:
         session.add(obj)
         session.flush()
-    except IntegrityError:
-        log.warning(
-            "Skipping message from %s with duplicate id: %s", message["topic"], msg_id
-        )
+    except IntegrityError as e:
+        if isinstance(e.orig, UniqueViolation):
+            log.warning(
+                "Skipping message from %s with duplicate id: %s",
+                message.topic,
+                message.id,
+            )
+        else:
+            log.exception(
+                "Unknown Integrity Error: message %s with id %s",
+                message.topic,
+                message.id,
+            )
         session.rollback()
-        return
-    # TODO -- can we avoid committing every time?
-    session.commit()
+    else:
+        # TODO -- can we avoid committing every time?
+        session.commit()
 
 
 def source_version_default(context):

@@ -13,17 +13,16 @@ packages = [
     { include = "datanommer" },
 ]
 include = [
-    "fedmsg.d/*",
     "tests/*",
     "tox.ini",
 ]
 
 [tool.poetry.dependencies]
 python = "^3.7"
-fedmsg = "^1.1.2"
 SQLAlchemy = ">=1.0.9"
 alembic = "^1.6.5"
 psycopg2 = "^2.9.1"
+fedora-messaging = "^2.1.0"
 
 [tool.poetry.dev-dependencies]
 pre-commit = "^2.13.0"
@@ -31,11 +30,11 @@ black = "^21.6b0"
 isort = "^5.9.2"
 flake8 = "^3.9.2"
 pytest = "^6.2.4"
-fedmsg-meta-fedora-infrastructure = "^0.31.0"
 liccheck = "^0.6.0"
 pytest-cov = "^2.12.1"
 pytest-postgresql = "^3.1.1"
 pytest-mock = "^3.6.1"
+bodhi-messages = "^5.5"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -76,4 +75,5 @@ authorized_licenses = [
   "CC0 (copyright waived)",
   "Public Domain",
   "Public Domain <http://unlicense.org>",
+  "Zope Public",
 ]
