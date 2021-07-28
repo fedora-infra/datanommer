@@ -16,11 +16,13 @@
 import datetime
 import json
 
+import pytest
 from bodhi.messages.schemas.update import UpdateCommentV1
 from fedora_messaging import message as fedora_message
+from sqlalchemy import create_engine
 from sqlalchemy.exc import IntegrityError
 
-from datanommer.models import add, Message, session
+from datanommer.models import add, init, Message, session
 
 
 def generate_message(
@@ -55,6 +57,41 @@ def generate_bodhi_update_complete_message(text="testing testing"):
     )
     msg.topic = f"org.fedoraproject.stg.{msg.topic}"
     return msg
+
+
+def test_init_uri_and_engine():
+    uri = "sqlite:///db.db"
+    engine = create_engine(uri)
+
+    with pytest.raises(ValueError, match="uri and engine cannot both be specified"):
+        init(uri, engine=engine)
+
+
+def test_init_no_uri_and_no_engine():
+    with pytest.raises(ValueError, match="One of uri or engine must be specified"):
+        init()
+
+
+def test_init_no_init_twice(datanommer_models, mocker, caplog):
+    init("sqlite:///db.db")
+    assert caplog.records[0].message == "Session already initialized.  Bailing"
+
+
+def test_unclassified_category(datanommer_models):
+    example_message = generate_message(topic="too.short")
+    add(example_message)
+    dbmsg = Message.query.first()
+
+    assert dbmsg.category == "Unclassified"
+
+
+def test_from_msg_id(datanommer_models):
+    example_message = generate_message()
+    example_message.id = "ACUSTOMMESSAGEID"
+    add(example_message)
+    dbmsg = Message.from_msg_id("ACUSTOMMESSAGEID")
+
+    assert dbmsg.msg_id == "ACUSTOMMESSAGEID"
 
 
 def test_add_missing_timestamp(datanommer_models):
