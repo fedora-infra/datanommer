@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 import datetime
+import json
 
 from bodhi.messages.schemas.update import UpdateCommentV1
 from fedora_messaging import message as fedora_message
@@ -227,3 +228,15 @@ def test_add_integrity_error(datanommer_models, mocker, caplog):
     add(example_message)
     assert "Unknown Integrity Error: message" in caplog.records[0].message
     assert Message.query.count() == 0
+
+
+def test_as_fedora_message_dict(datanommer_models):
+    example_message = generate_message()
+    add(example_message)
+
+    dbmsg = Message.query.first()
+
+    message_json = json.dumps(dbmsg.as_fedora_message_dict())
+
+    # this should be the same as if we use the fedora_messaging dump function
+    assert json.loads(fedora_message.dumps(example_message)) == json.loads(message_json)
