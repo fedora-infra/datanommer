@@ -16,7 +16,7 @@ include = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.6.2"
+python = "^3.7.0"
 "datanommer.consumer" = "^0.8.1"
 "datanommer.models" = "^0.9.1"
 "datanommer.commands" = "^0.7.2"

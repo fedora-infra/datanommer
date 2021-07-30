@@ -1,10 +1,55 @@
 ---
+- name: Install the timescaledb repo
+  copy:
+    dest: /etc/yum.repos.d/timescaledb.repo
+    content: |
+      [timescaledb]
+      name = Copr modules repo for timescaledb
+      baseurl = https://download.copr.fedorainfracloud.org/results/abompard/timescaledb/modules/epel-8-$basearch+timescaledb-master-20210730083523/latest/$basearch
+      gpgcheck=0
+      gpgkey=https://download.copr.fedorainfracloud.org/results/abompard/timescaledb/pubkey.gpg
+      repo_gpgcheck=0
+      enabled = 1
+
+- name: Install the postgresql:12 module
+  copy:
+    dest: /etc/dnf/modules.d/postgresql.module
+    content: |
+      [postgresql]
+      name=postgresql
+      stream=12
+      profiles=
+      state=enabled
+
+- name: Install the timescaledb module
+  copy:
+    dest: /etc/dnf/modules.d/timescaledb.module
+    content: |
+      [timescaledb]
+      name=timescaledb
+      stream=master
+      profiles=
+      state=enabled
+
+- name: Enable the python39 module
+  copy:
+    dest: /etc/dnf/modules.d/python39.module
+    content: |
+      [python39]
+      name=python39
+      stream=3.9
+      profiles=
+      state=enabled
+
 - name: Install RPM packages
   dnf:
     name:
-      - python3-psycopg2
+      - python39
+      - python39-psycopg2
       - postgresql-server
       - timescaledb
+      # This is necessary for ansible's postgresql modules
+      - python3-psycopg2
     state: present
 
 - name: Setup the postgresql DB
@@ -36,7 +81,6 @@
     enabled: yes
     state: started
 
-
 - block:
     - name: Create the user
       postgresql_user:
@@ -55,7 +99,6 @@
   become: yes
   become_user: postgres
   become_method: sudo
-
 
 - name: Make connection easier
   copy:

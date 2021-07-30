@@ -1,19 +1,23 @@
 ---
+- name: Install EPEL
+  command:
+    cmd: dnf -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
+    creates: /etc/yum.repos.d/epel.repo
+
 - name: Install RPM packages
   dnf:
-      name:
+    name:
       - fedora-messaging
       - gcc
       - git
-      - poetry
-      - python3-devel
-      - python3-pip
+      - python39-devel
+      - python39-pip
       - vim
       - krb5-devel
       - libpq-devel
       - tox
-      - python-psycopg2
-      state: present
+      - python39-psycopg2
+    state: present
 
 - name: Install the .bashrc
   copy:
@@ -33,29 +37,23 @@
 
 - name: Create the virtualenv and install poetry
   pip:
-    name: poetry
+    name:
+      - poetry
+      - wheel
     virtualenv: /srv/venv
+    virtualenv_command: python3.9 -m venv
   become: yes
   become_user: vagrant
 
-- name: Install datanommer.models with poetry
-  shell: /srv/venv/bin/poetry install
-  args:
-    chdir: /home/vagrant/datanommer/datanommer.models/
-  become: yes
-  become_user: vagrant
-
-- name: Install datanommer.commands with poetry
-  shell: /srv/venv/bin/poetry install
-  args:
-    chdir: /home/vagrant/datanommer/datanommer.commands/
-  become: yes
-  become_user: vagrant
-
-- name: Install datanommer.consumer with poetry
-  shell: /srv/venv/bin/poetry install
-  args:
-    chdir: /home/vagrant/datanommer/datanommer.consumer/
+- name: Install datanommer with poetry
+  command:
+    cmd: /srv/venv/bin/poetry install
+    chdir: /home/vagrant/datanommer/datanommer.{{item}}/
+    creates: /srv/venv/lib/python3.9/site-packages/datanommer_{{item}}.pth
+  loop:
+    - models
+    - commands
+    - consumer
   become: yes
   become_user: vagrant
 
@@ -65,12 +63,11 @@
     src: /etc/fedora-messaging/fedora.stg.toml
     dest: /etc/fedora-messaging/config.toml
 
-
 - name: configure datanommer_sqlalchemy_url in fedora-messaging config
   lineinfile:
     path: /etc/fedora-messaging/config.toml
-    regexp: "example_key = \"for my consumer\""
-    line: "datanommer_sqlalchemy_url = \"postgresql://datanommer:datanommer@localhost/messages\""
+    regexp: 'example_key = "for my consumer"'
+    line: 'datanommer_sqlalchemy_url = "postgresql://datanommer:datanommer@localhost/messages"'
 
 - name: Create datanommer db
   shell: /srv/venv/bin/poetry run datanommer-create-db
@@ -79,13 +76,11 @@
   become: yes
   become_user: vagrant
 
-
 - name: Install the systemd unit files for datanommer consumer
   copy:
-      src: "datanommer.service"
-      dest: /etc/systemd/system/datanommer.service
-      mode: 0644
-  
+    src: "datanommer.service"
+    dest: /etc/systemd/system/datanommer.service
+    mode: 0644
 
 - name: Start datanommer service using systemd
   systemd:

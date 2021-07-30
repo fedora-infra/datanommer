@@ -7,8 +7,8 @@ Vagrant.configure(2) do |config|
   config.hostmanager.manage_guest = true
 
   config.vm.define "datanommer" do |datanommer|
-    datanommer.vm.box_url = "https://download.fedoraproject.org/pub/fedora/linux/releases/34/Cloud/x86_64/images/Fedora-Cloud-Base-Vagrant-34-1.2.x86_64.vagrant-libvirt.box"
-    datanommer.vm.box = "f34-cloud-libvirt"
+    datanommer.vm.box_url = "https://app.vagrantup.com/centos/boxes/8/versions/2011.0/providers/libvirt.box"
+    datanommer.vm.box = "centos/8"
     datanommer.vm.hostname = "datanommer.test"
 
     datanommer.vm.synced_folder '.', '/vagrant', disabled: true
