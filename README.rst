@@ -22,6 +22,7 @@ Build Status
 .. |develop| image:: https://img.shields.io/travis/fedora-infra/datanommer/develop.svg
    :alt: Build Status - develop branch
    :target: https://travis-ci.org/fedora-infra/datanommer/branches
+   
 
 +----------+-----------+
 | Branch   | Status    |
