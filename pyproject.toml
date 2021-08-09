@@ -18,7 +18,7 @@ include = [
 [tool.poetry.dependencies]
 python = "^3.6.2"
 "datanommer.consumer" = "^0.8.1"
-"datanommer.models" = "^0.9.1"
+"datanommer.models" = {version = "1.0.0-alpha.1", allow-prereleases = true}
 "datanommer.commands" = "^0.7.2"
 click = "^8.0.1"
 toml = "^0.10.2"
