@@ -102,7 +102,7 @@ def import_message(message):
     "-c",
     "--config",
     type=click.Path(),
-    default="migration.toml",
+    default="migrate.toml",
     show_default=True,
 )
 @click.option(
