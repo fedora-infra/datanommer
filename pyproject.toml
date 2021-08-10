@@ -16,7 +16,7 @@ include = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.6.2"
+python = "^3.7"
 "datanommer.consumer" = "^0.8.1"
 "datanommer.models" = {version = "1.0.0-alpha.1", allow-prereleases = true}
 "datanommer.commands" = "^0.7.2"
