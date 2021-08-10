@@ -28,7 +28,9 @@ import datanommer.models as m
 log = logging.getLogger("datanommer")
 
 
-def get_datanommer_sqlalchemy_url():
+def get_datanommer_sqlalchemy_url(config_path=None):
+    if config_path:
+        fedora_messaging_config.conf.load_config(config_path)
     try:
         return fedora_messaging_config.conf["consumer_config"][
             "datanommer_sqlalchemy_url"
@@ -39,29 +41,40 @@ def get_datanommer_sqlalchemy_url():
         )
 
 
+config_option = click.option(
+    "-c",
+    "--config",
+    "config_path",
+    help="Load this Fedora Messaging config file",
+    type=click.Path(exists=True, readable=True),
+)
+
+
 @click.command()
-def create():
+@config_option
+def create(config_path):
     """Create a database and tables for 'datanommer.sqlalchemy.url'"""
-    datanommer_sqlalchemy_url = get_datanommer_sqlalchemy_url()
+    datanommer_sqlalchemy_url = get_datanommer_sqlalchemy_url(config_path)
     click.echo("Creating Datanommer database and tables")
     m.init(datanommer_sqlalchemy_url, create=True)
 
 
 @click.command()
+@config_option
 @click.option(
     "--since", default=None, help="Only after datetime, ex 2013-02-14T08:05:59.87"
 )
 @click.option(
     "--before", default=None, help="Only before datetime, ex 2013-02-14T08:05:59.87"
 )
-def dump(since, before):
+def dump(config_path, since, before):
     """Dump the contents of the datanommer database as JSON.
 
     You can also specify a timespan with the --since and --before arguments:
 
         $ datanommer-dump --before 2013-02-15 --since 2013-02-11T08:00:00 > datanommer-dump.json
     """
-    datanommer_sqlalchemy_url = get_datanommer_sqlalchemy_url()
+    datanommer_sqlalchemy_url = get_datanommer_sqlalchemy_url(config_path)
     m.init(datanommer_sqlalchemy_url)
 
     query = m.Message.query
@@ -86,13 +99,14 @@ def dump(since, before):
 
 
 @click.command()
+@config_option
 @click.option("--topic", is_flag=True, help="Shows the stats per topic")
 @click.option(
     "--category",
     default=None,
     help="Shows the stats within only the specified category",
 )
-def stats(topic, category):
+def stats(config_path, topic, category):
     """Produce stats on the contents of the datanommer database.
 
     The default is to display the stats per category. You can also display
@@ -130,7 +144,7 @@ def stats(topic, category):
         fas has 46 entries
 
     """
-    datanommer_sqlalchemy_url = get_datanommer_sqlalchemy_url()
+    datanommer_sqlalchemy_url = get_datanommer_sqlalchemy_url(config_path)
 
     m.init(datanommer_sqlalchemy_url)
 
@@ -162,6 +176,7 @@ def stats(topic, category):
 
 
 @click.command()
+@config_option
 @click.option(
     "--topic", default=None, help="Show the latest for only a specific topic."
 )
@@ -186,7 +201,7 @@ def stats(topic, category):
     is_flag=True,
     help="When combined with --timestamp or --timesince,show a human readable date.",
 )
-def latest(topic, category, overall, timestamp, timesince, human):
+def latest(config_path, topic, category, overall, timestamp, timesince, human):
     """Print the latest message(s) ingested by datanommer.
 
     The default is to display the latest message in each message category. The
@@ -265,7 +280,7 @@ def latest(topic, category, overall, timestamp, timesince, human):
         $ datanommer-latest --category wiki --timesince --human
         [13:40:59.519447]
     """
-    datanommer_sqlalchemy_url = get_datanommer_sqlalchemy_url()
+    datanommer_sqlalchemy_url = get_datanommer_sqlalchemy_url(config_path)
 
     m.init(datanommer_sqlalchemy_url)
 
