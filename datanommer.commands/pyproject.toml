@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "datanommer.commands"
-version = "0.7.2"
+version = "1.0.0-alpha.1"
 description = "Console commands for datanommer"
 authors = [
   "Fedora Infrastructure <admin@fedoraproject.org>"
