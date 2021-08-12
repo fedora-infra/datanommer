@@ -4,20 +4,25 @@
 # places them into appropriate directories inside the image.
 
 # Execute the default S2I script
-/usr/libexec/s2i/assemble
+. /usr/libexec/s2i/assemble
 
 set -e
 
-echo "---> Upgrade pip to the latest version ..."
-pip install --upgrade pip
+install_tool poetry
+echo "---> Upgrade Poetry's pip to the latest version ..."
+$VENV_DIR/bin/pip install --upgrade pip
 
-echo "---> Installing poetry ..."
-pip install poetry
+# There's a conflict between the builder image and poetry on the use of $VIRTUAL_ENV/src
+# https://github.com/sclorg/s2i-python-container/issues/468
+unset VIRTUAL_ENV
 
-# Don't create virtual environments
-poetry config virtualenvs.create false
+# Use our own venv
+VIRTUAL_ENV=$HOME/.local/venvs/datanommer
+echo "---> Create a virtual environment for datanommer ..."
+virtualenv_bin "$VIRTUAL_ENV"
+export VIRTUAL_ENV
 
-echo "---> Installing datanommer subdirectories ..."
+echo "---> Installing datanommer components ..."
 for subpackage in datanommer.models datanommer.commands datanommer.consumer; do
     pushd $subpackage
     echo "Installing python package in $(pwd)"
