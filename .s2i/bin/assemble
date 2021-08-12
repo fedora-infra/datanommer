@@ -21,12 +21,16 @@ VIRTUAL_ENV=$HOME/.local/venvs/datanommer
 echo "---> Create a virtual environment for datanommer ..."
 virtualenv_bin "$VIRTUAL_ENV"
 export VIRTUAL_ENV
+$VIRTUAL_ENV/bin/pip install wheel
 
 echo "---> Installing datanommer components ..."
 for subpackage in datanommer.models datanommer.commands datanommer.consumer; do
     pushd $subpackage
     echo "Installing python package in $(pwd)"
-    poetry install --no-dev
+    # Don't set --no-dev for now, Poetry would uninstall packages that are a
+    # main dependency for one component but a dev dependency for the following
+    # component.
+    poetry install
     popd
 done
 
