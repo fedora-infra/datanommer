@@ -382,11 +382,11 @@ _setup_hypertable(Message)
 
 
 # Set the version
-try:
+try:  # pragma: no cover
     import importlib.metadata
 
     __version__ = importlib.metadata.version("datanommer.models")
-except ImportError:
+except ImportError:  # pragma: no cover
     try:
         __version__ = pkg_resources.get_distribution("datanommer.models").version
     except pkg_resources.DistributionNotFound:
