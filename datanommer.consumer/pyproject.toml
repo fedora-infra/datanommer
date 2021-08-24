@@ -95,8 +95,7 @@ authorized_licenses = [
 [tool.towncrier]
 package = "datanommer.consumer"
 directory = "news/"
-filename = "news.rst"
-title_format = "datanommer.consumer v{version}"
+title_format = "v{version}"
 issue_format = "{issue}"
 template = "../tools/towncrier/_template.rst.j2"
 underlines = "=^-"
