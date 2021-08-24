@@ -83,7 +83,6 @@ authorized_licenses = [
 package = "datanommer.models"
 directory = "news/"
 filename = "news.rst"
-version = "1.0.0-alpha.1"
 title_format = "datanommer.models v{version}"
 issue_format = "{issue}"
 template = "../tools/towncrier/_template.rst.j2"

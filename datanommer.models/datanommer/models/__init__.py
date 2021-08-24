@@ -379,3 +379,16 @@ def _setup_hypertable(table_class):
 
 
 _setup_hypertable(Message)
+
+
+# Set the version
+try:
+    import importlib.metadata
+
+    __version__ = importlib.metadata.version("datanommer.models")
+except ImportError:
+    try:
+        __version__ = pkg_resources.get_distribution("datanommer.models").version
+    except pkg_resources.DistributionNotFound:
+        # The app is not installed, but the flask dev server can run it nonetheless.
+        __version__ = None
