@@ -85,7 +85,7 @@ package = "datanommer.models"
 directory = "news/"
 title_format = "v{version}"
 issue_format = "{issue}"
-template = "../tools/towncrier/_template.rst.j2"
+template = "../tools/towncrier/template.rst.j2"
 underlines = "=^-"
 wrap = true
 all_bullets = true
