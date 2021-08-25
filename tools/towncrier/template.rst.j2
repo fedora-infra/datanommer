@@ -1,10 +1,11 @@
 {% macro reference(value) -%}
    {%- if value.startswith("PR") -%}
-     :pr:`{{ value[2:] }}`
+     `PR#{{ value[2:] }} <https://github.com/fedora-infra/datanommer/pull/{{ value[2:] }}>`_
    {%- elif value.startswith("C") -%}
-     :commit:`{{ value[1:] }}`
+     `{{ value[1:] }} <https://github.com/fedora-infra/datanommer/commit/{{ value[1:] }}>`_
    {%- else -%}
      :issue:`{{ value }}`
+     `#{{ value }} <https://github.com/fedora-infra/datanommer/issues/{{ value }}>`_
    {%- endif -%}
 {%- endmacro -%}
 

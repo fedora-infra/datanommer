@@ -34,6 +34,7 @@ pytest-cov = "^2.12.1"
 pytest-mock = "^3.6.1"
 pytest-postgresql = "^3.1.1"
 psycopg2 = "^2.9.1"
+towncrier = "^21.3.0"
 
 [tool.poetry.scripts]
 datanommer-create-db = "datanommer.commands:create"
@@ -88,10 +89,9 @@ authorized_licenses = [
 [tool.towncrier]
 package = "datanommer.commands"
 directory = "news/"
-filename = "news.rst"
-title_format = "datanommer.commands v{version}"
+title_format = "v{version}"
 issue_format = "{issue}"
-template = "../tools/towncrier/_template.rst.j2"
+template = "../tools/towncrier/template.rst.j2"
 underlines = "=^-"
 wrap = true
 all_bullets = true
