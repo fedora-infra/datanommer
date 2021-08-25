@@ -17,7 +17,7 @@ from argparse import ArgumentParser
 from subprocess import check_output
 
 
-EXCLUDE = ["dependabot[bot]", "dependabot-preview[bot]", "Weblate (bot)"]
+EXCLUDE = ["Weblate (bot)"]
 
 last_tag = check_output(
     "git tag | sort -n | tail -n 1", shell=True, universal_newlines=True
@@ -51,7 +51,7 @@ for line in output.splitlines():
     authors[email] = fullname
 
 for nick, fullname in authors.items():
-    if fullname in EXCLUDE:
+    if fullname in EXCLUDE or fullname.endswith("[bot]"):
         continue
     filename = f"{nick}.author"
     if os.path.exists(filename):
