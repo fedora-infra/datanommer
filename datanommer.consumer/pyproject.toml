@@ -37,6 +37,7 @@ liccheck = "^0.6.0"
 pytest-cov = "^2.12.1"
 pytest-mock = "^3.6.1"
 pytest-postgresql = "^3.1.1"
+towncrier = "^21.3.0"
 
 [tool.poetry.plugins."moksha.consumer"]
 "noms" = "datanommer.consumer:Nommer"
@@ -94,10 +95,9 @@ authorized_licenses = [
 [tool.towncrier]
 package = "datanommer.consumer"
 directory = "news/"
-filename = "news.rst"
-title_format = "datanommer.consumer v{version}"
+title_format = "v{version}"
 issue_format = "{issue}"
-template = "../tools/towncrier/_template.rst.j2"
+template = "../tools/towncrier/template.rst.j2"
 underlines = "=^-"
 wrap = true
 all_bullets = true
