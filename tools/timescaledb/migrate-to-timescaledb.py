@@ -73,9 +73,11 @@ class Package(OldBase):
 
 
 def import_message(message):
-    msg = loads(message._msg)
+    msg = message._msg.replace("\\u0000", "")
+    msg = loads(msg)
     headers = message._headers
     if headers is not None:
+        headers = headers.replace("\\u0000", "")
         headers = loads(headers)
     dm.Message.create(
         i=message.i,
