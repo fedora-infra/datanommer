@@ -77,22 +77,20 @@ def import_message(message):
     headers = message._headers
     if headers is not None:
         headers = loads(headers)
-    dm.session.add(
-        dm.Message(
-            i=message.i,
-            msg_id=message.msg_id,
-            topic=message.topic,
-            timestamp=message.timestamp,
-            username=message.username,
-            crypto=message.crypto,
-            certificate=message.certificate,
-            signature=message.signature,
-            category=message.category,
-            msg=msg,
-            headers=headers,
-            users=dm._make_array([u.name for u in message.users]),
-            packages=dm._make_array([p.name for p in message.packages]),
-        )
+    dm.Message.create(
+        i=message.i,
+        msg_id=message.msg_id,
+        topic=message.topic,
+        timestamp=message.timestamp,
+        username=message.username,
+        crypto=message.crypto,
+        certificate=message.certificate,
+        signature=message.signature,
+        category=message.category,
+        msg=msg,
+        headers=headers,
+        users=[u.name for u in message.users],
+        packages=[p.name for p in message.packages],
     )
 
 
@@ -117,6 +115,7 @@ def main(config_path, since):
     src_engine = create_engine(config["source_url"], future=True)
 
     with Session(src_engine) as src_db:
+        click.echo("Querying messages...")
         old_messages = src_db.query(OldMessage).order_by(OldMessage.id)
         latest = dm.Message.query.order_by(dm.Message.id.desc()).first()
         if latest:

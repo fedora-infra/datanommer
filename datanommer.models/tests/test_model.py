@@ -22,7 +22,7 @@ from fedora_messaging import message as fedora_message
 from sqlalchemy import create_engine
 from sqlalchemy.exc import IntegrityError
 
-from datanommer.models import add, init, Message, session
+from datanommer.models import add, init, Message, Package, session, User
 
 
 def generate_message(
@@ -131,29 +131,27 @@ def test_add_timestamp_with_junk(datanommer_models, caplog):
 
 
 def test_add_and_check_for_others(datanommer_models):
-    def _count_array_attr(name):
-        return Message.get_array(name).count()
 
     # There are no users or packages at the start
-    assert _count_array_attr("users") == 0
-    assert _count_array_attr("packages") == 0
+    assert User.query.count() == 0
+    assert Package.query.count() == 0
 
     # Then add a message
     add(generate_bodhi_update_complete_message())
 
     # There should now be two of each
-    assert _count_array_attr("users") == 2
-    assert _count_array_attr("packages") == 2
+    assert User.query.count() == 2
+    assert Package.query.count() == 2
 
     # If we add it again, there should be no duplicates
     add(generate_bodhi_update_complete_message())
-    assert _count_array_attr("users") == 2
-    assert _count_array_attr("packages") == 2
+    assert User.query.count() == 2
+    assert Package.query.count() == 2
 
     # Add a new username
     add(generate_bodhi_update_complete_message(text="this is @abompard in a comment"))
-    assert _count_array_attr("users") == 3
-    assert _count_array_attr("packages") == 2
+    assert User.query.count() == 3
+    assert Package.query.count() == 2
 
 
 def test_add_nothing(datanommer_models):

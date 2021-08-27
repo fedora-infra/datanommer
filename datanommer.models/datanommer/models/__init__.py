@@ -20,26 +20,40 @@ import traceback
 from warnings import warn
 
 import pkg_resources
-from psycopg2.errors import UniqueViolation
 from sqlalchemy import (
+    and_,
     between,
-    cast,
     Column,
     create_engine,
     DateTime,
     DDL,
     event,
-    func,
+    ForeignKey,
     Integer,
     not_,
     or_,
+    Table,
     Unicode,
     UnicodeText,
     UniqueConstraint,
 )
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import declarative_base, scoped_session, sessionmaker, validates
+from sqlalchemy.orm import (
+    declarative_base,
+    relationship,
+    scoped_session,
+    sessionmaker,
+    validates,
+)
+
+
+try:
+    from psycopg2.errors import UniqueViolation
+except ImportError:
+    from psycopg2.errorcodes import lookup as lookup_error
+
+    UniqueViolation = lookup_error("23505")
 
 
 log = logging.getLogger("datanommer")
@@ -87,16 +101,6 @@ def init(uri=None, alembic_ini=None, engine=None, create=False):
         DeclarativeBase.metadata.create_all(engine)
 
 
-def _make_array(value):
-    if value:
-        return postgresql.array(value)
-    else:
-        # Cast it, otherwise you'll get:
-        # sqlalchemy.exc.ProgrammingError: (psycopg2.errors.IndeterminateDatatype)
-        # cannot determine type of empty array
-        return cast(postgresql.array(value), postgresql.ARRAY(Unicode))
-
-
 def add(message):
     """Take a the fedora-messaging Message and store in the message
     table.
@@ -115,44 +119,40 @@ def add(message):
     else:
         sent_at = datetime.datetime.utcnow()
 
-    obj = Message(
+    Message.create(
         i=0,
         msg_id=message.id,
         topic=message.topic,
         timestamp=sent_at,
+        msg=message.body,
+        headers=headers,
+        users=message.usernames,
+        packages=message.packages,
     )
 
-    obj.msg = message.body
-    obj.headers = headers
-
-    obj.users = _make_array(message.usernames)
-    obj.packages = _make_array(message.packages)
-
-    try:
-        session.add(obj)
-        session.flush()
-    except IntegrityError as e:
-        if isinstance(e.orig, UniqueViolation):
-            log.warning(
-                "Skipping message from %s with duplicate id: %s",
-                message.topic,
-                message.id,
-            )
-        else:
-            log.exception(
-                "Unknown Integrity Error: message %s with id %s",
-                message.topic,
-                message.id,
-            )
-        session.rollback()
-    else:
-        # TODO -- can we avoid committing every time?
-        session.commit()
+    session.commit()
 
 
 def source_version_default(context):
     dist = pkg_resources.get_distribution("datanommer.models")
     return dist.version
+
+
+users_assoc_table = Table(
+    "users_messages",
+    DeclarativeBase.metadata,
+    Column("user_id", ForeignKey("users.id"), primary_key=True),
+    Column("msg_id", Integer, primary_key=True, index=True),
+    Column("msg_timestamp", DateTime, primary_key=True, index=True),
+)
+
+packages_assoc_table = Table(
+    "packages_messages",
+    DeclarativeBase.metadata,
+    Column("package_id", ForeignKey("packages.id"), primary_key=True),
+    Column("msg_id", Integer, primary_key=True, index=True),
+    Column("msg_timestamp", DateTime, primary_key=True, index=True),
+)
 
 
 class Message(DeclarativeBase):
@@ -173,8 +173,24 @@ class Message(DeclarativeBase):
     source_version = Column(Unicode, default=source_version_default)
     msg = Column(postgresql.JSONB, nullable=False)
     headers = Column(postgresql.JSONB(none_as_null=True))
-    users = Column(postgresql.ARRAY(Unicode), index=True)
-    packages = Column(postgresql.ARRAY(Unicode), index=True)
+    users = relationship(
+        "User",
+        secondary=users_assoc_table,
+        backref="messages",
+        primaryjoin=lambda: and_(
+            Message.id == users_assoc_table.c.msg_id,
+            Message.timestamp == users_assoc_table.c.msg_timestamp,
+        ),
+    )
+    packages = relationship(
+        "Package",
+        secondary=packages_assoc_table,
+        backref="messages",
+        primaryjoin=lambda: and_(
+            Message.id == packages_assoc_table.c.msg_id,
+            Message.timestamp == packages_assoc_table.c.msg_timestamp,
+        ),
+    )
 
     @validates("topic")
     def get_category(self, key, topic):
@@ -190,6 +206,54 @@ class Message(DeclarativeBase):
             traceback.print_exc()
             self.category = "Unclassified"
         return topic
+
+    @classmethod
+    def create(cls, **kwargs):
+        users = kwargs.pop("users")
+        packages = kwargs.pop("packages")
+        obj = cls(**kwargs)
+
+        try:
+            session.add(obj)
+            session.flush()
+        except IntegrityError as e:
+            if isinstance(e.orig, UniqueViolation):
+                log.warning(
+                    "Skipping message from %s with duplicate id: %s",
+                    kwargs["topic"],
+                    kwargs["msg_id"],
+                )
+            else:
+                log.exception(
+                    "Unknown Integrity Error: message %s with id %s",
+                    kwargs["topic"],
+                    kwargs["msg_id"],
+                )
+            session.rollback()
+            return
+
+        obj._insert_list(User, users_assoc_table, users)
+        obj._insert_list(Package, packages_assoc_table, packages)
+
+    def _insert_list(self, rel_class, assoc_table, values):
+        if not values:
+            return
+        assoc_col_name = assoc_table.c[0].name
+        insert_values = []
+        for name in values:
+            attr_obj = rel_class.get_or_create(name)
+            # This would normally be a simple "obj.[users|packages].append(name)" kind
+            # of statement, but here we drop down out of sqlalchemy's ORM and into the
+            # sql abstraction in order to gain a little performance boost.
+            insert_values.append(
+                {
+                    assoc_col_name: attr_obj.id,
+                    "msg_id": self.id,
+                    "msg_timestamp": self.timestamp,
+                }
+            )
+        session.execute(assoc_table.insert(), insert_values)
+        session.flush()
 
     @classmethod
     def from_msg_id(cls, msg_id):
@@ -311,10 +375,14 @@ class Message(DeclarativeBase):
 
         # Add the four positive filters as necessary
         if users:
-            query = query.filter(or_(*(Message.users.any(u) for u in users)))
+            query = query.filter(
+                or_(*(Message.users.any(User.name == u) for u in users))
+            )
 
         if packages:
-            query = query.filter(or_(*(Message.packages.any(p) for p in packages)))
+            query = query.filter(
+                or_(*(Message.packages.any(Package.name == p) for p in packages))
+            )
 
         if categories:
             query = query.filter(
@@ -365,9 +433,44 @@ class Message(DeclarativeBase):
             messages = query.all()
             return total, pages, messages
 
+
+class NamedSingleton:
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(UnicodeText, index=True)
+
     @classmethod
-    def get_array(cls, name):
-        return session.query(func.unnest(getattr(cls, name)).distinct())
+    def get_or_create(cls, name):
+        """
+        Return the instance of the class with the specified name. If it doesn't
+        already exist, create it.
+        """
+        # Use an in-memory cache to speed things up.
+        if name in cls._cache:
+            # If we cache the instance, SQLAlchemy will run this query anyway because the instance
+            # will be from a different transaction. So just cache the id.
+            return cls.query.get(cls._cache[name])
+        obj = cls.query.filter_by(name=name).one_or_none()
+        if obj is None:
+            obj = cls(name=name)
+            session.add(obj)
+            session.flush()
+        cls._cache[name] = obj.id
+        return obj
+
+    @classmethod
+    def clear_cache(cls):
+        cls._cache.clear()
+
+
+class User(DeclarativeBase, NamedSingleton):
+    __tablename__ = "users"
+    _cache = {}
+
+
+class Package(DeclarativeBase, NamedSingleton):
+    __tablename__ = "packages"
+    _cache = {}
 
 
 def _setup_hypertable(table_class):

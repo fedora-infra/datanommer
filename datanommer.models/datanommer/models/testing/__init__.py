@@ -37,6 +37,8 @@ def datanommer_db_url(pgsql):
 def datanommer_models(datanommer_db_url):
     dm.session = scoped_session(dm.maker)
     dm.init(datanommer_db_url, create=True)
+    dm.User.clear_cache()
+    dm.Package.clear_cache()
     yield dm.session
     dm.session.rollback()
     # engine = dm.session.get_bind()
