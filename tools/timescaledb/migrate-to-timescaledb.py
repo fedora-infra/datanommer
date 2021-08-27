@@ -56,8 +56,8 @@ class OldMessage(OldBase):
     _msg = Column(UnicodeText)
     _headers = Column(UnicodeText)
 
-    users = relationship("User", secondary=user_assoc_table, lazy="joined")
-    packages = relationship("Package", secondary=pack_assoc_table, lazy="joined")
+    users = relationship("User", secondary=user_assoc_table, lazy="selectin")
+    packages = relationship("Package", secondary=pack_assoc_table, lazy="selectin")
 
 
 class User(OldBase):
@@ -94,6 +94,29 @@ def import_message(message):
         users=[u.name for u in message.users],
         packages=[p.name for p in message.packages],
     )
+
+
+# https://github.com/sqlalchemy/sqlalchemy/wiki/RangeQuery-and-WindowedRangeQuery
+def windowed_query(q, column, windowsize):
+    """ "Break a Query into chunks on a given column."""
+
+    single_entity = q.is_single_entity
+    q = q.add_columns(column).order_by(column)
+    last_id = None
+
+    while True:
+        subq = q
+        if last_id is not None:
+            subq = subq.filter(column > last_id)
+        chunk = subq.limit(windowsize).all()
+        if not chunk:
+            break
+        last_id = chunk[-1][-1]
+        for row in chunk:
+            if single_entity:
+                yield row[0]
+            else:
+                yield row[0:-1]
 
 
 @click.command()
@@ -133,18 +156,18 @@ def main(config_path, since):
             click.echo(f"Only importing messages after {since}")
         total = old_messages.count()
         with click.progressbar(
-            old_messages,
             length=total,
             label=f"Importing {total} messages",
             # item_show_func=lambda m: m.msg_id if m else "",
         ) as bar:
-            for old_message in bar:
+            for old_message in windowed_query(old_messages, OldMessage.id, 1000):
                 import_message(old_message)
                 # Commit periodically
                 if bar._completed_intervals % 1000 == 0:
                     dm.session.commit()
                 else:
                     dm.session.flush()
+                bar.update(1)
         dm.session.commit()
         # Verify counts
         click.echo(f"Messages in the old DB: {src_db.query(OldMessage).count()}")
