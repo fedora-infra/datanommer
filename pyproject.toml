@@ -56,7 +56,7 @@ source = ["datanommer"]
 source = ["datanommer"]
 
 [tool.coverage.report]
-fail_under = 81
+fail_under = 98
 exclude_lines = [
     "pragma: no cover",
     "if __name__ == .__main__.:",
