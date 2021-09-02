@@ -21,6 +21,7 @@ from bodhi.messages.schemas.update import UpdateCommentV1
 from fedora_messaging import message as fedora_message
 from sqlalchemy import create_engine
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm.query import Query
 
 from datanommer.models import add, init, Message, Package, session, User
 
@@ -70,6 +71,19 @@ def test_init_uri_and_engine():
 def test_init_no_uri_and_no_engine():
     with pytest.raises(ValueError, match="One of uri or engine must be specified"):
         init()
+
+
+def test_init_with_engine(caplog):
+    uri = "sqlite:///db.db"
+    engine = create_engine(uri)
+
+    init(engine=engine)
+
+    assert not caplog.records
+
+    # if the init with just the engine worked, trying it again will fail
+    init(engine=engine)
+    assert caplog.records[0].message == "Session already initialized.  Bailing"
 
 
 def test_init_no_init_twice(datanommer_models, mocker, caplog):
@@ -243,6 +257,171 @@ def test_grep_not_topics(datanommer_models):
     assert len(r) == 0
 
 
+def test_grep_start_end_validation(datanommer_models):
+    with pytest.raises(
+        ValueError,
+        match="Either both start and end must be specified or neither must be specified",
+    ):
+        Message.grep(start="2020-03-26")
+    with pytest.raises(
+        ValueError,
+        match="Either both start and end must be specified or neither must be specified",
+    ):
+        Message.grep(end="2020-03-26")
+
+
+def test_grep_start_end(datanommer_models):
+    example_message = generate_message()
+    example_message._properties.headers["sent-at"] = "2021-04-01T00:00:01"
+    add(example_message)
+
+    bodhi_example_message = generate_bodhi_update_complete_message()
+    bodhi_example_message._properties.headers["sent-at"] = "2021-06-01T00:00:01"
+    add(bodhi_example_message)
+
+    session.flush()
+    total, pages, messages = Message.grep(start="2021-04-01", end="2021-05-01")
+    assert total == 1
+    assert pages == 1
+    assert len(messages) == 1
+    assert messages[0].msg == example_message.body
+
+    total, pages, messages = Message.grep(start="2021-06-01", end="2021-07-01")
+    assert total == 1
+    assert pages == 1
+    assert len(messages) == 1
+    assert messages[0].msg == bodhi_example_message.body
+
+
+def test_grep_msg_id(datanommer_models):
+    example_message = generate_message()
+    add(example_message)
+
+    bodhi_example_message = generate_bodhi_update_complete_message()
+    add(bodhi_example_message)
+
+    session.flush()
+    total, pages, messages = Message.grep(msg_id=example_message.id)
+    assert total == 1
+    assert pages == 1
+    assert len(messages) == 1
+    assert messages[0].msg == example_message.body
+
+    total, pages, messages = Message.grep(msg_id=bodhi_example_message.id)
+    assert total == 1
+    assert pages == 1
+    assert len(messages) == 1
+    assert messages[0].msg == bodhi_example_message.body
+
+    total, pages, messages = Message.grep(msg_id="NOTAMESSAGEID")
+    assert total == 0
+    assert pages == 0
+    assert len(messages) == 0
+
+
+def test_grep_users(datanommer_models):
+    example_message = generate_message()
+    add(example_message)
+
+    bodhi_example_message = generate_bodhi_update_complete_message()
+    add(bodhi_example_message)
+
+    session.flush()
+
+    total, pages, messages = Message.grep(users=["dudemcpants"])
+
+    assert total == 1
+    assert pages == 1
+    assert len(messages) == 1
+
+    assert messages[0].msg == bodhi_example_message.body
+
+
+def test_grep_not_users(datanommer_models):
+    example_message = generate_message()
+    add(example_message)
+
+    bodhi_example_message = generate_bodhi_update_complete_message()
+    add(bodhi_example_message)
+
+    session.flush()
+
+    total, pages, messages = Message.grep(not_users=["dudemcpants"])
+
+    assert total == 1
+    assert pages == 1
+    assert len(messages) == 1
+
+    assert messages[0].msg == example_message.body
+
+
+def test_grep_packages(datanommer_models):
+    example_message = generate_message()
+    add(example_message)
+
+    bodhi_example_message = generate_bodhi_update_complete_message()
+    add(bodhi_example_message)
+
+    session.flush()
+
+    total, pages, messages = Message.grep(packages=["kernel"])
+
+    assert total == 1
+    assert pages == 1
+    assert len(messages) == 1
+
+    assert messages[0].msg == bodhi_example_message.body
+
+
+def test_grep_not_packages(datanommer_models):
+    example_message = generate_message()
+    add(example_message)
+
+    bodhi_example_message = generate_bodhi_update_complete_message()
+    add(bodhi_example_message)
+
+    session.flush()
+
+    total, pages, messages = Message.grep(not_packages=["kernel"])
+
+    assert total == 1
+    assert pages == 1
+    assert len(messages) == 1
+
+    assert messages[0].msg == example_message.body
+
+
+def test_grep_rows_per_page_none(datanommer_models):
+    for x in range(0, 200):
+        example_message = generate_message()
+        example_message.id = f"{x}"
+        add(example_message)
+
+    session.flush()
+
+    total, pages, messages = Message.grep()
+    assert total == 200
+    assert pages == 2
+    assert len(messages) == 100
+
+    total, pages, messages = Message.grep(rows_per_page=None)
+    assert total == 200
+    assert pages == 1
+    assert len(messages) == 200
+
+
+def test_grep_defer(datanommer_models):
+    example_message = generate_message()
+    add(example_message)
+
+    session.flush()
+
+    total, pages, query = Message.grep(defer=True)
+    assert isinstance(query, Query)
+
+    assert query.all() == Message.grep()[2]
+
+
 def test_add_duplicate(datanommer_models, caplog):
     example_message = generate_message()
     add(example_message)
@@ -275,3 +454,25 @@ def test_as_fedora_message_dict(datanommer_models):
 
     # this should be the same as if we use the fedora_messaging dump function
     assert json.loads(fedora_message.dumps(example_message)) == json.loads(message_json)
+
+
+def test_as_dict(datanommer_models):
+    add(generate_message())
+    dbmsg = Message.query.first()
+    message_dict = dbmsg.as_dict()
+
+    # we should have 14 keys in this dict
+    assert len(message_dict) == 14
+    assert message_dict["msg"] == {"encouragement": "You're doing great!"}
+    assert message_dict["topic"] == "org.fedoraproject.test.a.nice.message"
+
+
+def test___json__deprecated(datanommer_models, caplog, mocker):
+    mock_as_dict = mocker.patch("datanommer.models.Message.as_dict")
+
+    add(generate_message())
+
+    with pytest.warns(DeprecationWarning):
+        Message.query.first().__json__()
+
+    mock_as_dict.assert_called_once()
