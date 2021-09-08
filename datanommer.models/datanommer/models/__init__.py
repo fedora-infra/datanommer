@@ -39,13 +39,8 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import (
-    declarative_base,
-    relationship,
-    scoped_session,
-    sessionmaker,
-    validates,
-)
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship, scoped_session, sessionmaker, validates
 
 
 try:
@@ -477,7 +472,7 @@ def _setup_hypertable(table_class):
     event.listen(
         table_class.__table__,
         "after_create",
-        DDL(f"SELECT create_hypertable('{table_class.__tablename__}', 'timestamp');"),
+        DDL("SELECT create_hypertable('%s', 'timestamp');" % table_class.__tablename__),
     )
 
 
