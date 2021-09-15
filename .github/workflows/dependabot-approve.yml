@@ -14,9 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: koj-co/dependabot-pr-action@master
+      - uses: ahmadnassri/action-dependabot-auto-merge@v2
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          approve-minor: true
-          approve-patch: true
-
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          target: minor # includes patch updates!
+          approve: true
