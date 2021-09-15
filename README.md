@@ -1,83 +1,101 @@
 # datanommer
 
-This is datanommer. It is comprised of only a [fedmsg][] consumer that
-stuffs every message in a sqlalchemy database.
+Datanommer is an application that is comprised of only a Fedora Messaging consumer that places every message into a Postgres / TimescaleDB database.
 
-There are also a handful of CLI tools to dump information from the
-database.
+It is comprised of 3 modules:
 
-## Build Status
+* **datanommer.consumer**: the Fedora Messaging consumer that monitors the queue and places every message into the database
+* **datanommer.models**: the database models used by the consumer. These models are also used by [Datagrepper](https://github.com/fedora-infra/datagrepper), [FMN](https://github.com/fedora-infra/fedbadges), and [fedbadges](https://github.com/fedora-infra/fmn). Typically, to access the information stored in the database by datanommer, use the [Datagrepper](https://github.com/fedora-infra/datagrepper) JSON API.
+* **datanommer.commands**: a set of commandline tools for use by developers and sysadmins.
 
-| Branch  | Status                                  |
-|---------|-----------------------------------------|
-| master  | [![Build Status - master branch][]][1]  |
-| develop | [![Build Status - develop branch][]][1] |
 
-# Try it out
+## Development Environment
+Vagrant allows contributors to get quickly up and running with a datanommer development environment by automatically configuring a virtual machine. 
 
-## Using a virtualenv
+The datanommer Vagrant environment is configured to be empty when first provisioned, but to consume messages from the stage Fedora Messaging queue.
 
-Using a virtual environment is highly recommended, although this is not
-a must. Using virtualenvwrapper can isolate your development
-environment. You will be able to work on the latest datanommer from git
-checkout without messing the installed datanommer copy in your system.
+### Install vagrant
+To get started, run the following commands to install the Vagrant and Virtualization packages needed, and start the libvirt service:
 
-Install virtualenvwrapper by:
+    $ sudo dnf install ansible libvirt vagrant-libvirt vagrant-sshfs vagrant-hostmanager
+    $ sudo systemctl enable libvirtd
+    $ sudo systemctl start libvirtd
 
-    $ sudo yum install python-virtualenvwrapper
+### Checkout and Provision
+Next, check out the datanommer code and run vagrant up:
 
-**Note:** If you decide not to use python-virtualenvwrapper, you can
-always use latest update of fedmsg and datanommer in fedora. If you are
-doing this, simply ignore all mkvirtualenv and workon commands in these
-instructions. You can install fedmsg with `sudo yum install fedmsg`, and
-datanommer with `sudo yum install datanommer`.
+    $ git clone https://github.com/fedora-infra/datanommer
+    $ cd datanommer
+    $ vagrant up
 
-## Development dependencies
+### Using the development environment
+SSH into your newly provisioned development environment:
 
-Get:
+    $ vagrant ssh
 
-    $ sudo yum install python-virtualenv openssl-devel zeromq-devel gcc
+The vagrant setup also defines 4 handy commands to interact with the datanommer consumer: 
 
-**Note:** If submitting patches, you should check [Contributing][] for
-style guidelines.
+    $ datanommer-consumer-start
+    $ datanommer-consumer-stop
+    $ datanommer-consumer-restart
+    $ datanommer-consumer-logs
 
-## Set up virtualenv
+Note also, that the commands provided by datanommer.commands are also available to interact with the datanommer database:
 
-Create a new, empty virtualenv and install all the dependencies from
-pypi:
+    $ datanommer-dump
+    $ datanommer-latest
+    $ datanommer-stats
+    $ datanommer-create-db
 
-    $ mkvirtualenv datanommer
-    (datanommer)$ cdvirtualenv
+### Running the tests
+Datanommer is comprised of 3 seperate modules in this single repository. There is a handy script in the top directory of this repo to run the tests on all 3 modules:
 
-**Note:** If the mkvirtualenv command is unavailable try
-`source /usr/bin/virtualenvwrapper.sh` on Fedora (if you do not run
-Fedora you might have to adjust the command a little). You can also add
-this command to your `~/.bashrc` file to have it run automatically for
-you.
+    $ ./runtests.sh
 
-## Cloning upstream the git repo
+However, tests can also be run on a single module by invotking tox in that modules' directory. For example:
 
-The source code is on github.
+    $ cd datanommer.models/
+    $ tox
 
-Get fedmsg:
+Note, that the tests use virtual environments that are not created from scratch with every subsequent run of the tests. Therefore, **when changes happen to dependencies, the tests may fail to run correctly**. To recreate the virtual envrionments,  run the tests commands with the `-r` flag, for example:
 
-    (datanommer)$ git clone https://github.com/fedora-infra/fedmsg.git
+    $ ./runtests.sh -r
 
-Get datanommer:
+or
 
-    (datanommer)$ git clone https://github.com/fedora-infra/datanommer.git
+    $ cd datanommer.models/
+    $ tox -r
 
-Set up fedmsg:
 
-    (datanommer)$ cd fedmsg
+## Migration with Alembic
 
-For development, avoid editing master branch. Checkout develop branch:
+When the database models are changed, we use alembic to retain the data. Alembic is located in the models::
 
-    (datanommer)$ git checkout develop
-    (d
+    (datanommer)$ cd datanommer.models
 
-  [fedmsg]: http://github.com/fedora-infra/fedmsg
-  [Build Status - master branch]: https://img.shields.io/travis/fedora-infra/datanommer/master.svg
-  [1]: https://travis-ci.org/fedora-infra/datanommer/branches
-  [Build Status - develop branch]: https://img.shields.io/travis/fedora-infra/datanommer/develop.svg
-  [Contributing]: https://fedmsg.readthedocs.io/en/stable/contributing/
+To check the current models version::
+
+    (datanommer)$ alembic current
+
+If your models are up to date, you should see::
+
+    INFO  [alembic.migration] Context impl SQLiteImpl.
+    INFO  [alembic.migration] Will assume transactional DDL.
+    Current revision for postgresql://datanommer:datanommer@localhost/messages: 198447250956 -> ae2801c4cd9 (head), add category column
+
+If your result is::
+
+    INFO  [alembic.migration] Context impl SQLiteImpl.
+    INFO  [alembic.migration] Will assume transactional DDL.
+    Current revision for postgresql://datanommer:datanommer@localhost/messages: None
+
+then migrate to the most recent version with::
+
+    (datanommer)$ alembic upgrade head
+
+You should see::
+
+    INFO  [alembic.migration] Context impl SQLiteImpl.
+    INFO  [alembic.migration] Will assume transactional DDL.
+    INFO  [alembic.migration] Running upgrade None -> 198447250956
+    INFO  [alembic.migration] Running upgrade 198447250956 -> ae2801c4cd9
