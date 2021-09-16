@@ -990,7 +990,7 @@ python-versions = "*"
 
 [[package]]
 name = "txzmq"
-version = "0.8.2"
+version = "1.0.0"
 description = "Twisted bindings for ZeroMQ"
 category = "dev"
 optional = false
@@ -1805,7 +1805,8 @@ txws = [
     {file = "txWS-0.9.1.tar.gz", hash = "sha256:cb93086095d04a5d70f53a75053f7df478ff37e972c3637fb55ca4a9e6b94679"},
 ]
 txzmq = [
-    {file = "txZMQ-0.8.2.tar.gz", hash = "sha256:07a9a480e58d4d732eef9efd7e264f2348cbf27ee82b338ec818a8504006e1c0"},
+    {file = "txZMQ-1.0.0-py3-none-any.whl", hash = "sha256:23dd8554994e99736b20112dce5254c0f45574b250cd428fed8091bccb357870"},
+    {file = "txZMQ-1.0.0.tar.gz", hash = "sha256:8d607d0bf09ca94600b8e42f0721dbe43ee53a0470182344ac7ace7e58dc6177"},
 ]
 typed-ast = [
     {file = "typed_ast-1.4.3-cp35-cp35m-manylinux1_i686.whl", hash = "sha256:2068531575a125b87a41802130fa7e29f26c09a2833fea68d9a40cf33902eba6"},
