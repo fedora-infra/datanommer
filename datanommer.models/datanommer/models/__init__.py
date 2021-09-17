@@ -88,6 +88,9 @@ def init(uri=None, alembic_ini=None, engine=None, create=False):
     session.configure(bind=engine)
     DeclarativeBase.query = session.query_property()
 
+    if create:
+        session.execute("CREATE EXTENSION IF NOT EXISTS timescaledb")
+        DeclarativeBase.metadata.create_all(engine)
     # Loads the alembic configuration and generates the version table, with
     # the most recent revision stamped as head
     if alembic_ini is not None:  # pragma: no cover
@@ -96,9 +99,6 @@ def init(uri=None, alembic_ini=None, engine=None, create=False):
 
         alembic_cfg = Config(alembic_ini)
         command.stamp(alembic_cfg, "head")
-
-    if create:
-        DeclarativeBase.metadata.create_all(engine)
 
 
 def add(message):
