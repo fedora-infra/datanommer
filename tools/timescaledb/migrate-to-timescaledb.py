@@ -136,7 +136,7 @@ def windowed_query(q, column, windowsize):
 )
 def main(config_path, since):
     config = toml.load(config_path)
-    dm.init(config["dest_url"])
+    dm.init(config["dest_url"], create=True)
     src_engine = create_engine(config["source_url"], future=True)
 
     with Session(src_engine) as src_db:
