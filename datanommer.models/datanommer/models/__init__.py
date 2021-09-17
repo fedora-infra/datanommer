@@ -17,6 +17,7 @@ import datetime
 import logging
 import math
 import traceback
+import uuid
 from warnings import warn
 
 import pkg_resources
@@ -211,6 +212,9 @@ class Message(DeclarativeBase):
     def create(cls, **kwargs):
         users = kwargs.pop("users")
         packages = kwargs.pop("packages")
+        if not kwargs.get("msg_id"):
+            log.info("Message on %s was received without a msg_id", kwargs["topic"])
+            kwargs["msg_id"] = str(uuid.uuid4())
         obj = cls(**kwargs)
 
         try:
