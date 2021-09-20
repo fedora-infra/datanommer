@@ -4,7 +4,7 @@
 Migrate the datanommer database from the pre-2021 format to the TimescaleDB-based format.
 """
 
-from json import loads
+from json import dumps, JSONDecodeError, loads
 
 import click
 import toml
@@ -74,6 +74,25 @@ class Package(OldBase):
 
 def import_message(message):
     msg = message._msg.replace("\\u0000", "")
+    try:
+        msg = loads(msg)
+    except JSONDecodeError:
+        click.echo(
+            f"Can't decode json in message {message.msg_id} ({message.timestamp})"
+        )
+        with open("failed.log", "a") as failedlog:
+            failedlog.write(
+                dumps(
+                    {
+                        "id": message.id,
+                        "msg_id": message.msg_id,
+                        "timestamp": message.timestamp.isoformat(),
+                        "topic": message.topic,
+                        "msg": message._msg,
+                    }
+                )
+            )
+            failedlog.write("\n")
     msg = loads(msg)
     headers = message._headers
     if headers is not None:
