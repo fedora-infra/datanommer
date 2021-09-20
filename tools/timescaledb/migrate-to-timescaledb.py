@@ -17,6 +17,7 @@ from sqlalchemy import (
     Table,
     UnicodeText,
 )
+from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import declarative_base, relationship, Session
 
 import datanommer.models as dm
@@ -163,11 +164,19 @@ def main(config_path, since):
         old_messages = src_db.query(OldMessage).order_by(OldMessage.id)
         latest = dm.Message.query.order_by(dm.Message.id.desc()).first()
         if latest:
-            latest_in_src = (
-                src_db.query(OldMessage)
-                .filter(OldMessage.msg_id == latest.msg_id)
-                .one()
-            )
+            try:
+                latest_in_src = (
+                    src_db.query(OldMessage)
+                    .filter(OldMessage.msg_id == latest.msg_id)
+                    .one()
+                )
+            except NoResultFound:
+                latest_in_src = (
+                    src_db.query(OldMessage)
+                    .filter(OldMessage.timestamp == latest.timestamp)
+                    .filter(OldMessage.topic == latest.topic)
+                    .one()
+                )
             old_messages = old_messages.filter(OldMessage.id > latest_in_src.id)
             click.echo(f"Resuming from message {latest.msg_id}")
         if since:
