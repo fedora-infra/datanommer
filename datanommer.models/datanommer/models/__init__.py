@@ -50,7 +50,7 @@ from sqlalchemy.orm import (
 
 try:
     from psycopg2.errors import UniqueViolation
-except ImportError:
+except ImportError:  # pragma: no cover
     from psycopg2.errorcodes import lookup as lookup_error
 
     UniqueViolation = lookup_error("23505")
@@ -90,7 +90,7 @@ def init(uri=None, alembic_ini=None, engine=None, create=False):
 
     # Loads the alembic configuration and generates the version table, with
     # the most recent revision stamped as head
-    if alembic_ini is not None:
+    if alembic_ini is not None:  # pragma: no cover
         from alembic import command
         from alembic.config import Config
 
@@ -404,11 +404,13 @@ class Message(DeclarativeBase):
 
         # And then the four negative filters as necessary
         if not_users:
-            query = query.filter(not_(or_(*(Message.users.any(u) for u in not_users))))
+            query = query.filter(
+                not_(or_(*(Message.users.any(User.name == u) for u in not_users)))
+            )
 
         if not_packs:
             query = query.filter(
-                not_(or_(*(Message.packages.any(p) for p in not_packs)))
+                not_(or_(*(Message.packages.any(Package.name == p) for p in not_packs)))
             )
 
         if not_cats:
