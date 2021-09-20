@@ -92,14 +92,14 @@ def init(uri=None, alembic_ini=None, engine=None, create=False):
     if create:
         session.execute("CREATE EXTENSION IF NOT EXISTS timescaledb")
         DeclarativeBase.metadata.create_all(engine)
-    # Loads the alembic configuration and generates the version table, with
-    # the most recent revision stamped as head
-    if alembic_ini is not None:  # pragma: no cover
-        from alembic import command
-        from alembic.config import Config
+        # Loads the alembic configuration and generates the version table, with
+        # the most recent revision stamped as head
+        if alembic_ini is not None:  # pragma: no cover
+            from alembic import command
+            from alembic.config import Config
 
-        alembic_cfg = Config(alembic_ini)
-        command.stamp(alembic_cfg, "head")
+            alembic_cfg = Config(alembic_ini)
+            command.stamp(alembic_cfg, "head")
 
 
 def add(message):
