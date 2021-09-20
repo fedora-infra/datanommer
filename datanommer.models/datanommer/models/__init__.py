@@ -394,7 +394,12 @@ class Message(DeclarativeBase):
 
         if contains:
             query = query.filter(
-                or_(*(Message._msg.like("%%%s%%" % contain) for contain in contains))
+                or_(
+                    *(
+                        Message.msg.op("#>>")("{}").like("%%%s%%" % contain)
+                        for contain in contains
+                    )
+                )
             )
 
         # And then the four negative filters as necessary
