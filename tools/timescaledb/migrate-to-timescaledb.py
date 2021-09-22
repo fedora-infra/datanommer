@@ -108,7 +108,6 @@ def import_message(message):
         crypto=message.crypto,
         certificate=message.certificate,
         signature=message.signature,
-        category=message.category,
         msg=msg,
         headers=headers,
         users=[u.name for u in message.users],
