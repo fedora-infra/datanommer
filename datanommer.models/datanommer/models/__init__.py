@@ -17,6 +17,7 @@ import datetime
 import logging
 import math
 import traceback
+import uuid
 from warnings import warn
 
 import pkg_resources
@@ -88,17 +89,17 @@ def init(uri=None, alembic_ini=None, engine=None, create=False):
     session.configure(bind=engine)
     DeclarativeBase.query = session.query_property()
 
-    # Loads the alembic configuration and generates the version table, with
-    # the most recent revision stamped as head
-    if alembic_ini is not None:  # pragma: no cover
-        from alembic import command
-        from alembic.config import Config
-
-        alembic_cfg = Config(alembic_ini)
-        command.stamp(alembic_cfg, "head")
-
     if create:
+        session.execute("CREATE EXTENSION IF NOT EXISTS timescaledb")
         DeclarativeBase.metadata.create_all(engine)
+        # Loads the alembic configuration and generates the version table, with
+        # the most recent revision stamped as head
+        if alembic_ini is not None:  # pragma: no cover
+            from alembic import command
+            from alembic.config import Config
+
+            alembic_cfg = Config(alembic_ini)
+            command.stamp(alembic_cfg, "head")
 
 
 def add(message):
@@ -211,6 +212,9 @@ class Message(DeclarativeBase):
     def create(cls, **kwargs):
         users = kwargs.pop("users")
         packages = kwargs.pop("packages")
+        if not kwargs.get("msg_id"):
+            log.info("Message on %s was received without a msg_id", kwargs["topic"])
+            kwargs["msg_id"] = str(uuid.uuid4())
         obj = cls(**kwargs)
 
         try:
@@ -444,7 +448,7 @@ class Message(DeclarativeBase):
 class NamedSingleton:
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(UnicodeText, index=True)
+    name = Column(UnicodeText, index=True, unique=True)
 
     @classmethod
     def get_or_create(cls, name):

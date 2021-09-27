@@ -15,6 +15,7 @@
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 import datetime
 import json
+import logging
 
 import pytest
 from bodhi.messages.schemas.update import UpdateCommentV1
@@ -106,6 +107,19 @@ def test_from_msg_id(datanommer_models):
     dbmsg = Message.from_msg_id("ACUSTOMMESSAGEID")
 
     assert dbmsg.msg_id == "ACUSTOMMESSAGEID"
+
+
+def test_add_missing_msg_id(datanommer_models, caplog):
+    caplog.set_level(logging.INFO)
+    example_message = generate_message()
+    example_message._properties.message_id = None
+    add(example_message)
+    dbmsg = Message.query.first()
+    assert (
+        "Message on org.fedoraproject.test.a.nice.message was received without a msg_id"
+        in caplog.records[-1].message
+    )
+    assert dbmsg.msg_id is not None
 
 
 def test_add_missing_timestamp(datanommer_models):

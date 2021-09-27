@@ -4,7 +4,7 @@
 Migrate the datanommer database from the pre-2021 format to the TimescaleDB-based format.
 """
 
-from json import loads
+from json import dumps, JSONDecodeError, loads
 
 import click
 import toml
@@ -17,6 +17,7 @@ from sqlalchemy import (
     Table,
     UnicodeText,
 )
+from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import declarative_base, relationship, Session
 
 import datanommer.models as dm
@@ -74,6 +75,25 @@ class Package(OldBase):
 
 def import_message(message):
     msg = message._msg.replace("\\u0000", "")
+    try:
+        msg = loads(msg)
+    except JSONDecodeError:
+        click.echo(
+            f"Can't decode json in message {message.msg_id} ({message.timestamp})"
+        )
+        with open("failed.log", "a") as failedlog:
+            failedlog.write(
+                dumps(
+                    {
+                        "id": message.id,
+                        "msg_id": message.msg_id,
+                        "timestamp": message.timestamp.isoformat(),
+                        "topic": message.topic,
+                        "msg": message._msg,
+                    }
+                )
+            )
+            failedlog.write("\n")
     msg = loads(msg)
     headers = message._headers
     if headers is not None:
@@ -88,7 +108,6 @@ def import_message(message):
         crypto=message.crypto,
         certificate=message.certificate,
         signature=message.signature,
-        category=message.category,
         msg=msg,
         headers=headers,
         users=[u.name for u in message.users],
@@ -136,7 +155,7 @@ def windowed_query(q, column, windowsize):
 )
 def main(config_path, since):
     config = toml.load(config_path)
-    dm.init(config["dest_url"])
+    dm.init(config["dest_url"], create=True)
     src_engine = create_engine(config["source_url"], future=True)
 
     with Session(src_engine) as src_db:
@@ -144,11 +163,19 @@ def main(config_path, since):
         old_messages = src_db.query(OldMessage).order_by(OldMessage.id)
         latest = dm.Message.query.order_by(dm.Message.id.desc()).first()
         if latest:
-            latest_in_src = (
-                src_db.query(OldMessage)
-                .filter(OldMessage.msg_id == latest.msg_id)
-                .one()
-            )
+            try:
+                latest_in_src = (
+                    src_db.query(OldMessage)
+                    .filter(OldMessage.msg_id == latest.msg_id)
+                    .one()
+                )
+            except NoResultFound:
+                latest_in_src = (
+                    src_db.query(OldMessage)
+                    .filter(OldMessage.timestamp == latest.timestamp)
+                    .filter(OldMessage.topic == latest.topic)
+                    .one()
+                )
             old_messages = old_messages.filter(OldMessage.id > latest_in_src.id)
             click.echo(f"Resuming from message {latest.msg_id}")
         if since:
