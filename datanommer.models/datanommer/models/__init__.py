@@ -282,9 +282,14 @@ class Message(DeclarativeBase):
         )
 
     def as_fedora_message_dict(self):
+        headers = self.headers
+        if "sent-at" not in headers:
+            headers["sent-at"] = self.timestamp.astimezone(
+                datetime.timezone.utc
+            ).isoformat()
         return dict(
             body=self.msg,
-            headers=self.headers,
+            headers=headers,
             id=self.msg_id,
             queue=None,
             topic=self.topic,

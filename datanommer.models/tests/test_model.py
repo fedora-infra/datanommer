@@ -470,6 +470,22 @@ def test_as_fedora_message_dict(datanommer_models):
     assert json.loads(fedora_message.dumps(example_message)) == json.loads(message_json)
 
 
+def test_as_fedora_message_dict_old_headers(datanommer_models):
+    # Messages received with fedmsg don't have the sent-at header
+    example_message = generate_message()
+    add(example_message)
+
+    dbmsg = Message.query.first()
+    del dbmsg.headers["sent-at"]
+
+    message_dict = dbmsg.as_fedora_message_dict()
+    print(message_dict)
+    print(json.loads(fedora_message.dumps(example_message)))
+
+    # this should be the same as if we use the fedora_messaging dump function
+    assert json.loads(fedora_message.dumps(example_message)) == message_dict
+
+
 def test_as_dict(datanommer_models):
     add(generate_message())
     dbmsg = Message.query.first()
