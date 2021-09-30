@@ -23,6 +23,14 @@ SQLAlchemy = ">=1.0.9,<1.4.23"
 alembic = "^1.6.5"
 psycopg2 = "^2.9.1"
 fedora-messaging = "^2.1.0"
+anitya-schema = {version = "^2.0.0", optional = true}
+fedora-messaging-the-new-hotness-schema = {version = "^1.1.0", optional = true}
+bodhi-messages = {version = "^5.5", optional = true}
+fedocal-messages = {version = "^1.5.0", optional = true}
+fedora-planet-messages = {version = "^1.0.0", optional = true}
+noggin-messages = {version = "^1.0.0", optional = true}
+fedorainfra-ansible-messages = {git = "https://github.com/fedora-infra/fedorainfra-ansible-messages.git", rev = "master", optional = true}
+nuancier-messages = {git = "https://github.com/fedora-infra/nuancier-messages.git", rev = "dev", optional = true}
 
 [tool.poetry.dev-dependencies]
 pre-commit = "^2.13.0"
@@ -36,6 +44,18 @@ pytest-postgresql = "^3.1.1"
 pytest-mock = "^3.6.1"
 bodhi-messages = "^5.5"
 towncrier = "^21.3.0"
+
+[tool.poetry.extras]
+schemas = [
+  "anitya-schema",
+  "fedora-messaging-the-new-hotness-schema",
+  "bodhi-messages",
+  "fedocal-messages",
+  "fedora-planet-messages",
+  "noggin-messages",
+  "fedorainfra-ansible-messages",
+  "nuancier-messages",
+]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
