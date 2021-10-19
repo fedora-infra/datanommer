@@ -205,7 +205,7 @@ class Message(DeclarativeBase):
     crypto = Column(UnicodeText)
     source_name = Column(Unicode, default="datanommer")
     source_version = Column(Unicode, default=source_version_default)
-    msg = Column(JSONEncodedDict, nullable=False, index=True)
+    msg = Column(JSONEncodedDict, nullable=False)
     headers = Column(postgresql.JSONB(none_as_null=True))
     users = relationship(
         "User",
