@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 import datetime
+import json
 import logging
 import math
 import traceback
@@ -33,7 +34,9 @@ from sqlalchemy import (
     Integer,
     not_,
     or_,
+    String,
     Table,
+    TypeDecorator,
     Unicode,
     UnicodeText,
     UniqueConstraint,
@@ -47,6 +50,7 @@ from sqlalchemy.orm import (
     sessionmaker,
     validates,
 )
+from sqlalchemy.sql import operators
 
 
 try:
@@ -139,6 +143,35 @@ def source_version_default(context):
     return dist.version
 
 
+# https://docs.sqlalchemy.org/en/14/core/custom_types.html#marshal-json-strings
+
+
+class JSONEncodedDict(TypeDecorator):
+    """Represents an immutable structure as a json-encoded string."""
+
+    impl = UnicodeText
+
+    cache_ok = True
+
+    def process_bind_param(self, value, dialect):
+        if value is not None:
+            value = json.dumps(value)
+
+        return value
+
+    def process_result_value(self, value, dialect):
+        if value is not None:
+            value = json.loads(value)
+        return value
+
+    def coerce_compared_value(self, op, value):
+        # https://docs.sqlalchemy.org/en/14/core/custom_types.html#dealing-with-comparison-operations
+        if op in (operators.like_op, operators.not_like_op):
+            return String()
+        else:
+            return self
+
+
 users_assoc_table = Table(
     "users_messages",
     DeclarativeBase.metadata,
@@ -172,7 +205,7 @@ class Message(DeclarativeBase):
     crypto = Column(UnicodeText)
     source_name = Column(Unicode, default="datanommer")
     source_version = Column(Unicode, default=source_version_default)
-    msg = Column(postgresql.JSONB, nullable=False)
+    msg = Column(JSONEncodedDict, nullable=False, index=True)
     headers = Column(postgresql.JSONB(none_as_null=True))
     users = relationship(
         "User",
@@ -403,12 +436,7 @@ class Message(DeclarativeBase):
 
         if contains:
             query = query.filter(
-                or_(
-                    *(
-                        Message.msg.op("#>>")("{}").like("%%%s%%" % contain)
-                        for contain in contains
-                    )
-                )
+                or_(*(Message.msg.like("%%%s%%" % contain) for contain in contains))
             )
 
         # And then the four negative filters as necessary
