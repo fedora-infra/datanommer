@@ -27,10 +27,14 @@ echo "---> Installing datanommer components ..."
 for subpackage in datanommer.models datanommer.commands datanommer.consumer; do
     pushd $subpackage
     echo "Installing python package in $(pwd)"
+    extras=""
+    if [ "$subpackage" == "datanommer.models" ]; then
+        extras="--extras schemas"
+    fi
     # Don't set --no-dev for now, Poetry would uninstall packages that are a
     # main dependency for one component but a dev dependency for the following
     # component.
-    poetry install
+    poetry install $extras
     popd
 done
 

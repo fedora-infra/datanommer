@@ -82,7 +82,7 @@ jobs:
         run: pip install tox
 
       - name: Run unit tests for datanommer.${{ matrix.package }}
-        run: tox -e py
+        run: tox -e py -- --postgresql-exec /usr/lib/postgresql/13/bin/pg_ctl
         working-directory: datanommer.${{ matrix.package }}
 
       # - name: Upload coverage to Codecov
