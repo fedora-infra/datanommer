@@ -13,6 +13,12 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+# This is a Python2-compatible file for the badges app, that is still running on Python2.
+# Compatibility fixes done by pasteurize: http://python-future.org/pasteurize.html
+
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 import datetime
 import json
 import logging
@@ -436,7 +442,7 @@ class Message(DeclarativeBase):
 
         if contains:
             query = query.filter(
-                or_(*(Message.msg.like(f"%{contain}%") for contain in contains))
+                or_(*(Message.msg.like("%{}%".format(contain)) for contain in contains))
             )
 
         # And then the four negative filters as necessary
@@ -478,7 +484,7 @@ class Message(DeclarativeBase):
             return total, pages, messages
 
 
-class NamedSingleton:
+class NamedSingleton(object):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(UnicodeText, index=True, unique=True)
@@ -521,7 +527,7 @@ def _setup_hypertable(table_class):
     event.listen(
         table_class.__table__,
         "after_create",
-        DDL(f"SELECT create_hypertable('{table_class.__tablename__}', 'timestamp');"),
+        DDL("SELECT create_hypertable('%s', 'timestamp');" % table_class.__tablename__),
     )
 
 
