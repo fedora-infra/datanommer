@@ -405,6 +405,17 @@ def test_grep_not_packages(datanommer_models):
     assert messages[0].msg == example_message.body
 
 
+def test_grep_contains(datanommer_models):
+    example_message = generate_message(topic="org.fedoraproject.prod.bodhi.newupdate")
+    add(example_message)
+    session.flush()
+    t, p, r = Message.grep(contains=["doing"])
+    assert t == 1
+    assert p == 1
+    assert len(r) == 1
+    assert r[0].msg == example_message.body
+
+
 def test_grep_rows_per_page_none(datanommer_models):
     for x in range(0, 200):
         example_message = generate_message()
@@ -506,3 +517,16 @@ def test___json__deprecated(datanommer_models, caplog, mocker):
         Message.query.first().__json__()
 
     mock_as_dict.assert_called_once()
+
+
+def test_singleton_create(datanommer_models):
+    Package.get_or_create("foobar")
+    assert [p.name for p in Package.query.all()] == ["foobar"]
+
+
+def test_singleton_get_existing(datanommer_models):
+    p1 = Package.get_or_create("foobar")
+    # Clear the in-memory cache
+    Package._cache.clear()
+    p2 = Package.get_or_create("foobar")
+    assert p1.id == p2.id
