@@ -94,7 +94,7 @@ def import_message(message):
                 )
             )
             failedlog.write("\n")
-    msg = loads(msg)
+        return
     headers = message._headers
     if headers is not None:
         headers = headers.replace("\\u0000", "")
