@@ -95,7 +95,7 @@ def dump(config_path, since, before):
         query = query.filter(m.Message.timestamp >= since)
 
     results = [json.dumps(msg.as_fedora_message_dict()) for msg in query.all()]
-    click.echo("[%s]" % ",".join(results))
+    click.echo(f"[{','.join(results)}]")
 
 
 @click.command()
@@ -330,7 +330,7 @@ def latest(config_path, topic, category, overall, timestamp, timesince, human):
     for result in sum((query.all() for query in queries), []):
         results.append(formatter(result.category, result))
 
-    click.echo("[%s]" % ",".join(results))
+    click.echo(f"[{','.join(results)}]")
 
 
 # Set the version
