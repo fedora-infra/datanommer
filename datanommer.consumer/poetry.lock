@@ -788,7 +788,7 @@ dev = ["pre-commit", "tox", "pytest-asyncio"]
 
 [[package]]
 name = "pytest-postgresql"
-version = "3.1.1"
+version = "3.1.2"
 description = "Postgresql fixtures and fixture factories for Pytest."
 category = "dev"
 optional = false
@@ -1611,8 +1611,8 @@ pytest-mock = [
     {file = "pytest_mock-3.6.1-py3-none-any.whl", hash = "sha256:30c2f2cc9759e76eee674b81ea28c9f0b94f8f0445a1b87762cadf774f0df7e3"},
 ]
 pytest-postgresql = [
-    {file = "pytest-postgresql-3.1.1.tar.gz", hash = "sha256:b690548d1c1df7ca933a50b32c565fe59925a4ddee49fe7683daf20c708bf644"},
-    {file = "pytest_postgresql-3.1.1-py3-none-any.whl", hash = "sha256:4dc29241d5ab673b4e11f4464a6c8f714210ad6e82b7f5fa4ce0beb7c924cab3"},
+    {file = "pytest-postgresql-3.1.2.tar.gz", hash = "sha256:f3582a51506b0aa2dd292bfd12bac5f27982ef9235b516140437d7af8e4b7287"},
+    {file = "pytest_postgresql-3.1.2-py3-none-any.whl", hash = "sha256:32a15caa8cbebb7e8cbccb1c03bda55a00e7de9a2409add8b04dfbfa60f6432b"},
 ]
 pytz = [
     {file = "pytz-2021.3-py2.py3-none-any.whl", hash = "sha256:3672058bc3453457b622aab7a1c3bfd5ab0bdae451512f6cf25f64ed37f5b87c"},
