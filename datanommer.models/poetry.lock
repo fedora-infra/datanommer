@@ -468,7 +468,7 @@ i18n = ["Babel (>=2.7)"]
 
 [[package]]
 name = "jsonschema"
-version = "4.2.0"
+version = "4.2.1"
 description = "An implementation of JSON Schema validation for Python"
 category = "main"
 optional = false
@@ -477,7 +477,7 @@ python-versions = ">=3.7"
 [package.dependencies]
 attrs = ">=17.4.0"
 importlib-metadata = {version = "*", markers = "python_version < \"3.8\""}
-importlib-resources = {version = "*", markers = "python_version < \"3.9\""}
+importlib-resources = {version = ">=1.4.0", markers = "python_version < \"3.9\""}
 pyrsistent = ">=0.14.0,<0.17.0 || >0.17.0,<0.17.1 || >0.17.1,<0.17.2 || >0.17.2"
 
 [package.extras]
@@ -1401,8 +1401,8 @@ jinja2 = [
     {file = "Jinja2-3.0.2.tar.gz", hash = "sha256:827a0e32839ab1600d4eb1c4c33ec5a8edfbc5cb42dafa13b81f182f97784b45"},
 ]
 jsonschema = [
-    {file = "jsonschema-4.2.0-py3-none-any.whl", hash = "sha256:2b563117f3659a7f433dffe1371c88f52115b79133493f376f15724b9caa7efa"},
-    {file = "jsonschema-4.2.0.tar.gz", hash = "sha256:e2d3601321ac74d38214e2853300ae740cd07e53d919a15862b8c71f9d840574"},
+    {file = "jsonschema-4.2.1-py3-none-any.whl", hash = "sha256:2a0f162822a64d95287990481b45d82f096e99721c86534f48201b64ebca6e8c"},
+    {file = "jsonschema-4.2.1.tar.gz", hash = "sha256:390713469ae64b8a58698bb3cbc3859abe6925b565a973f87323ef21b09a27a8"},
 ]
 liccheck = [
     {file = "liccheck-0.6.2-py2.py3-none-any.whl", hash = "sha256:e6583fc327126695a31a7ed8941e784ecd5c84bb2aecbe2782d925cac5c3fe47"},
