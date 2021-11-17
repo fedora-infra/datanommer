@@ -469,6 +469,32 @@ def test_add_integrity_error(datanommer_models, mocker, caplog):
     assert Message.query.count() == 0
 
 
+def test_add_duplicate_package(datanommer_models, caplog):
+    # Define a special message schema and register it
+    class MessageWithPackages(fedora_message.Message):
+        @property
+        def packages(self):
+            return ["pkg", "pkg"]
+
+    fedora_message._schema_name_to_class["MessageWithPackages"] = MessageWithPackages
+    fedora_message._class_to_schema_name[MessageWithPackages] = "MessageWithPackages"
+    example_message = MessageWithPackages(
+        topic="org.fedoraproject.test.a.nice.message",
+        body={"encouragement": "You're doing great!"},
+        headers=None,
+    )
+    try:
+        add(example_message)
+    except IntegrityError as e:
+        assert False, e
+    # if no exception was thrown, then we successfully ignored the
+    # duplicate message
+    assert Message.query.count() == 1
+    dbmsg = Message.query.first()
+    assert len(dbmsg.packages) == 1
+    assert dbmsg.packages[0].name == "pkg"
+
+
 def test_as_fedora_message_dict(datanommer_models):
     example_message = generate_message()
     add(example_message)

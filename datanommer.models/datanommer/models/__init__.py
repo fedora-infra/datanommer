@@ -277,7 +277,7 @@ class Message(DeclarativeBase):
             return
         assoc_col_name = assoc_table.c[0].name
         insert_values = []
-        for name in values:
+        for name in set(values):
             attr_obj = rel_class.get_or_create(name)
             # This would normally be a simple "obj.[users|packages].append(name)" kind
             # of statement, but here we drop down out of sqlalchemy's ORM and into the
