@@ -21,6 +21,7 @@ VIRTUAL_ENV=$HOME/.local/venvs/datanommer
 echo "---> Create a virtual environment for datanommer ..."
 virtualenv_bin "$VIRTUAL_ENV"
 export VIRTUAL_ENV
+$VIRTUAL_ENV/bin/pip install --upgrade pip
 $VIRTUAL_ENV/bin/pip install wheel
 
 echo "---> Installing datanommer components ..."
