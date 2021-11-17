@@ -124,6 +124,26 @@ def add(message):
     else:
         sent_at = datetime.datetime.utcnow()
 
+    # Workaround schemas misbehaving
+    try:
+        usernames = message.usernames
+    except Exception:
+        log.exception(
+            "Could not get the list of users from a message on %s with id %s",
+            message.topic,
+            message.id,
+        )
+        usernames = []
+    try:
+        packages = message.packages
+    except Exception:
+        log.exception(
+            "Could not get the list of packages from a message on %s with id %s",
+            message.topic,
+            message.id,
+        )
+        packages = []
+
     Message.create(
         i=0,
         msg_id=message.id,
@@ -131,8 +151,8 @@ def add(message):
         timestamp=sent_at,
         msg=message.body,
         headers=headers,
-        users=message.usernames,
-        packages=message.packages,
+        users=usernames,
+        packages=packages,
     )
 
     session.commit()
