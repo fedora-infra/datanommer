@@ -469,7 +469,7 @@ def test_add_integrity_error(datanommer_models, mocker, caplog):
     assert Message.query.count() == 0
 
 
-def test_add_duplicate_package(datanommer_models, caplog):
+def test_add_duplicate_package(datanommer_models):
     # Define a special message schema and register it
     class MessageWithPackages(fedora_message.Message):
         @property
@@ -487,12 +487,38 @@ def test_add_duplicate_package(datanommer_models, caplog):
         add(example_message)
     except IntegrityError as e:
         assert False, e
-    # if no exception was thrown, then we successfully ignored the
-    # duplicate message
     assert Message.query.count() == 1
     dbmsg = Message.query.first()
     assert len(dbmsg.packages) == 1
     assert dbmsg.packages[0].name == "pkg"
+
+
+def test_add_message_with_error_on_packages(datanommer_models, caplog):
+    # Define a special message schema and register it
+    class CustomMessage(fedora_message.Message):
+        @property
+        def packages(self):
+            raise KeyError
+
+        def _filter_headers(self):
+            return {}
+
+    fedora_message._schema_name_to_class["CustomMessage"] = CustomMessage
+    fedora_message._class_to_schema_name[CustomMessage] = "CustomMessage"
+    example_message = CustomMessage(
+        topic="org.fedoraproject.test.a.nice.message",
+        body={"encouragement": "You're doing great!"},
+        headers=None,
+    )
+    try:
+        add(example_message)
+    except KeyError as e:
+        assert False, e
+    assert Message.query.count() == 1
+    assert caplog.records[0].message == (
+        f"Could not get the list of packages from a message on "
+        f"org.fedoraproject.test.a.nice.message with id {example_message.id}"
+    )
 
 
 def test_as_fedora_message_dict(datanommer_models):
