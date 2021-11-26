@@ -445,7 +445,7 @@ python-versions = "*"
 
 [[package]]
 name = "liccheck"
-version = "0.6.2"
+version = "0.6.4"
 description = "Check python packages from requirement.txt and report issues"
 category = "dev"
 optional = false
@@ -1372,8 +1372,8 @@ kitchen = [
     {file = "kitchen-1.2.6.tar.gz", hash = "sha256:b84cf582f1bd1556b60ebc7370b9d331eb9247b6b070ce89dfe959cba2c0b03c"},
 ]
 liccheck = [
-    {file = "liccheck-0.6.2-py2.py3-none-any.whl", hash = "sha256:e6583fc327126695a31a7ed8941e784ecd5c84bb2aecbe2782d925cac5c3fe47"},
-    {file = "liccheck-0.6.2.tar.gz", hash = "sha256:5667be7c9ef6496bd381e709e938e9fe51c31d601afc44965615cdfbce375eab"},
+    {file = "liccheck-0.6.4-py2.py3-none-any.whl", hash = "sha256:ee490972239413c7087d9f7f60a43d03943f768162000a3f9d5bf0e82ed098b1"},
+    {file = "liccheck-0.6.4.tar.gz", hash = "sha256:049b53fab91813182ea1073cf1a53ba63eed8cbccb792942989935253ca3dffb"},
 ]
 mako = [
     {file = "Mako-1.1.5-py2.py3-none-any.whl", hash = "sha256:6804ee66a7f6a6416910463b00d76a7b25194cd27f1918500c5bd7be2a088a23"},
