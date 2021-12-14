@@ -32,15 +32,11 @@ isort = "^5.9.2"
 flake8 = "^3.9.2"
 pytest = "^6.2.4"
 psutil = "^5.8.0"
-"moksha.hub" = "^1.5.17"
 liccheck = "^0.6.0"
 pytest-cov = "^2.12.1"
 pytest-mock = "^3.6.1"
 pytest-postgresql = "^3.1.1"
 towncrier = "^21.3.0"
-
-[tool.poetry.plugins."moksha.consumer"]
-"noms" = "datanommer.consumer:Nommer"
 
 
 [build-system]
@@ -87,9 +83,6 @@ authorized_licenses = [
   "Public Domain <http://unlicense.org>",
   "Zope Public",
 ]
-
-[tool.liccheck.authorized_packages]
-"moksha.hub" = ">=1.5.0"
 
 
 [tool.towncrier]
