@@ -267,7 +267,7 @@ test = ["pytest (>=6.2.0)", "pytest-cov", "pytest-subtests", "pytest-xdist", "pr
 
 [[package]]
 name = "discourse2fedmsg-messages"
-version = "1.0.0"
+version = "1.0.2"
 description = "A schema package for messages sent by discourse2fedmsg"
 category = "main"
 optional = true
@@ -1313,8 +1313,8 @@ cryptography = [
     {file = "cryptography-36.0.0.tar.gz", hash = "sha256:52f769ecb4ef39865719aedc67b4b7eae167bafa48dbc2a26dd36fa56460507f"},
 ]
 discourse2fedmsg-messages = [
-    {file = "discourse2fedmsg-messages-1.0.0.tar.gz", hash = "sha256:881a79bfc7f60053f82f6726bc4447e871e97c9b2ff9660e2721d7ff07b84092"},
-    {file = "discourse2fedmsg_messages-1.0.0-py3-none-any.whl", hash = "sha256:4889a8c27e7b8eb4347a33dd361f8208d3750105b3ea345606884f2150ae35c8"},
+    {file = "discourse2fedmsg-messages-1.0.2.tar.gz", hash = "sha256:cd64990332ec529b158ca72d8cfbd8778ef6f78ffe5709337aeb72378dd820a9"},
+    {file = "discourse2fedmsg_messages-1.0.2-py3-none-any.whl", hash = "sha256:3b790276ee153c1db6be32e6279cc98fbf14e4a25509f8ae444c713f77e182f2"},
 ]
 distlib = [
     {file = "distlib-0.3.4-py2.py3-none-any.whl", hash = "sha256:6564fe0a8f51e734df6333d08b8b94d4ea8ee6b99b5ed50613f731fd4089f34b"},
