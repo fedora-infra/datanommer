@@ -341,14 +341,14 @@ fedora-messaging = "*"
 
 [[package]]
 name = "fedorainfra-ansible-messages"
-version = "0.0.1"
+version = "0.0.2"
 description = "A schema package for messages sent by fedorainfra_ansible"
 category = "main"
 optional = true
 python-versions = "*"
 
 [package.dependencies]
-fedora_messaging = "*"
+fedora-messaging = "*"
 
 [[package]]
 name = "filelock"
@@ -1336,7 +1336,8 @@ fedora-planet-messages = [
     {file = "fedora_planet_messages-1.0.0-py2.py3-none-any.whl", hash = "sha256:830ab40e19492a4bf5393f01761a4ce1fac8519894e589a794ead36af7e2c32d"},
 ]
 fedorainfra-ansible-messages = [
-    {file = "fedorainfra_ansible-messages-0.0.1.tar.gz", hash = "sha256:becd9ac54fa1f230d4268ce3f6849a72bd372bdafca79774feed59cb40446117"},
+    {file = "fedorainfra_ansible-messages-0.0.2.tar.gz", hash = "sha256:7f44e82baff4c75ab3b6f32dac9f85a6c6b27ee4c6d192598ce4a52f3bed065e"},
+    {file = "fedorainfra_ansible_messages-0.0.2-py2.py3-none-any.whl", hash = "sha256:6312a7333ceca78f2866026f7ca41b0c6c0beff6fdee6f096b8ff4d40c5bd721"},
 ]
 filelock = [
     {file = "filelock-3.4.0-py3-none-any.whl", hash = "sha256:2e139a228bcf56dd8b2274a65174d005c4a6b68540ee0bdbb92c76f43f29f7e8"},
