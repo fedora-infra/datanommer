@@ -38,3 +38,8 @@ jobs:
           labels: dependencies
           signoff: true
           delete-branch: true
+
+      - uses: hmarr/auto-approve-action@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
