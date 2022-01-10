@@ -26,6 +26,9 @@ jobs:
       - name: Run pre-commit autoupdate
         run: pre-commit autoupdate
 
+      - name: Run pre-commit checks
+        run: pre-commit run -a
+
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v3
         with:
@@ -38,8 +41,3 @@ jobs:
           labels: dependencies
           signoff: true
           delete-branch: true
-
-      - uses: hmarr/auto-approve-action@v2
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
