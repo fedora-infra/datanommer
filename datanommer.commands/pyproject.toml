@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "datanommer.commands"
-version = "1.0.0-alpha.1"
+version = "1.0.0"
 description = "Console commands for datanommer"
 authors = [
   "Fedora Infrastructure <admin@fedoraproject.org>"
@@ -19,7 +19,7 @@ include = [
 
 [tool.poetry.dependencies]
 python = "^3.7"
-"datanommer.models" = {version = "1.0.0-alpha.2", allow-prereleases = true}
+"datanommer.models" = "^1.0.0"
 fedora-messaging = "^2.1.0"
 
 [tool.poetry.dev-dependencies]
