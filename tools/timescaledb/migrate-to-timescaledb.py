@@ -23,6 +23,8 @@ from sqlalchemy.orm import declarative_base, relationship, Session
 import datanommer.models as dm
 
 
+CHUNK_SIZE = 5000
+
 OldBase = declarative_base()
 
 user_assoc_table = Table(
@@ -90,6 +92,21 @@ def import_message(message):
                         "timestamp": message.timestamp.isoformat(),
                         "topic": message.topic,
                         "msg": message._msg,
+                    }
+                )
+            )
+            failedlog.write("\n")
+        return
+    if not msg:
+        with open("failed.log", "a") as failedlog:
+            failedlog.write(
+                dumps(
+                    {
+                        "id": message.id,
+                        "msg_id": message.msg_id,
+                        "timestamp": message.timestamp.isoformat(),
+                        "topic": message.topic,
+                        "msg": repr(message._msg),
                     }
                 )
             )
@@ -185,16 +202,17 @@ def main(config_path, since):
         with click.progressbar(
             length=total,
             label=f"Importing {total} messages",
+            item_show_func=lambda m: m.timestamp.strftime("%Y-%m") if m else "",
             # item_show_func=lambda m: m.msg_id if m else "",
         ) as bar:
-            for old_message in windowed_query(old_messages, OldMessage.id, 1000):
+            for old_message in windowed_query(old_messages, OldMessage.id, CHUNK_SIZE):
                 import_message(old_message)
                 # Commit periodically
                 if bar._completed_intervals % 1000 == 0:
                     dm.session.commit()
                 else:
                     dm.session.flush()
-                bar.update(1)
+                bar.update(1, old_message)
         dm.session.commit()
         # Verify counts
         click.echo(f"Messages in the old DB: {src_db.query(OldMessage).count()}")
