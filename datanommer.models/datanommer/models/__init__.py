@@ -330,8 +330,8 @@ class Message(DeclarativeBase):
             headers=self.headers,
             source_name=self.source_name,
             source_version=self.source_version,
-            users=[u.name for u in self.users],
-            packages=[p.name for p in self.packages],
+            users=list(sorted(u.name for u in self.users)),
+            packages=list(sorted(p.name for p in self.packages)),
         )
 
     def as_fedora_message_dict(self):

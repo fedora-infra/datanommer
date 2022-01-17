@@ -560,6 +560,15 @@ def test_as_dict(datanommer_models):
     assert message_dict["topic"] == "org.fedoraproject.test.a.nice.message"
 
 
+def test_as_dict_with_users_and_packages(datanommer_models):
+    add(generate_bodhi_update_complete_message())
+    dbmsg = Message.query.first()
+    message_dict = dbmsg.as_dict()
+
+    assert message_dict["users"] == ["dudemcpants", "ryanlerch"]
+    assert message_dict["packages"] == ["abrt-addon-python3", "kernel"]
+
+
 def test___json__deprecated(datanommer_models, caplog, mocker):
     mock_as_dict = mocker.patch("datanommer.models.Message.as_dict")
 
