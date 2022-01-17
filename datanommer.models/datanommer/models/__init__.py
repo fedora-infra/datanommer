@@ -13,10 +13,18 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+# This is a Python2-compatible file for the apps that are still running on Python2.
+# Compatibility fixes done by pasteurize: http://python-future.org/pasteurize.html
+
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 import datetime
+import json
 import logging
 import math
 import traceback
+import uuid
 from warnings import warn
 
 import pkg_resources
@@ -32,7 +40,9 @@ from sqlalchemy import (
     Integer,
     not_,
     or_,
+    String,
     Table,
+    TypeDecorator,
     Unicode,
     UnicodeText,
     UniqueConstraint,
@@ -41,11 +51,12 @@ from sqlalchemy.dialects import postgresql
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, scoped_session, sessionmaker, validates
+from sqlalchemy.sql import operators
 
 
 try:
     from psycopg2.errors import UniqueViolation
-except ImportError:
+except ImportError:  # pragma: no cover
     from psycopg2.errorcodes import lookup as lookup_error
 
     UniqueViolation = lookup_error("23505")
@@ -83,17 +94,17 @@ def init(uri=None, alembic_ini=None, engine=None, create=False):
     session.configure(bind=engine)
     DeclarativeBase.query = session.query_property()
 
-    # Loads the alembic configuration and generates the version table, with
-    # the most recent revision stamped as head
-    if alembic_ini is not None:
-        from alembic import command
-        from alembic.config import Config
-
-        alembic_cfg = Config(alembic_ini)
-        command.stamp(alembic_cfg, "head")
-
     if create:
+        session.execute("CREATE EXTENSION IF NOT EXISTS timescaledb")
         DeclarativeBase.metadata.create_all(engine)
+        # Loads the alembic configuration and generates the version table, with
+        # the most recent revision stamped as head
+        if alembic_ini is not None:  # pragma: no cover
+            from alembic import command
+            from alembic.config import Config
+
+            alembic_cfg = Config(alembic_ini)
+            command.stamp(alembic_cfg, "head")
 
 
 def add(message):
@@ -114,6 +125,26 @@ def add(message):
     else:
         sent_at = datetime.datetime.utcnow()
 
+    # Workaround schemas misbehaving
+    try:
+        usernames = message.usernames
+    except Exception:
+        log.exception(
+            "Could not get the list of users from a message on %s with id %s",
+            message.topic,
+            message.id,
+        )
+        usernames = []
+    try:
+        packages = message.packages
+    except Exception:
+        log.exception(
+            "Could not get the list of packages from a message on %s with id %s",
+            message.topic,
+            message.id,
+        )
+        packages = []
+
     Message.create(
         i=0,
         msg_id=message.id,
@@ -121,8 +152,8 @@ def add(message):
         timestamp=sent_at,
         msg=message.body,
         headers=headers,
-        users=message.usernames,
-        packages=message.packages,
+        users=usernames,
+        packages=packages,
     )
 
     session.commit()
@@ -131,6 +162,35 @@ def add(message):
 def source_version_default(context):
     dist = pkg_resources.get_distribution("datanommer.models")
     return dist.version
+
+
+# https://docs.sqlalchemy.org/en/14/core/custom_types.html#marshal-json-strings
+
+
+class JSONEncodedDict(TypeDecorator):
+    """Represents an immutable structure as a json-encoded string."""
+
+    impl = UnicodeText
+
+    cache_ok = True
+
+    def process_bind_param(self, value, dialect):
+        if value is not None:
+            value = json.dumps(value)
+
+        return value
+
+    def process_result_value(self, value, dialect):
+        if value is not None:
+            value = json.loads(value)
+        return value
+
+    def coerce_compared_value(self, op, value):
+        # https://docs.sqlalchemy.org/en/14/core/custom_types.html#dealing-with-comparison-operations
+        if op in (operators.like_op, operators.not_like_op):
+            return String()
+        else:
+            return self
 
 
 users_assoc_table = Table(
@@ -166,7 +226,7 @@ class Message(DeclarativeBase):
     crypto = Column(UnicodeText)
     source_name = Column(Unicode, default="datanommer")
     source_version = Column(Unicode, default=source_version_default)
-    msg = Column(postgresql.JSONB, nullable=False)
+    msg = Column(JSONEncodedDict, nullable=False)
     headers = Column(postgresql.JSONB(none_as_null=True))
     users = relationship(
         "User",
@@ -206,6 +266,9 @@ class Message(DeclarativeBase):
     def create(cls, **kwargs):
         users = kwargs.pop("users")
         packages = kwargs.pop("packages")
+        if not kwargs.get("msg_id"):
+            log.info("Message on %s was received without a msg_id", kwargs["topic"])
+            kwargs["msg_id"] = str(uuid.uuid4())
         obj = cls(**kwargs)
 
         try:
@@ -235,7 +298,7 @@ class Message(DeclarativeBase):
             return
         assoc_col_name = assoc_table.c[0].name
         insert_values = []
-        for name in values:
+        for name in set(values):
             attr_obj = rel_class.get_or_create(name)
             # This would normally be a simple "obj.[users|packages].append(name)" kind
             # of statement, but here we drop down out of sqlalchemy's ORM and into the
@@ -268,14 +331,19 @@ class Message(DeclarativeBase):
             headers=self.headers,
             source_name=self.source_name,
             source_version=self.source_version,
-            users=self.users,
-            packages=self.packages,
+            users=list(sorted(u.name for u in self.users)),
+            packages=list(sorted(p.name for p in self.packages)),
         )
 
     def as_fedora_message_dict(self):
+        headers = self.headers
+        if "sent-at" not in headers:
+            headers["sent-at"] = self.timestamp.astimezone(
+                datetime.timezone.utc
+            ).isoformat()
         return dict(
             body=self.msg,
-            headers=self.headers,
+            headers=headers,
             id=self.msg_id,
             queue=None,
             topic=self.topic,
@@ -389,16 +457,20 @@ class Message(DeclarativeBase):
 
         if contains:
             query = query.filter(
-                or_(*(Message._msg.like("%%%s%%" % contain) for contain in contains))
+                or_(
+                    *(Message._msg.like("%{}%".format(contain) for contain in contains))
+                )
             )
 
         # And then the four negative filters as necessary
         if not_users:
-            query = query.filter(not_(or_(*(Message.users.any(u) for u in not_users))))
+            query = query.filter(
+                not_(or_(*(Message.users.any(User.name == u) for u in not_users)))
+            )
 
         if not_packs:
             query = query.filter(
-                not_(or_(*(Message.packages.any(p) for p in not_packs)))
+                not_(or_(*(Message.packages.any(Package.name == p) for p in not_packs)))
             )
 
         if not_cats:
@@ -429,10 +501,10 @@ class Message(DeclarativeBase):
             return total, pages, messages
 
 
-class NamedSingleton:
+class NamedSingleton(object):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(UnicodeText, index=True)
+    name = Column(UnicodeText, index=True, unique=True)
 
     @classmethod
     def get_or_create(cls, name):
