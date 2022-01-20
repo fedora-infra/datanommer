@@ -484,7 +484,7 @@ class Message(DeclarativeBase):
         total = query.count()
         query = query.order_by(getattr(Message.timestamp, order)())
 
-        if rows_per_page is None:
+        if not rows_per_page:
             pages = 1
         else:
             pages = int(math.ceil(total / float(rows_per_page)))

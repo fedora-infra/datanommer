@@ -435,6 +435,22 @@ def test_grep_rows_per_page_none(datanommer_models):
     assert len(messages) == 200
 
 
+def test_grep_rows_per_page_zero(datanommer_models):
+    for x in range(0, 200):
+        example_message = generate_message()
+        example_message.id = f"{x}"
+        add(example_message)
+    session.flush()
+
+    try:
+        total, pages, messages = Message.grep(rows_per_page=0)
+    except ZeroDivisionError as e:
+        assert False, e
+    assert total == 200
+    assert pages == 1
+    assert len(messages) == 200
+
+
 def test_grep_defer(datanommer_models):
     example_message = generate_message()
     add(example_message)
