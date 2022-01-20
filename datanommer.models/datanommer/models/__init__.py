@@ -335,7 +335,7 @@ class Message(DeclarativeBase):
         )
 
     def as_fedora_message_dict(self):
-        headers = self.headers
+        headers = self.headers or {}
         if "sent-at" not in headers:
             headers["sent-at"] = self.timestamp.astimezone(
                 datetime.timezone.utc

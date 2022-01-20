@@ -549,6 +549,25 @@ def test_as_fedora_message_dict_old_headers(datanommer_models):
     assert json.loads(fedora_message.dumps(example_message)) == message_dict
 
 
+def test_as_fedora_message_dict_no_headers(datanommer_models):
+    # Messages can have no headers
+    example_message = generate_message()
+    add(example_message)
+
+    dbmsg = Message.query.first()
+    assert len(dbmsg.headers.keys()) == 3
+
+    # Clear the headers
+    dbmsg.headers = None
+
+    try:
+        message_dict = dbmsg.as_fedora_message_dict()
+    except TypeError as e:
+        assert False, e
+
+    assert list(message_dict["headers"].keys()) == ["sent-at"]
+
+
 def test_as_dict(datanommer_models):
     add(generate_message())
     dbmsg = Message.query.first()
