@@ -546,7 +546,7 @@ python-versions = "*"
 
 [[package]]
 name = "mirakuru"
-version = "2.4.1"
+version = "2.4.2"
 description = "Process executor (not only) for tests."
 category = "dev"
 optional = false
@@ -1512,8 +1512,8 @@ mccabe = [
     {file = "mccabe-0.6.1.tar.gz", hash = "sha256:dd8d182285a0fe56bace7f45b5e7d1a6ebcbf524e8f3bd87eb0f125271b8831f"},
 ]
 mirakuru = [
-    {file = "mirakuru-2.4.1-py3-none-any.whl", hash = "sha256:097324abe7479b3e6a8b745d0e3980664c8f6d3aec06cdeff8fc38cb2c9abc93"},
-    {file = "mirakuru-2.4.1.tar.gz", hash = "sha256:7025d121d2f04e957bd6ae3239531d60ebba787839c89d6052479beb58b0cd0b"},
+    {file = "mirakuru-2.4.2-py3-none-any.whl", hash = "sha256:fdb67d141cc9f7abd485a515d618daf3272c3e6ff48380749997ff8e8c5f2cb2"},
+    {file = "mirakuru-2.4.2.tar.gz", hash = "sha256:ec84d4d81b4bca96cb0e598c6b3d198a92f036a0c1223c881482c02a98508226"},
 ]
 mypy-extensions = [
     {file = "mypy_extensions-0.4.3-py2.py3-none-any.whl", hash = "sha256:090fedd75945a69ae91ce1303b5824f428daf5a028d2f6ab8a299250a846f15d"},
