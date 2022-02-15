@@ -657,14 +657,14 @@ testing = ["pytest", "pytest-benchmark"]
 
 [[package]]
 name = "port-for"
-version = "0.6.1"
+version = "0.6.2"
 description = "Utility that helps with local TCP ports management. It can find an unused TCP localhost port and remember the association."
 category = "dev"
 optional = false
 python-versions = ">=3.7"
 
 [package.extras]
-tests = ["pytest", "pytest-cov", "mock"]
+tests = ["pytest", "pytest-cov"]
 
 [[package]]
 name = "pre-commit"
@@ -1551,8 +1551,8 @@ pluggy = [
     {file = "pluggy-1.0.0.tar.gz", hash = "sha256:4224373bacce55f955a878bf9cfa763c1e360858e330072059e10bad68531159"},
 ]
 port-for = [
-    {file = "port-for-0.6.1.tar.gz", hash = "sha256:aa5dedbc138c614d4cc9d1ff2a56a348f6d98b21a35497987fc60c0b2959f6e4"},
-    {file = "port_for-0.6.1-py3-none-any.whl", hash = "sha256:93cbb9a01c2f64914868f81b49ae618c53fd32ef3231fd2144d3f2b62b58821f"},
+    {file = "port-for-0.6.2.tar.gz", hash = "sha256:9d4e73523d98f2f9f270308bbf415926c698b5439db8909384a79f152328b4d2"},
+    {file = "port_for-0.6.2-py3-none-any.whl", hash = "sha256:be154fdc1d8b2c50820cf1910151e0e9792f82a00ed09b8c277b551e5c99bb5a"},
 ]
 pre-commit = [
     {file = "pre_commit-2.17.0-py2.py3-none-any.whl", hash = "sha256:725fa7459782d7bec5ead072810e47351de01709be838c2ce1726b9591dad616"},
