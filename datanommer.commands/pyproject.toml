@@ -20,7 +20,7 @@ include = [
 [tool.poetry.dependencies]
 python = "^3.7"
 "datanommer.models" = "^1.0.0"
-fedora-messaging = "^2.1.0"
+fedora-messaging = ">=2.1.0"
 
 [tool.poetry.dev-dependencies]
 pre-commit = "^2.13.0"
