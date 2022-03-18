@@ -188,7 +188,7 @@ When cutting a new release, follow these steps:
 #. Update the version in ``pyproject.toml``
 #. Run ``poetry install`` to update the version in the metadata
 #. Add missing authors to the release notes fragments by changing to the ``news`` directory and
-   running the ``../tools/towncrier/get-authors.pyget-authors.py`` script, but check for duplicates and errors
+   running the ``../tools/towncrier/get-authors.py`` script, but check for duplicates and errors
 #. Generate the release notes by running ``poetry run towncrier`` (in the base directory)
 #. Adjust the release notes in ``NEWS.rst``
 #. Commit the changes

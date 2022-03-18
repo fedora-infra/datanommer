@@ -197,7 +197,7 @@ test = ["pytest (>=6.2.0)", "pytest-cov", "pytest-subtests", "pytest-xdist", "pr
 
 [[package]]
 name = "datanommer.models"
-version = "1.0.2"
+version = "1.0.3"
 description = "SQLAlchemy models for datanommer"
 category = "main"
 optional = false

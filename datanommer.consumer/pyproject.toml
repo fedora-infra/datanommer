@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "datanommer.consumer"
-version = "1.0.0"
+version = "1.0.3"
 description = "Consumer for datanommer"
 authors = [
   "Fedora Infrastructure <admin@fedoraproject.org>"
