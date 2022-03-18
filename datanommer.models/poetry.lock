@@ -193,7 +193,7 @@ name = "copr-common"
 version = "0.14"
 description = "Common python code used by Copr."
 category = "main"
-optional = false
+optional = true
 python-versions = "*"
 
 [[package]]
@@ -385,7 +385,7 @@ idna = ">=2.5"
 
 [[package]]
 name = "identify"
-version = "2.4.7"
+version = "2.4.12"
 description = "File identification library for Python"
 category = "dev"
 optional = false
@@ -1107,7 +1107,7 @@ schemas = ["anitya-schema", "fedora-messaging-the-new-hotness-schema", "bodhi-me
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "576c21e9b737b2d1fe20d436cd99f607e106932b651e2534d1cb545faea9bfe2"
+content-hash = "1c79db3a8f87c0939e9f975dc1ca03fc4323312dac2492a6b8c2c6e14f543b76"
 
 [metadata.files]
 alembic = [
@@ -1389,8 +1389,8 @@ hyperlink = [
     {file = "hyperlink-21.0.0.tar.gz", hash = "sha256:427af957daa58bc909471c6c40f74c5450fa123dd093fc53efd2e91d2705a56b"},
 ]
 identify = [
-    {file = "identify-2.4.7-py2.py3-none-any.whl", hash = "sha256:e64210654dfbca6ced33230eb1b137591a0981425e1a60b4c6c36309f787bbd5"},
-    {file = "identify-2.4.7.tar.gz", hash = "sha256:8408f01e0be25492017346d7dffe7e7711b762b23375c775d24d3bc38618fabc"},
+    {file = "identify-2.4.12-py2.py3-none-any.whl", hash = "sha256:5f06b14366bd1facb88b00540a1de05b69b310cbc2654db3c7e07fa3a4339323"},
+    {file = "identify-2.4.12.tar.gz", hash = "sha256:3f3244a559290e7d3deb9e9adc7b33594c1bc85a9dd82e0f1be519bf12a1ec17"},
 ]
 idna = [
     {file = "idna-3.3-py3-none-any.whl", hash = "sha256:84d9dd047ffa80596e0f246e2eab0b391788b0503584e8945f2368256d2735ff"},
