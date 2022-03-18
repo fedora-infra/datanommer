@@ -417,7 +417,7 @@ format_nongpl = ["fqdn", "idna", "isoduration", "jsonpointer (>1.13)", "rfc3339-
 
 [[package]]
 name = "liccheck"
-version = "0.6.4"
+version = "0.6.5"
 description = "Check python packages from requirement.txt and report issues"
 category = "dev"
 optional = false
@@ -985,7 +985,7 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "b3835a3255b5a30abedc5065a9a8dd228fe4a7bea14c4edcd0fc253ae0e90e1f"
+content-hash = "ec02f745154e13d38f1eee0e681d7f8c5dd7e82a2349fb20d4558bcb2a753af8"
 
 [metadata.files]
 alembic = [
@@ -1270,8 +1270,8 @@ jsonschema = [
     {file = "jsonschema-4.4.0.tar.gz", hash = "sha256:636694eb41b3535ed608fe04129f26542b59ed99808b4f688aa32dcf55317a83"},
 ]
 liccheck = [
-    {file = "liccheck-0.6.4-py2.py3-none-any.whl", hash = "sha256:ee490972239413c7087d9f7f60a43d03943f768162000a3f9d5bf0e82ed098b1"},
-    {file = "liccheck-0.6.4.tar.gz", hash = "sha256:049b53fab91813182ea1073cf1a53ba63eed8cbccb792942989935253ca3dffb"},
+    {file = "liccheck-0.6.5-py2.py3-none-any.whl", hash = "sha256:10846e587127d08609a973570eb3b8ee8cfe32a4689c8fd76d6dc74c29013c7a"},
+    {file = "liccheck-0.6.5.tar.gz", hash = "sha256:d4009f1876eb7e4228ecf495e36573ef5b8a226d4cd91235138e417f990a67e8"},
 ]
 mako = [
     {file = "Mako-1.2.0-py3-none-any.whl", hash = "sha256:23aab11fdbbb0f1051b93793a58323ff937e98e34aece1c4219675122e57e4ba"},
