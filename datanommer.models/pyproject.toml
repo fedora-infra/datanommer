@@ -24,15 +24,17 @@ alembic = "^1.6.5"
 psycopg2 = "^2.9.1"
 fedora-messaging = ">=2.1.0"
 anitya-schema = {version = "*", optional = true}
-fedora-messaging-the-new-hotness-schema = {version = "*", optional = true}
 bodhi-messages = {version = "*", optional = true}
-fedocal-messages = {version = "*", optional = true}
-fedora-planet-messages = {version = "*", optional = true}
-noggin-messages = {version = "*", optional = true}
-fedorainfra-ansible-messages = {version = "*", optional = true}
-nuancier-messages = {version = "*", optional = true}
-discourse2fedmsg-messages = {version = "*", optional = true}
 copr-messaging = {version = "*", optional = true}
+discourse2fedmsg-messages = {version = "*", optional = true}
+fedocal-messages = {version = "*", optional = true}
+fedorainfra-ansible-messages = {version = "*", optional = true}
+fedora-messaging-the-new-hotness-schema = {version = "*", optional = true}
+fedora-planet-messages = {version = "*", optional = true}
+mdapi-messages = {version = "*", optional = true}
+noggin-messages = {version = "*", optional = true}
+nuancier-messages = {version = "*", optional = true}
+pagure-messages = {version = "*", optional = true}
 
 [tool.poetry.dev-dependencies]
 pre-commit = "^2.13.0"
@@ -50,15 +52,18 @@ towncrier = "^21.3.0"
 [tool.poetry.extras]
 schemas = [
   "anitya-schema",
-  "fedora-messaging-the-new-hotness-schema",
   "bodhi-messages",
-  "fedocal-messages",
-  "fedora-planet-messages",
-  "noggin-messages",
-  "fedorainfra-ansible-messages",
-  "nuancier-messages",
-  "discourse2fedmsg-messages",
   "copr-messaging",
+  "discourse2fedmsg-messages",
+  "fedocal-messages",
+  "fedorainfra-ansible-messages",
+  "fedora-elections-messages",
+  "fedora-messaging-the-new-hotness-schema",
+  "fedora-planet-messages",
+  "mdapi-messages",
+  "noggin-messages",
+  "nuancier-messages",
+  "pagure-messages",
 ]
 
 [build-system]
