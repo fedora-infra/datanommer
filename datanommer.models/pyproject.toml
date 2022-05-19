@@ -10,11 +10,17 @@ readme = "README.rst"
 repository = "https://github.com/fedora-infra/datanommer"
 homepage = "https://github.com/fedora-infra/datanommer"
 packages = [
-    { include = "datanommer" },
+    { include = "datanommer/models" },
+    { include = "tests", format = "sdist"},
+    { include = "datanommer/models/testing"},
 ]
 include = [
-    "tests/*",
-    "tox.ini",
+    { path = "*.ini", format = "sdist" },
+    { path = "alembic/*", format = "sdist" },
+    { path = "*.txt", format = "sdist" },
+    { path = "*.cfg", format = "sdist" },
+    { path = "*.rst", format = "sdist" },
+    { path = "*.xml", format = "sdist" },
 ]
 
 [tool.poetry.dependencies]
