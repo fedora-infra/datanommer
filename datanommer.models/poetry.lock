@@ -282,7 +282,7 @@ python-dateutil = "*"
 
 [[package]]
 name = "fedora-messaging"
-version = "3.0.1"
+version = "3.0.2"
 description = "A set of tools for using Fedora's messaging infrastructure"
 category = "main"
 optional = false
@@ -1126,7 +1126,7 @@ schemas = ["anitya-schema", "bodhi-messages", "copr-messaging", "discourse2fedms
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "b4b3708dfae5df6ff7e3ac1c5c4e30514b65477336b6c26fd5a05297b6f5f16f"
+content-hash = "fde599818ad939334428eb60f0b5f812a67e6278a7ab74a63ee0122ce906bf7c"
 
 [metadata.files]
 alembic = [
@@ -1346,8 +1346,8 @@ fedocal-messages = [
     {file = "fedocal-messages-1.5.0.tar.gz", hash = "sha256:965a90505ff31f5fa4b2d7e8eb36769322cda8dc8d9a15c3f2faba9f75911b31"},
 ]
 fedora-messaging = [
-    {file = "fedora_messaging-3.0.1-py3-none-any.whl", hash = "sha256:782fa2aafaae36ec040c7bfd940cbd5a728b3707d0974f0e4364b24266454358"},
-    {file = "fedora_messaging-3.0.1.tar.gz", hash = "sha256:7c68bd2a2d69606c25bf01693b92f8931e1888876f064667da37c5c635b0e866"},
+    {file = "fedora_messaging-3.0.2-py3-none-any.whl", hash = "sha256:782dc04ba25ebc694324b85d24b7061949402db7dc1ad8e69d55fb623135a184"},
+    {file = "fedora_messaging-3.0.2.tar.gz", hash = "sha256:94ea22c7e7bf78e988b9d2c4bed80d7b422122429f9dd65408a6b8a28dcf13f8"},
 ]
 fedora-messaging-the-new-hotness-schema = [
     {file = "fedora_messaging_the_new_hotness_schema-1.1.1-py2.py3-none-any.whl", hash = "sha256:000c1f8b67215485000baa29d5cdbecf9ae9a6b674a2d12b800dd8d4ec4efe5e"},
