@@ -13,9 +13,8 @@ packages = [
     { include = "datanommer" },
 ]
 include = [
-    "tests/*",
-    "tools/*",
-    "tox.ini",
+    { path = "*.ini", format = "sdist" },
+    { path = "tests/*", format = "sdist" },
 ]
 
 [tool.poetry.dependencies]
