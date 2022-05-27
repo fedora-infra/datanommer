@@ -13,10 +13,10 @@ packages = [
     { include = "datanommer/models" },
     { include = "tests", format = "sdist"},
     { include = "datanommer/models/testing"},
+    { include = "datanommer/models/alembic" },
 ]
 include = [
     { path = "*.ini", format = "sdist" },
-    { path = "alembic/*", format = "sdist" },
     { path = "*.txt", format = "sdist" },
     { path = "*.cfg", format = "sdist" },
     { path = "*.rst", format = "sdist" },
