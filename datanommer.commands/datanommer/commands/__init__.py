@@ -28,17 +28,16 @@ import datanommer.models as m
 log = logging.getLogger("datanommer")
 
 
-def get_datanommer_sqlalchemy_url(config_path=None):
+def get_config(config_path=None):
     if config_path:
         fedora_messaging_config.conf.load_config(config_path)
-    try:
-        return fedora_messaging_config.conf["consumer_config"][
-            "datanommer_sqlalchemy_url"
-        ]
-    except KeyError:
-        raise click.ClickException(
-            "datanommer_sqlalchemy_url not defined in the fedora-messaging config"
-        )
+    conf = fedora_messaging_config.conf["consumer_config"]
+    for key in ("datanommer_sqlalchemy_url", "alembic_ini"):
+        if key not in conf:
+            raise click.ClickException(
+                f"{key} not defined in the fedora-messaging config"
+            )
+    return conf
 
 
 config_option = click.option(
@@ -54,9 +53,13 @@ config_option = click.option(
 @config_option
 def create(config_path):
     """Create a database and tables for 'datanommer.sqlalchemy.url'"""
-    datanommer_sqlalchemy_url = get_datanommer_sqlalchemy_url(config_path)
+    config = get_config(config_path)
     click.echo("Creating Datanommer database and tables")
-    m.init(datanommer_sqlalchemy_url, create=True)
+    m.init(
+        config["datanommer_sqlalchemy_url"],
+        alembic_ini=config["alembic_ini"],
+        create=True,
+    )
 
 
 @click.command()
@@ -74,8 +77,11 @@ def dump(config_path, since, before):
 
         $ datanommer-dump --before 2013-02-15 --since 2013-02-11T08:00:00 > datanommer-dump.json
     """
-    datanommer_sqlalchemy_url = get_datanommer_sqlalchemy_url(config_path)
-    m.init(datanommer_sqlalchemy_url)
+    config = get_config(config_path)
+    m.init(
+        config["datanommer_sqlalchemy_url"],
+        alembic_ini=config["alembic_ini"],
+    )
 
     query = m.Message.query
     if before:
@@ -144,9 +150,11 @@ def stats(config_path, topic, category):
         fas has 46 entries
 
     """
-    datanommer_sqlalchemy_url = get_datanommer_sqlalchemy_url(config_path)
-
-    m.init(datanommer_sqlalchemy_url)
+    config = get_config(config_path)
+    m.init(
+        config["datanommer_sqlalchemy_url"],
+        alembic_ini=config["alembic_ini"],
+    )
 
     if topic:
         if category:
@@ -280,9 +288,11 @@ def latest(config_path, topic, category, overall, timestamp, timesince, human):
         $ datanommer-latest --category wiki --timesince --human
         [13:40:59.519447]
     """
-    datanommer_sqlalchemy_url = get_datanommer_sqlalchemy_url(config_path)
-
-    m.init(datanommer_sqlalchemy_url)
+    config = get_config(config_path)
+    m.init(
+        config["datanommer_sqlalchemy_url"],
+        alembic_ini=config["alembic_ini"],
+    )
 
     if topic:
         queries = [m.Message.query.filter(m.Message.topic == topic)]

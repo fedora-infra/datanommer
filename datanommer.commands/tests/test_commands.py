@@ -66,7 +66,10 @@ def mock_init(mocker):
     mocker.patch("datanommer.commands.m.init")
     mocker.patch.dict(
         datanommer.commands.fedora_messaging_config.conf["consumer_config"],
-        {"datanommer_sqlalchemy_url": ""},
+        {
+            "datanommer_sqlalchemy_url": "",
+            "alembic_ini": None,
+        },
     )
 
 
@@ -77,18 +80,21 @@ def test_get_datanommer_sqlalchemy_url_keyerror(mocker):
         clear=True,
     )
     with pytest.raises(ClickException):
-        datanommer.commands.get_datanommer_sqlalchemy_url()
+        datanommer.commands.get_config()
 
 
 def test_get_datanommer_sqlalchemy_url_config(mocker):
+    conf = {
+        "datanommer_sqlalchemy_url": "",
+        "alembic_ini": "/some/where",
+    }
     mocker.patch.dict(
-        datanommer.commands.fedora_messaging_config.conf["consumer_config"],
-        {"datanommer_sqlalchemy_url": ""},
+        datanommer.commands.fedora_messaging_config.conf["consumer_config"], conf
     )
     load_config = mocker.patch(
         "datanommer.commands.fedora_messaging_config.conf.load_config",
     )
-    datanommer.commands.get_datanommer_sqlalchemy_url("some-path")
+    datanommer.commands.get_config("some-path")
     load_config.assert_called_with("some-path")
 
 
@@ -96,14 +102,19 @@ def test_create(mocker):
     mock_model_init = mocker.patch("datanommer.commands.m.init")
     mocker.patch.dict(
         datanommer.commands.fedora_messaging_config.conf["consumer_config"],
-        {"datanommer_sqlalchemy_url": "TESTURL"},
+        {
+            "datanommer_sqlalchemy_url": "TESTURL",
+            "alembic_ini": "/some/where",
+        },
     )
 
     runner = CliRunner()
     result = runner.invoke(datanommer.commands.create, [])
 
     assert result.output == "Creating Datanommer database and tables\n"
-    mock_model_init.assert_called_once_with("TESTURL", create=True)
+    mock_model_init.assert_called_once_with(
+        "TESTURL", alembic_ini="/some/where", create=True
+    )
 
 
 def test_stats(datanommer_models, mock_init):
