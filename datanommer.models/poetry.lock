@@ -17,14 +17,14 @@ tz = ["python-dateutil"]
 
 [[package]]
 name = "anitya-schema"
-version = "2.0.0"
+version = "2.0.1"
 description = "JSON schema definitions for messages published by Anitya"
 category = "main"
 optional = true
 python-versions = "*"
 
 [package.dependencies]
-fedora_messaging = "*"
+fedora-messaging = ">=2.0.1,<4.0.0"
 
 [[package]]
 name = "atomicwrites"
@@ -302,14 +302,14 @@ Twisted = "*"
 
 [[package]]
 name = "fedora-messaging-the-new-hotness-schema"
-version = "1.1.1"
+version = "1.1.2"
 description = "JSON schema definitions for messages published by the-new-hotness"
 category = "main"
 optional = true
 python-versions = "*"
 
 [package.dependencies]
-fedora-messaging = "*"
+fedora-messaging = ">=2.0.1,<4.0.0"
 
 [[package]]
 name = "fedora-planet-messages"
@@ -335,7 +335,7 @@ fedora-messaging = "*"
 
 [[package]]
 name = "filelock"
-version = "3.7.0"
+version = "3.7.1"
 description = "A platform independent file lock."
 category = "dev"
 optional = false
@@ -1134,7 +1134,8 @@ alembic = [
     {file = "alembic-1.7.7.tar.gz", hash = "sha256:4961248173ead7ce8a21efb3de378f13b8398e6630fab0eb258dc74a8af24c58"},
 ]
 anitya-schema = [
-    {file = "anitya_schema-2.0.0.tar.gz", hash = "sha256:1e9faafa00c0c59e5de60b96046176e4306b8dbd8199d704666f867de716d39f"},
+    {file = "anitya_schema-2.0.1-py2.py3-none-any.whl", hash = "sha256:322158f7dc759633a107f0563808cd3f486024b0eeaa4a254aae89e166092c0a"},
+    {file = "anitya_schema-2.0.1.tar.gz", hash = "sha256:a19521a40d4fbc1280f15be7cf338b3f84f3ecc798ae94361f622d75d8658887"},
 ]
 atomicwrites = [
     {file = "atomicwrites-1.4.0-py2.py3-none-any.whl", hash = "sha256:6d1784dea7c0c8d4a5172b6c620f40b6e4cbfdf96d783691f2e1302a7b88e197"},
@@ -1350,8 +1351,8 @@ fedora-messaging = [
     {file = "fedora_messaging-3.0.2.tar.gz", hash = "sha256:94ea22c7e7bf78e988b9d2c4bed80d7b422122429f9dd65408a6b8a28dcf13f8"},
 ]
 fedora-messaging-the-new-hotness-schema = [
-    {file = "fedora_messaging_the_new_hotness_schema-1.1.1-py2.py3-none-any.whl", hash = "sha256:000c1f8b67215485000baa29d5cdbecf9ae9a6b674a2d12b800dd8d4ec4efe5e"},
-    {file = "fedora_messaging_the_new_hotness_schema-1.1.1.tar.gz", hash = "sha256:a5666cad6c255522fe96d8120db2920031f1d762075e1f401a3ef2bf931f8652"},
+    {file = "fedora_messaging_the_new_hotness_schema-1.1.2-py2.py3-none-any.whl", hash = "sha256:466273439bc2c78c6ef61a841d71951325de60a4d35381f1aa9d43ec685afc87"},
+    {file = "fedora_messaging_the_new_hotness_schema-1.1.2.tar.gz", hash = "sha256:1a54fd15640fb994575a847e03645b0b343f0bd60c379bca7093a946564e7c67"},
 ]
 fedora-planet-messages = [
     {file = "fedora-planet-messages-1.0.0.tar.gz", hash = "sha256:a505fdb6fe979efda7ff4eb83f645000dd3a1a27dcac00a1e980377a6c492b7c"},
@@ -1362,8 +1363,8 @@ fedorainfra-ansible-messages = [
     {file = "fedorainfra_ansible_messages-0.0.2-py2.py3-none-any.whl", hash = "sha256:6312a7333ceca78f2866026f7ca41b0c6c0beff6fdee6f096b8ff4d40c5bd721"},
 ]
 filelock = [
-    {file = "filelock-3.7.0-py3-none-any.whl", hash = "sha256:c7b5fdb219b398a5b28c8e4c1893ef5f98ece6a38c6ab2c22e26ec161556fed6"},
-    {file = "filelock-3.7.0.tar.gz", hash = "sha256:b795f1b42a61bbf8ec7113c341dad679d772567b936fbd1bf43c9a238e673e20"},
+    {file = "filelock-3.7.1-py3-none-any.whl", hash = "sha256:37def7b658813cda163b56fc564cdc75e86d338246458c4c28ae84cabefa2404"},
+    {file = "filelock-3.7.1.tar.gz", hash = "sha256:3a0fd85166ad9dbab54c9aec96737b744106dc5f15c0b09a6744a445299fcf04"},
 ]
 flake8 = [
     {file = "flake8-4.0.1-py2.py3-none-any.whl", hash = "sha256:479b1304f72536a55948cb40a32dce8bb0ffe3501e26eaf292c7e60eb5e0428d"},
