@@ -178,7 +178,7 @@ name = "copr-common"
 version = "0.15"
 description = "Common python code used by Copr."
 category = "main"
-optional = true
+optional = false
 python-versions = "*"
 
 [[package]]
