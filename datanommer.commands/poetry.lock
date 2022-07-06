@@ -83,6 +83,17 @@ optional = false
 python-versions = "*"
 
 [[package]]
+name = "bodhi-messages"
+version = "6.0.1"
+description = "JSON schema for messages sent by Bodhi"
+category = "dev"
+optional = false
+python-versions = ">=3.8,<4.0"
+
+[package.dependencies]
+fedora-messaging = ">=3.0.0,<4.0.0"
+
+[[package]]
 name = "cffi"
 version = "1.15.1"
 description = "Foreign Function Interface for Python calling C code."
@@ -962,7 +973,7 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "e5ea609bd7c41d703c053f2089fd2500a3d530a460598cb6b3f09f00646e5dce"
+content-hash = "c25ae651e9d3a16886fa4ea2af725032e75d4a2916d83ea26bc8b31c798e032a"
 
 [metadata.files]
 alembic = [
@@ -1008,6 +1019,10 @@ black = [
 ]
 blinker = [
     {file = "blinker-1.4.tar.gz", hash = "sha256:471aee25f3992bd325afa3772f1063dbdbbca947a041b8b89466dc00d606f8b6"},
+]
+bodhi-messages = [
+    {file = "bodhi-messages-6.0.1.tar.gz", hash = "sha256:2d7cf2ac2c1cdb63e6decd6e8841888a63b64e2f1fd96cd4b0d7a213539c6c40"},
+    {file = "bodhi_messages-6.0.1-py3-none-any.whl", hash = "sha256:366cd776538441f55bff77847b047cc4fa907ceae5b35b6b57e65c32f912e356"},
 ]
 cffi = [
     {file = "cffi-1.15.1-cp27-cp27m-macosx_10_9_x86_64.whl", hash = "sha256:a66d3508133af6e8548451b25058d5812812ec3798c886bf38ed24a98216fab2"},
