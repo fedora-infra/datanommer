@@ -159,7 +159,6 @@ def test_add_timestamp_with_junk(datanommer_models, caplog):
 
 
 def test_add_and_check_for_others(datanommer_models):
-
     # There are no users or packages at the start
     assert User.query.count() == 0
     assert Package.query.count() == 0

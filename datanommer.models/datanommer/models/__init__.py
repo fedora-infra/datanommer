@@ -499,7 +499,6 @@ class Message(DeclarativeBase):
 
 
 class NamedSingleton:
-
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(UnicodeText, index=True, unique=True)
 

@@ -251,7 +251,6 @@ def test_dump(datanommer_models, mocker, mock_init):
 
 
 def test_dump_before(datanommer_models, mocker, mock_init):
-
     msg1 = generate_message(topic="org.fedoraproject.prod.git.branch.valgrind.master")
     msg1._properties.headers["sent-at"] = datetime(2013, 2, 14).isoformat()
     m.add(msg1)
@@ -342,7 +341,6 @@ def test_dump_invalid_dates(datanommer_models, mocker, mock_init):
 
 
 def test_latest_overall(datanommer_models, mock_init):
-
     msg1 = generate_message(
         topic="org.fedoraproject.prod.git.branch.valgrind.master",
         body={"Message 1": "Message 1"},
@@ -488,7 +486,6 @@ def test_latest_timestamp(datanommer_models, mocker, mock_init):
 
 
 def test_latest_timesince(datanommer_models, mocker, mock_init):
-
     now = datetime(2013, 3, 1)
 
     msg1 = generate_message(topic="org.fedoraproject.prod.git.branch.valgrind.master")
