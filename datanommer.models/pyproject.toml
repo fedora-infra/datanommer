@@ -31,10 +31,12 @@ psycopg2 = "^2.9.1"
 fedora-messaging = ">=2.1.0"
 anitya-schema = {version = "*", optional = true}
 bodhi-messages = {version = "*", optional = true}
+ci-messages = {version = "*", optional = true}
 copr-messaging = {version = "*", optional = true}
 discourse2fedmsg-messages = {version = "*", optional = true}
 fedocal-messages = {version = "*", optional = true}
 fedorainfra-ansible-messages = {version = "*", optional = true}
+fedora-elections-messages = {version = "*", optional = true}
 fedora-messaging-the-new-hotness-schema = {version = "*", optional = true}
 fedora-planet-messages = {version = "*", optional = true}
 mdapi-messages = {version = "*", optional = true}
@@ -59,6 +61,7 @@ towncrier = "^21.3.0"
 schemas = [
   "anitya-schema",
   "bodhi-messages",
+  "ci-messages",
   "copr-messaging",
   "discourse2fedmsg-messages",
   "fedocal-messages",
