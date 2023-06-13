@@ -45,17 +45,17 @@ nuancier-messages = {version = "*", optional = true}
 pagure-messages = {version = "*", optional = true}
 
 [tool.poetry.dev-dependencies]
-pre-commit = "^2.13.0"
-black = "^22.1.0"
-isort = "^5.9.2"
-flake8 = ">=3.9.2"
-pytest = ">=6.2.4"
-liccheck = "^0.6.0"
-pytest-cov = ">=2.12.1"
-pytest-postgresql = "^3.1.1"
-pytest-mock = ">=3.6.1"
+pre-commit = "*"
+black = "*"
+isort = "*"
+flake8 = "*"
+pytest = "*"
+liccheck = "*"
+pytest-cov = "*"
+pytest-postgresql = "*"
+pytest-mock = "*"
 bodhi-messages = "*"
-towncrier = "^21.3.0"
+towncrier = "*"
 
 [tool.poetry.extras]
 schemas = [
