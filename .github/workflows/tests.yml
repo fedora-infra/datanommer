@@ -13,37 +13,30 @@ jobs:
   checks:
     name: Checks
     runs-on: ubuntu-latest
+    container: fedorapython/fedora-python-tox:latest
     steps:
-      - uses: actions/checkout@v2
-
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.8
+      - uses: actions/checkout@v3
 
       - name: Install pre-commit
-        run: pip install pre-commit
+        run: dnf install -y pre-commit git
+
+      - name: Mark the working directory as safe for Git
+        run: git config --global --add safe.directory $PWD
 
       - name: Run pre-commit checks
-        run: pre-commit run --all-files
+        run: pre-commit run -v --all-files
 
 
   licenses:
     name: Licenses
     runs-on: ubuntu-latest
+    container: fedorapython/fedora-python-tox:latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.8
-
-      - name: Install krb5-devel for python-gssapi
-        run: sudo apt-get install krb5-config libkrb5-dev
-
-      - name: Install tox
-        run: pip install tox
+      - name: Install RPM dependencies
+        run: |
+          dnf install -y krb5-devel libpq-devel
 
       - name: Check licenses for datanommer.${{ matrix.package }}
         run: tox -e licenses
@@ -60,29 +53,19 @@ jobs:
   unit_tests:
     name: Unit tests
     runs-on: ubuntu-latest
+    container: fedorapython/fedora-python-tox:latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
-      - name: Set up Python ${{ matrix.pyver }}
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.pyver }}
-
-      - name: Install packages needed to run the tox tests
-        # https://docs.timescale.com/timescaledb/latest/how-to-guides/install-timescaledb/self-hosted/ubuntu/installation-apt-ubuntu/#installation-apt-ubuntu
+      - name: Install RPM dependencies
         run: |
-          echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -c -s)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
-          wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
-          echo "deb https://packagecloud.io/timescale/timescaledb/ubuntu/ $(lsb_release -c -s) main" | sudo tee /etc/apt/sources.list.d/timescaledb.list
-          wget --quiet -O - https://packagecloud.io/timescale/timescaledb/gpgkey | sudo apt-key add -
-          sudo apt-get update
-          sudo apt-get install krb5-config libkrb5-dev libpq-dev timescaledb-2-postgresql-13
-
-      - name: Install tox
-        run: pip install tox
+          dnf install -y timescaledb postgresql-server krb5-devel libpq-devel
 
       - name: Run unit tests for datanommer.${{ matrix.package }}
-        run: tox -e py -- --postgresql-exec /usr/lib/postgresql/13/bin/pg_ctl
+        # Don't run the tests as root or pg_ctl will refuse to start
+        run: |
+          chown postgres:postgres .
+          sudo -u postgres tox -e ${{ matrix.pyver }} -- -vv
         working-directory: datanommer.${{ matrix.package }}
 
       # - name: Upload coverage to Codecov
@@ -96,8 +79,8 @@ jobs:
     strategy:
       matrix:
         pyver:
-          - "3.10"
-          - "3.11"
+          - py310
+          - py311
         package:
           - models
           - consumer
