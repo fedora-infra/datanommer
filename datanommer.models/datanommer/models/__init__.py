@@ -36,6 +36,7 @@ from sqlalchemy import (
     or_,
     String,
     Table,
+    text,
     TypeDecorator,
     Unicode,
     UnicodeText,
@@ -94,7 +95,7 @@ def init(uri=None, alembic_ini=None, engine=None, create=False):
     DeclarativeBase.query = session.query_property()
 
     if create:
-        session.execute("CREATE EXTENSION IF NOT EXISTS timescaledb")
+        session.execute(text("CREATE EXTENSION IF NOT EXISTS timescaledb"))
         DeclarativeBase.metadata.create_all(engine)
         # Loads the alembic configuration and generates the version table, with
         # the most recent revision stamped as head
