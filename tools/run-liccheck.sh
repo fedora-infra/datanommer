@@ -7,9 +7,9 @@ set -x
 
 TMPFILE=$(mktemp -t requirements-XXXXXX.txt)
 
-poetry export --dev --without-hashes -f requirements.txt -o $TMPFILE
+poetry export --with dev --without-hashes -f requirements.txt -o $TMPFILE
 
 # Use pip freeze instead of poetry when it fails
 #pip freeze --exclude-editable --isolated > $TMPFILE
 
-liccheck -r $TMPFILE
+poetry run liccheck -r $TMPFILE
