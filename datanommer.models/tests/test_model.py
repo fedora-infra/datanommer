@@ -570,7 +570,7 @@ def test_as_fedora_message_dict_no_headers(datanommer_models):
     add(example_message)
 
     dbmsg = Message.query.first()
-    assert len(dbmsg.headers.keys()) == 3
+    assert len(dbmsg.headers.keys()) == 4
 
     # Clear the headers
     dbmsg.headers = None

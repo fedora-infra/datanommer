@@ -339,6 +339,7 @@ class Message(DeclarativeBase):
             body=self.msg,
             headers=headers,
             id=self.msg_id,
+            priority=headers.get("priority", 0),
             queue=None,
             topic=self.topic,
         )
