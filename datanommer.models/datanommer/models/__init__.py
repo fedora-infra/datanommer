@@ -158,11 +158,6 @@ def add(message):
     session.commit()
 
 
-def source_version_default(context):
-    dist = pkg_resources.get_distribution("datanommer.models")
-    return dist.version
-
-
 # https://docs.sqlalchemy.org/en/14/core/custom_types.html#marshal-json-strings
 
 
@@ -224,7 +219,7 @@ class Message(DeclarativeBase):
     username = Column(Unicode)
     crypto = Column(UnicodeText)
     source_name = Column(Unicode, default="datanommer")
-    source_version = Column(Unicode, default=source_version_default)
+    source_version = Column(Unicode, default=lambda context: __version__)
     msg = Column(JSONEncodedDict, nullable=False)
     headers = Column(postgresql.JSONB(none_as_null=True))
     users = relationship(
