@@ -159,11 +159,11 @@ toml = ["tomli"]
 
 [[package]]
 name = "crochet"
-version = "2.0.0"
+version = "2.1.1"
 description = "Use Twisted anywhere!"
 category = "main"
 optional = false
-python-versions = ">=3.6.0"
+python-versions = ">=3.8.0"
 
 [package.dependencies]
 Twisted = ">=16.0"
@@ -883,7 +883,7 @@ python-versions = "*"
 
 [[package]]
 name = "typing-extensions"
-version = "4.6.3"
+version = "4.7.1"
 description = "Backported and Experimental Type Hints for Python 3.7+"
 category = "main"
 optional = false
@@ -1139,8 +1139,8 @@ coverage = [
     {file = "coverage-7.2.7.tar.gz", hash = "sha256:924d94291ca674905fe9481f12294eb11f2d3d3fd1adb20314ba89e94f44ed59"},
 ]
 crochet = [
-    {file = "crochet-2.0.0-py3-none-any.whl", hash = "sha256:de7306f0548581b5222c2d91f2175045e672591519896f717affb81ef66c0f5f"},
-    {file = "crochet-2.0.0.tar.gz", hash = "sha256:5f7f6c0d41ec418da16080f0202faac6b30f84a6fca9d8911e9db541f8e4e521"},
+    {file = "crochet-2.1.1-py3-none-any.whl", hash = "sha256:87970cbd1b384a8d3b10152565283d76843d56ea7e087ea3239092a64ffaea0e"},
+    {file = "crochet-2.1.1.tar.gz", hash = "sha256:7ece69de1ce8e63ffc0af8e2331ec4eb898d91ed4271aafa4ccc398523b81cf9"},
 ]
 cryptography = [
     {file = "cryptography-41.0.1-cp37-abi3-macosx_10_12_universal2.whl", hash = "sha256:f73bff05db2a3e5974a6fd248af2566134d8981fd7ab012e5dd4ddb1d9a70699"},
@@ -1626,8 +1626,8 @@ twisted-iocpsupport = [
     {file = "twisted_iocpsupport-1.0.3-pp39-pypy39_pp73-win_amd64.whl", hash = "sha256:3f39c41c0213a81a9ce0961e30d0d7650f371ad80f8d261007d15a2deb6d5be3"},
 ]
 typing-extensions = [
-    {file = "typing_extensions-4.6.3-py3-none-any.whl", hash = "sha256:88a4153d8505aabbb4e13aacb7c486c2b4a33ca3b3f807914a9b4c844c471c26"},
-    {file = "typing_extensions-4.6.3.tar.gz", hash = "sha256:d91d5919357fe7f681a9f2b5b4cb2a5f1ef0a1e9f59c4d8ff0d3491e05c0ffd5"},
+    {file = "typing_extensions-4.7.1-py3-none-any.whl", hash = "sha256:440d5dd3af93b060174bf433bccd69b0babc3b15b1a8dca43789fd7f61514b36"},
+    {file = "typing_extensions-4.7.1.tar.gz", hash = "sha256:b75ddc264f0ba5615db7ba217daeb99701ad295353c45f9e95963337ceeeffb2"},
 ]
 tzdata = [
     {file = "tzdata-2023.3-py2.py3-none-any.whl", hash = "sha256:7e65763eef3120314099b6939b5546db7adce1e7d6f2e179e3df563c70511eda"},
