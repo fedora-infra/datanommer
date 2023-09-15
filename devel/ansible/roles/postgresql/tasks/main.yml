@@ -5,6 +5,7 @@
       - python3-psycopg2
       - postgresql-server
       - timescaledb
+      - acl
     state: present
 
 - name: Setup the postgresql DB
