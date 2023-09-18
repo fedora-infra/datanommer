@@ -70,7 +70,15 @@
   lineinfile:
     path: /etc/fedora-messaging/config.toml
     regexp: "example_key = \"for my consumer\""
-    line: "datanommer_sqlalchemy_url = \"postgresql://datanommer:datanommer@localhost/messages\""
+    line: "datanommer_sqlalchemy_url = \"postgresql://datanommer:datanommer@localhost/messages\"\nalembic_ini = \"/etc/datanommer-alembic.ini\""
+
+- name: Create the Alembic config file
+  copy:
+    src: alembic.ini
+    dest: /etc/datanommer-alembic.ini
+    mode: 0600
+    owner: vagrant
+    group: vagrant
 
 - name: Create datanommer db
   shell: /srv/venv/bin/poetry run datanommer-create-db
