@@ -1,7 +1,7 @@
 ---
 - name: Install RPM packages
   dnf:
-      name:
+    name:
       - fedora-messaging
       - gcc
       - git
@@ -13,7 +13,7 @@
       - libpq-devel
       - tox
       - python-psycopg2
-      state: present
+    state: present
 
 - name: Install the .bashrc
   copy:
@@ -65,11 +65,10 @@
     src: /etc/fedora-messaging/fedora.stg.toml
     dest: /etc/fedora-messaging/config.toml
 
-
 - name: configure datanommer_sqlalchemy_url in fedora-messaging config
   lineinfile:
     path: /etc/fedora-messaging/config.toml
-    regexp: "example_key = \"for my consumer\""
+    regexp: 'example_key = "for my consumer"'
     line: "datanommer_sqlalchemy_url = \"postgresql://datanommer:datanommer@localhost/messages\"\nalembic_ini = \"/etc/datanommer-alembic.ini\""
 
 - name: Create the Alembic config file
@@ -87,13 +86,11 @@
   become: yes
   become_user: vagrant
 
-
 - name: Install the systemd unit files for datanommer consumer
   copy:
-      src: "datanommer.service"
-      dest: /etc/systemd/system/datanommer.service
-      mode: 0644
-  
+    src: "datanommer.service"
+    dest: /etc/systemd/system/datanommer.service
+    mode: 0644
 
 - name: Start datanommer service using systemd
   systemd:
