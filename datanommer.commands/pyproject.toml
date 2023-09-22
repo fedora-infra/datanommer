@@ -89,6 +89,9 @@ authorized_licenses = [
   "The Unlicense (Unlicense)",
 ]
 
+[tool.liccheck.authorized_packages]
+twisted = "23.8.0"
+
 
 [tool.towncrier]
 package = "datanommer.commands"
