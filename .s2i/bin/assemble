@@ -13,11 +13,21 @@ set -e
 
 install_tool "micropipenv" "[toml]"
 
+# Poetry 1.5.0 breaks micropipenv, generate the requirements instead.
+pip install poetry
+
+
 for subpackage in datanommer.models datanommer.commands datanommer.consumer; do
     pushd $subpackage
-    echo "---> Installing dependencies via micropipenv in ${subpackage}..."
-    micropipenv install --deploy
-    # Now install the root project too, micropipenv does not do that
+    echo "---> Generating requirements in ${subpackage}..."
+    if [ "$subpackage" == "datanommer.models" ]; then
+        poetry export -o requirements.txt --without-hashes --extras schemas
+    else
+        poetry export -o requirements.txt --without-hashes
+    fi
+    echo "---> Installing dependencies in ${subpackage}..."
+    pip install -r requirements.txt
+    # Now install the root project too.
     pip install . --no-deps
     popd
 done
