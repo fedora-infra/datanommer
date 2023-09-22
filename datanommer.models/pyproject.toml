@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "datanommer.models"
-version = "1.0.4"
+version = "1.1.0"
 description = "SQLAlchemy models for datanommer"
 authors = [
   "Fedora Infrastructure <admin@fedoraproject.org>"

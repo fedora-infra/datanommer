@@ -4,6 +4,23 @@ Release Notes
 
 .. towncrier release notes start
 
+v1.1.0
+======
+
+Released on 2023-09-22.
+This is a feature release that adds ``koji-fedoramessaging-messages`` as a
+dependency to interpret koji messages, and updates a lot of our other
+dependencies.
+
+Dependency Changes
+^^^^^^^^^^^^^^^^^^
+
+* Drop support for python 3.7, add support for python 3.10 (`PR#890
+  <https://github.com/fedora-infra/datanommer/pull/890>`_).
+* Add the ``koji-fedoramessaging-messages`` package (:issue:`1257`
+     `#1257 <https://github.com/fedora-infra/datanommer/issues/1257>`_).
+
+
 v1.0.4
 ======
 
