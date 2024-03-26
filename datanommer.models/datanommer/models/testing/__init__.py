@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 import pytest
 from pytest_postgresql import factories
@@ -17,7 +18,7 @@ def postgresql_proc_with_timescaledb(postgresql_proc):
     yield postgresql_proc
 
 
-_inital_sql = os.path.abspath(os.path.join(os.path.dirname(__file__), "startup.sql"))
+_inital_sql = Path(__file__).parent.joinpath("startup.sql").absolute()
 pgsql = factories.postgresql(
     "postgresql_proc_with_timescaledb",
     load=[_inital_sql],
