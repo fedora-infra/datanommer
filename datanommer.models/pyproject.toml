@@ -44,6 +44,9 @@ mdapi-messages = {version = "*", optional = true}
 noggin-messages = {version = "*", optional = true}
 nuancier-messages = {version = "*", optional = true}
 pagure-messages = {version = "*", optional = true}
+mediawiki-messages = {version = "*", optional = true}
+koschei-messages = {version = "*", optional = true}
+fedora-messaging-git-hook-messages = {version = "*", optional = true}
 
 [tool.poetry.dev-dependencies]
 pre-commit = "*"
@@ -75,6 +78,9 @@ schemas = [
   "noggin-messages",
   "nuancier-messages",
   "pagure-messages",
+  "mediawiki-messages",
+  "koschei-messages",
+  "fedora-messaging-git-hook-messages",
 ]
 
 [build-system]
