@@ -43,6 +43,7 @@ datanommer-create-db = "datanommer.commands:create"
 datanommer-dump = "datanommer.commands:dump"
 datanommer-stats = "datanommer.commands:stats"
 datanommer-latest = "datanommer.commands:latest"
+datanommer-extract-users = "datanommer.commands.extract_users:main"
 
 
 [build-system]
