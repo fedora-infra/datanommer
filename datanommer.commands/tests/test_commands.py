@@ -18,59 +18,13 @@ import time
 from datetime import datetime, timedelta
 
 import pytest
-from bodhi.messages.schemas.update import UpdateCommentV1
 from click import ClickException
 from click.testing import CliRunner
-from fedora_messaging import message as fedora_message
 
 import datanommer.commands
 import datanommer.models as m
 
-
-def generate_message(
-    topic="org.fedoraproject.test.a.nice.message",
-    body={"encouragement": "You're doing great!"},
-    headers=None,
-):
-    return fedora_message.Message(topic=topic, body=body, headers=headers)
-
-
-def generate_bodhi_update_complete_message():
-    msg = UpdateCommentV1(
-        body={
-            "comment": {
-                "karma": -1,
-                "text": "text",
-                "timestamp": "2019-03-18 16:54:48",
-                "update": {
-                    "alias": "FEDORA-EPEL-2021-f2d195dada",
-                    "builds": [
-                        {"nvr": "abrt-addon-python3-2.1.11-50.el7"},
-                        {"nvr": "kernel-10.4.0-2.el7"},
-                    ],
-                    "status": "pending",
-                    "release": {"name": "F35"},
-                    "request": "testing",
-                    "user": {"name": "ryanlerch"},
-                },
-                "user": {"name": "dudemcpants"},
-            }
-        }
-    )
-    msg.topic = f"org.fedoraproject.stg.{msg.topic}"
-    return msg
-
-
-@pytest.fixture
-def mock_init(mocker):
-    mocker.patch("datanommer.commands.m.init")
-    mocker.patch.dict(
-        datanommer.commands.fedora_messaging_config.conf["consumer_config"],
-        {
-            "datanommer_sqlalchemy_url": "",
-            "alembic_ini": None,
-        },
-    )
+from .utils import generate_bodhi_update_complete_message, generate_message
 
 
 def test_get_datanommer_sqlalchemy_url_keyerror(mocker):
@@ -117,7 +71,7 @@ def test_create(mocker):
     )
 
 
-def test_stats(datanommer_models, mock_init):
+def test_stats(datanommer_models, mock_config, mock_init):
     msg1 = generate_message(
         topic="org.fedoraproject.prod.git.branch.valgrind.master",
         body={"Message 1": "Message 1"},
@@ -142,7 +96,7 @@ def test_stats(datanommer_models, mock_init):
     assert "fas has 1 entries" in result.output
 
 
-def test_stats_topics(datanommer_models, mock_init):
+def test_stats_topics(datanommer_models, mock_config, mock_init):
     msg1 = generate_message(
         topic="org.fedoraproject.prod.git.branch.valgrind.master",
         body={"Message 1": "Message 1"},
@@ -174,7 +128,7 @@ def test_stats_topics(datanommer_models, mock_init):
     )
 
 
-def test_stats_category_topics(datanommer_models, mock_init):
+def test_stats_category_topics(datanommer_models, mock_config, mock_init):
     msg1 = generate_message(
         topic="org.fedoraproject.prod.git.branch.valgrind.master",
         body={"Message 1": "Message 1"},
@@ -206,7 +160,7 @@ def test_stats_category_topics(datanommer_models, mock_init):
     )
 
 
-def test_stats_category(datanommer_models, mock_init):
+def test_stats_category(datanommer_models, mock_config, mock_init):
     msg1 = generate_message(
         topic="org.fedoraproject.prod.git.branch.valgrind.master",
         body={"Message 1": "Message 1"},
@@ -230,7 +184,7 @@ def test_stats_category(datanommer_models, mock_init):
     assert result.output == "git has 2 entries\n"
 
 
-def test_dump(datanommer_models, mocker, mock_init):
+def test_dump(datanommer_models, mock_config, mock_init):
     msg1 = generate_message(topic="org.fedoraproject.prod.git.branch.valgrind.master")
     m.add(msg1)
 
@@ -250,7 +204,7 @@ def test_dump(datanommer_models, mocker, mock_init):
     )
 
 
-def test_dump_before(datanommer_models, mocker, mock_init):
+def test_dump_before(datanommer_models, mock_config, mock_init):
     msg1 = generate_message(topic="org.fedoraproject.prod.git.branch.valgrind.master")
     msg1._properties.headers["sent-at"] = datetime(2013, 2, 14).isoformat()
     m.add(msg1)
@@ -277,7 +231,7 @@ def test_dump_before(datanommer_models, mocker, mock_init):
     assert len(json_object) == 2
 
 
-def test_dump_since(datanommer_models, mocker, mock_init):
+def test_dump_since(datanommer_models, mock_config, mock_init):
     msg1 = generate_message(topic="org.fedoraproject.prod.git.branch.valgrind.master")
     msg1._properties.headers["sent-at"] = datetime(2013, 2, 14).isoformat()
     m.add(msg1)
@@ -304,7 +258,7 @@ def test_dump_since(datanommer_models, mocker, mock_init):
     assert len(json_object) == 2
 
 
-def test_dump_timespan(datanommer_models, mocker, mock_init):
+def test_dump_timespan(datanommer_models, mock_config, mock_init):
     msg1 = generate_message(topic="org.fedoraproject.prod.git.branch.valgrind.master")
     msg1._properties.headers["sent-at"] = datetime(2013, 2, 14).isoformat()
     m.add(msg1)
@@ -331,7 +285,7 @@ def test_dump_timespan(datanommer_models, mocker, mock_init):
     assert len(json_object) == 1
 
 
-def test_dump_invalid_dates(datanommer_models, mocker, mock_init):
+def test_dump_invalid_dates(datanommer_models, mock_config, mock_init):
     runner = CliRunner()
     result = runner.invoke(datanommer.commands.dump, ["--before", "2013-02-16asdasd"])
     assert result.output == "Error: Invalid date format\n"
@@ -340,7 +294,7 @@ def test_dump_invalid_dates(datanommer_models, mocker, mock_init):
     assert result.output == "Error: Invalid date format\n"
 
 
-def test_latest_overall(datanommer_models, mock_init):
+def test_latest_overall(datanommer_models, mock_config, mock_init):
     msg1 = generate_message(
         topic="org.fedoraproject.prod.git.branch.valgrind.master",
         body={"Message 1": "Message 1"},
@@ -367,7 +321,7 @@ def test_latest_overall(datanommer_models, mock_init):
     assert len(json_object) == 1
 
 
-def test_latest_topic(datanommer_models, mock_init):
+def test_latest_topic(datanommer_models, mock_config, mock_init):
     msg1 = generate_message(
         topic="org.fedoraproject.prod.git.branch.valgrind.master",
         body={"Message 1": "Message 1"},
@@ -396,7 +350,7 @@ def test_latest_topic(datanommer_models, mock_init):
     assert len(json_object) == 1
 
 
-def test_latest_category(datanommer_models, mock_init):
+def test_latest_category(datanommer_models, mock_config, mock_init):
     msg1 = generate_message(
         topic="org.fedoraproject.prod.git.branch.valgrind.master",
         body={"Message 1": "Message 1"},
@@ -423,7 +377,7 @@ def test_latest_category(datanommer_models, mock_init):
     assert len(json_object) == 1
 
 
-def test_latest_timestamp_human(datanommer_models, mocker, mock_init):
+def test_latest_timestamp_human(datanommer_models, mocker, mock_config, mock_init):
     msg1 = generate_message(topic="org.fedoraproject.prod.git.branch.valgrind.master")
     msg1._properties.headers["sent-at"] = datetime(2013, 2, 14).isoformat()
     m.add(msg1)
@@ -456,7 +410,7 @@ def test_latest_timestamp_human(datanommer_models, mocker, mock_init):
     assert len(json_object) == 2
 
 
-def test_latest_timestamp(datanommer_models, mocker, mock_init):
+def test_latest_timestamp(datanommer_models, mocker, mock_config, mock_init):
     msg1 = generate_message(topic="org.fedoraproject.prod.git.branch.valgrind.master")
     msg1._properties.headers["sent-at"] = datetime(2013, 2, 14).isoformat()
     m.add(msg1)
@@ -485,7 +439,7 @@ def test_latest_timestamp(datanommer_models, mocker, mock_init):
     assert len(json_object) == 2
 
 
-def test_latest_timesince(datanommer_models, mocker, mock_init):
+def test_latest_timesince(datanommer_models, mocker, mock_config, mock_init):
     now = datetime(2013, 3, 1)
 
     msg1 = generate_message(topic="org.fedoraproject.prod.git.branch.valgrind.master")
@@ -522,8 +476,13 @@ def test_latest_timesince(datanommer_models, mocker, mock_init):
     assert len(json_object) == 2
 
 
-def test_latest_timesince_human(datanommer_models, mock_init):
+def test_latest_timesince_human(datanommer_models, mock_config, mock_init, mocker):
     now = datetime.now()
+    # mocker.patch.object(datanommer.commands.datetime, "now", return_value=now)
+    patched_datetime = mocker.patch(
+        "datanommer.commands.datetime", mocker.Mock(wraps=datetime)
+    )
+    patched_datetime.now.return_value = now
 
     msg1 = generate_message(topic="org.fedoraproject.prod.git.branch.valgrind.master")
     time1 = now - timedelta(days=2)
@@ -543,16 +502,10 @@ def test_latest_timesince_human(datanommer_models, mock_init):
     runner = CliRunner()
     result = runner.invoke(datanommer.commands.latest, ["--timesince", "--human"])
 
-    json_object = json.loads(result.output)
-
-    # cannot assert exact value because of time to run test
-    assert "day" not in json_object[1]
-    assert "0:00:01." in json_object[1]
-    assert "1 day in 0:00:00.", json_object[0]
-    assert len(json_object) == 2
+    assert json.loads(result.output) == ["1 day, 0:00:00", "0:00:01"]
 
 
-def test_latest(datanommer_models, mock_init):
+def test_latest(datanommer_models, mock_config, mock_init):
     msg1 = generate_message(
         topic="org.fedoraproject.prod.git.branch.valgrind.master",
         body={"Message 1": "Message 1"},
