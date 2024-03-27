@@ -91,7 +91,7 @@ def init(uri=None, alembic_ini=None, engine=None, create=False):
         return
     session._datanommer_initialized = True
 
-    session.configure(bind=engine)
+    maker.configure(bind=engine)
     DeclarativeBase.query = session.query_property()
 
     if create:
