@@ -51,25 +51,22 @@ def main(config_path, topic, category, force_schema):
     elif category:
         query = query.where(m.Message.category == category)
 
-    query = (
-        query.join(
-            m.users_assoc_table,
-            and_(
-                m.Message.id == m.users_assoc_table.c.msg_id,
-                m.Message.timestamp == m.users_assoc_table.c.msg_timestamp,
-            ),
-            isouter=True,
-        )
-        .where(m.users_assoc_table.c.msg_id.is_(None))
-        .order_by(m.Message.timestamp)
-    )
+    query = query.join(
+        m.users_assoc_table,
+        and_(
+            m.Message.id == m.users_assoc_table.c.msg_id,
+            m.Message.timestamp == m.users_assoc_table.c.msg_timestamp,
+        ),
+        isouter=True,
+    ).where(m.users_assoc_table.c.msg_id.is_(None))
 
     total = m.session.scalar(query.with_only_columns(func.count(m.Message.id)))
     if not total:
         click.echo("No messages matched.")
         return
 
-    click.echo(f"Considering {total} messages")
+    query = query.order_by(m.Message.timestamp)
+    click.echo(f"Considering {total} message{'s' if total > 1 else ''}")
 
     for message in m.session.scalars(query):
         headers = message.headers

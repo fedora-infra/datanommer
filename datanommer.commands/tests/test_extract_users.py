@@ -95,4 +95,4 @@ def test_extract_users_no_users(datanommer_models, mock_config, mock_init):
         sa.select(sa.func.count(m.users_assoc_table.c.msg_id))
     )
     assert users_count == 0
-    assert result.output == ""
+    assert result.output == "Considering 1 message\n"
