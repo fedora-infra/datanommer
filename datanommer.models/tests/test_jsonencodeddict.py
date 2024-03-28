@@ -1,13 +1,12 @@
 import pytest
-from sqlalchemy import Column, create_engine, Integer, MetaData, Table
-from sqlalchemy.sql import select
+from sqlalchemy import Column, create_engine, Integer, MetaData, select, Table, text
 
 from datanommer.models import JSONEncodedDict
 
 
 @pytest.fixture
 def connection():
-    engine = create_engine("sqlite:///:memory:")
+    engine = create_engine("sqlite:///:memory:", future=True)
     with engine.connect() as connection:
         yield connection
 
@@ -29,18 +28,18 @@ def table(connection):
 def test_jsonencodeddict(connection, table):
     connection.execute(table.insert().values(data={"foo": "bar"}))
     # Check that it's stored as a string
-    for row in connection.execute("SELECT data FROM test_table"):
-        assert row["data"] == '{"foo": "bar"}'
+    for row in connection.execute(text("SELECT data FROM test_table")):
+        assert row.data == '{"foo": "bar"}'
     # Check that SQLAlchemy retrieves it as a dict
     for row in connection.execute(select(table.c.data)):
-        assert row["data"] == {"foo": "bar"}
+        assert row.data == {"foo": "bar"}
 
 
 def test_jsonencodeddict_null(connection, table):
     # Make sure NULL values are supported
     connection.execute(table.insert().values(data=None))
     for row in connection.execute(select(table.c.data)):
-        assert row["data"] is None
+        assert row.data is None
 
 
 def test_jsonencodeddict_compare(connection, table):
@@ -49,7 +48,7 @@ def test_jsonencodeddict_compare(connection, table):
     for row in connection.execute(
         select(table.c.data).filter(table.c.data == {"foo": "bar"})
     ):
-        assert row["data"] == {"foo": "bar"}
+        assert row.data == {"foo": "bar"}
 
 
 def test_jsonencodeddict_compare_like(connection, table):
@@ -58,4 +57,4 @@ def test_jsonencodeddict_compare_like(connection, table):
     for row in connection.execute(
         select(table.c.data).filter(table.c.data.like("%foo%"))
     ):
-        assert row["data"] == {"foo": "bar"}
+        assert row.data == {"foo": "bar"}

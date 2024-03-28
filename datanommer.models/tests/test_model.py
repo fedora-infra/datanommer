@@ -63,7 +63,7 @@ def generate_bodhi_update_complete_message(text="testing testing"):
 
 def test_init_uri_and_engine():
     uri = "sqlite:///db.db"
-    engine = create_engine(uri)
+    engine = create_engine(uri, future=True)
 
     with pytest.raises(ValueError, match="uri and engine cannot both be specified"):
         init(uri, engine=engine)
@@ -76,7 +76,7 @@ def test_init_no_uri_and_no_engine():
 
 def test_init_with_engine(caplog):
     uri = "sqlite:///db.db"
-    engine = create_engine(uri)
+    engine = create_engine(uri, future=True)
 
     init(engine=engine)
 

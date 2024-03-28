@@ -32,16 +32,14 @@ def datanommer_db(postgresql_proc, datanommer_db_url):
         # template_dbname=postgresql_proc.template_dbname,
         version=postgresql_proc.version,
     ):
-        engine = sa.create_engine(datanommer_db_url, poolclass=sa.pool.NullPool)
-        # dm.init will also run this, but somehow it fails then at creating tables
-        # as if timescaledb was not loaded.
-        with engine.connect() as connection:
-            connection.execute(sa.text("CREATE EXTENSION IF NOT EXISTS timescaledb"))
+        engine = sa.create_engine(
+            datanommer_db_url, future=True, poolclass=sa.pool.NullPool
+        )
         # Renew the global object, dm.init checks a custom attribute
         dm.session = scoped_session(dm.maker)
         dm.init(engine=engine, create=True)
         yield engine
-        sa.orm.close_all_sessions()
+        dm.session.close()
 
 
 @pytest.fixture()

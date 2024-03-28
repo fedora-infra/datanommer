@@ -80,7 +80,6 @@ def test_extract_users_topic_and_category(mock_config, mock_init):
     result = runner.invoke(
         extract_users, ["--category", "bodhi", "--topic", "some.topic"]
     )
-    print(result.output)
     assert result.exit_code != 0, result.output
     assert "Error: can't use both --topic and --category, choose one." in result.output
 

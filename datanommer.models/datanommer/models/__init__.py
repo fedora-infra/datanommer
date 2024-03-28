@@ -81,7 +81,7 @@ def init(uri=None, alembic_ini=None, engine=None, create=False):
         raise ValueError("One of uri or engine must be specified")
 
     if uri and not engine:
-        engine = create_engine(uri)
+        engine = create_engine(uri, future=True)
 
     # We need to hang our own attribute on the sqlalchemy session to stop
     # ourselves from initializing twice.  That is only a problem if the code
@@ -95,7 +95,8 @@ def init(uri=None, alembic_ini=None, engine=None, create=False):
     DeclarativeBase.query = session.query_property()
 
     if create:
-        session.execute(text("CREATE EXTENSION IF NOT EXISTS timescaledb"))
+        with engine.begin() as connection:
+            connection.execute(text("CREATE EXTENSION IF NOT EXISTS timescaledb"))
         DeclarativeBase.metadata.create_all(engine)
         # Loads the alembic configuration and generates the version table, with
         # the most recent revision stamped as head
@@ -509,7 +510,7 @@ class NamedSingleton:
         if name in cls._cache:
             # If we cache the instance, SQLAlchemy will run this query anyway because the instance
             # will be from a different transaction. So just cache the id.
-            return cls.query.get(cls._cache[name])
+            return session.get(cls, cls._cache[name])
         obj = cls.query.filter_by(name=name).one_or_none()
         if obj is None:
             obj = cls(name=name)
