@@ -13,11 +13,15 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
+import importlib.metadata
 import logging
 
 from fedora_messaging import config
 
 import datanommer.models as m
+
+
+__version__ = importlib.metadata.version("datanommer.consumer")
 
 
 def get_datanommer_sqlalchemy_url():
@@ -43,21 +47,3 @@ class Nommer:
         except Exception:
             m.session.rollback()
             raise
-
-
-# Set the version
-try:  # pragma: no cover
-    import importlib.metadata
-
-    __version__ = importlib.metadata.version("datanommer.consumer")
-except ImportError:  # pragma: no cover
-    try:
-        import pkg_resources
-
-        try:
-            __version__ = pkg_resources.get_distribution("datanommer.consumer").version
-        except pkg_resources.DistributionNotFound:
-            # The app is not installed, but the flask dev server can run it nonetheless.
-            __version__ = None
-    except ImportError:
-        __version__ = None

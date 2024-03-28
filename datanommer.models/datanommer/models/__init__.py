@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 import datetime
+import importlib.metadata
 import json
 import logging
 import math
@@ -21,7 +22,6 @@ import traceback
 import uuid
 from warnings import warn
 
-import pkg_resources
 from sqlalchemy import (
     and_,
     between,
@@ -62,6 +62,9 @@ except ImportError:  # pragma: no cover
     from psycopg2.errorcodes import lookup as lookup_error
 
     UniqueViolation = lookup_error("23505")
+
+
+__version__ = importlib.metadata.version("datanommer.models")
 
 
 log = logging.getLogger("datanommer")
@@ -548,16 +551,3 @@ def _setup_hypertable(table_class):
 
 
 _setup_hypertable(Message)
-
-
-# Set the version
-try:  # pragma: no cover
-    import importlib.metadata
-
-    __version__ = importlib.metadata.version("datanommer.models")
-except ImportError:  # pragma: no cover
-    try:
-        __version__ = pkg_resources.get_distribution("datanommer.models").version
-    except pkg_resources.DistributionNotFound:
-        # The app is not installed, but the flask dev server can run it nonetheless.
-        __version__ = None

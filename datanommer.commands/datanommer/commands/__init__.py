@@ -13,6 +13,7 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
+import importlib.metadata
 import json
 import logging
 import time
@@ -24,6 +25,8 @@ from sqlalchemy import func, select
 
 import datanommer.models as m
 
+
+__version__ = importlib.metadata.version("datanommer.commands")
 
 log = logging.getLogger("datanommer")
 
@@ -335,21 +338,3 @@ def latest(config_path, topic, category, overall, timestamp, timesince, human):
         results.append(formatter(result.category, result))
 
     click.echo(f"[{','.join(results)}]")
-
-
-# Set the version
-try:  # pragma: no cover
-    import importlib.metadata
-
-    __version__ = importlib.metadata.version("datanommer.commands")
-except ImportError:  # pragma: no cover
-    try:
-        import pkg_resources
-
-        try:
-            __version__ = pkg_resources.get_distribution("datanommer.commands").version
-        except pkg_resources.DistributionNotFound:
-            # The app is not installed, but the flask dev server can run it nonetheless.
-            __version__ = None
-    except ImportError:
-        __version__ = None
