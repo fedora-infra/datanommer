@@ -14,11 +14,12 @@
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import dm as dm
 import pytest
 from fedora_messaging import message
+from sqlalchemy import func, select
 
 import datanommer.consumer
-import datanommer.models
 
 
 @pytest.fixture
@@ -36,7 +37,7 @@ def test_consume(datanommer_models, consumer):
     consumer = datanommer.consumer.Nommer()
 
     consumer(example_message)
-    assert datanommer.models.Message.query.count() == 1
+    assert dm.session.scalar(select(func.count(dm.Message.id))) == 1
 
 
 def test_add_exception(datanommer_models, consumer, mocker):
@@ -44,7 +45,7 @@ def test_add_exception(datanommer_models, consumer, mocker):
         topic="nice.message", body={"encouragement": "You're doing great!"}
     )
 
-    datanommer.models.add = mocker.Mock(side_effect=Exception("an exception"))
+    dm.add = mocker.Mock(side_effect=Exception("an exception"))
     consumer = datanommer.consumer.Nommer()
     with pytest.raises(Exception):
         consumer(example_message)

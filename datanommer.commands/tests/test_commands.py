@@ -64,6 +64,7 @@ def test_create(mocker):
 
     runner = CliRunner()
     result = runner.invoke(datanommer.commands.create, [])
+    assert result.exit_code == 0, result.output
 
     assert result.output == "Creating Datanommer database and tables\n"
     mock_model_init.assert_called_once_with(
@@ -91,6 +92,7 @@ def test_stats(datanommer_models, mock_config, mock_init):
 
     runner = CliRunner()
     result = runner.invoke(datanommer.commands.stats, [])
+    assert result.exit_code == 0, result.output
 
     assert "git has 2 entries" in result.output
     assert "fas has 1 entries" in result.output
@@ -116,6 +118,7 @@ def test_stats_topics(datanommer_models, mock_config, mock_init):
 
     runner = CliRunner()
     result = runner.invoke(datanommer.commands.stats, ["--topic"])
+    assert result.exit_code == 0, result.output
 
     assert (
         "org.fedoraproject.prod.git.receive.valgrind.master has 1 entries"
@@ -148,6 +151,7 @@ def test_stats_category_topics(datanommer_models, mock_config, mock_init):
 
     runner = CliRunner()
     result = runner.invoke(datanommer.commands.stats, ["--topic", "--category", "git"])
+    assert result.exit_code == 0, result.output
 
     assert (
         "org.fedoraproject.prod.git.receive.valgrind.master has 1 entries"
@@ -180,6 +184,7 @@ def test_stats_category(datanommer_models, mock_config, mock_init):
 
     runner = CliRunner()
     result = runner.invoke(datanommer.commands.stats, ["--category", "git"])
+    assert result.exit_code == 0, result.output
 
     assert result.output == "git has 2 entries\n"
 
@@ -196,6 +201,7 @@ def test_dump(datanommer_models, mock_config, mock_init):
 
     runner = CliRunner()
     result = runner.invoke(datanommer.commands.dump, [])
+    assert result.exit_code == 0, result.output
 
     json_object = json.loads(result.output)
 
@@ -219,6 +225,7 @@ def test_dump_before(datanommer_models, mock_config, mock_init):
 
     runner = CliRunner()
     result = runner.invoke(datanommer.commands.dump, ["--before", "2013-02-16"])
+    assert result.exit_code == 0, result.output
 
     json_object = json.loads(result.output)
 
@@ -246,6 +253,7 @@ def test_dump_since(datanommer_models, mock_config, mock_init):
 
     runner = CliRunner()
     result = runner.invoke(datanommer.commands.dump, ["--since", "2013-02-14T08:00:00"])
+    assert result.exit_code == 0, result.output
 
     json_object = json.loads(result.output)
 
@@ -276,6 +284,7 @@ def test_dump_timespan(datanommer_models, mock_config, mock_init):
         datanommer.commands.dump,
         ["--before", "2013-02-16", "--since", "2013-02-14T08:00:00"],
     )
+    assert result.exit_code == 0, result.output
 
     json_object = json.loads(result.output)
 
@@ -288,9 +297,11 @@ def test_dump_timespan(datanommer_models, mock_config, mock_init):
 def test_dump_invalid_dates(datanommer_models, mock_config, mock_init):
     runner = CliRunner()
     result = runner.invoke(datanommer.commands.dump, ["--before", "2013-02-16asdasd"])
+    assert result.exit_code > 0, result.output
     assert result.output == "Error: Invalid date format\n"
 
     result = runner.invoke(datanommer.commands.dump, ["--since", "2013-02-16asdasd"])
+    assert result.exit_code > 0, result.output
     assert result.output == "Error: Invalid date format\n"
 
 
@@ -314,6 +325,7 @@ def test_latest_overall(datanommer_models, mock_config, mock_init):
 
     runner = CliRunner()
     result = runner.invoke(datanommer.commands.latest, ["--overall"])
+    assert result.exit_code == 0, result.output
 
     json_object = json.loads(result.output)
 
@@ -343,6 +355,7 @@ def test_latest_topic(datanommer_models, mock_config, mock_init):
     result = runner.invoke(
         datanommer.commands.latest, ["--topic", "org.fedoraproject.stg.fas.user.create"]
     )
+    assert result.exit_code == 0, result.output
 
     json_object = json.loads(result.output)
 
@@ -370,6 +383,7 @@ def test_latest_category(datanommer_models, mock_config, mock_init):
 
     runner = CliRunner()
     result = runner.invoke(datanommer.commands.latest, ["--category", "fas"])
+    assert result.exit_code == 0, result.output
 
     json_object = json.loads(result.output)
 
@@ -402,6 +416,7 @@ def test_latest_timestamp_human(datanommer_models, mocker, mock_config, mock_ini
 
     runner = CliRunner()
     result = runner.invoke(datanommer.commands.latest, ["--timestamp", "--human"])
+    assert result.exit_code == 0, result.output
 
     json_object = json.loads(result.output)
 
@@ -431,6 +446,7 @@ def test_latest_timestamp(datanommer_models, mocker, mock_config, mock_init):
 
     runner = CliRunner()
     result = runner.invoke(datanommer.commands.latest, ["--timestamp"])
+    assert result.exit_code == 0, result.output
 
     json_object = json.loads(result.output)
 
@@ -465,6 +481,7 @@ def test_latest_timesince(datanommer_models, mocker, mock_config, mock_init):
 
     runner = CliRunner()
     result = runner.invoke(datanommer.commands.latest, ["--timesince"])
+    assert result.exit_code == 0, result.output
 
     json_object = json.loads(result.output)
 
@@ -501,6 +518,7 @@ def test_latest_timesince_human(datanommer_models, mock_config, mock_init, mocke
 
     runner = CliRunner()
     result = runner.invoke(datanommer.commands.latest, ["--timesince", "--human"])
+    assert result.exit_code == 0, result.output
 
     assert json.loads(result.output) == ["1 day, 0:00:00", "0:00:01"]
 
@@ -527,6 +545,7 @@ def test_latest(datanommer_models, mock_config, mock_init):
 
     runner = CliRunner()
     result = runner.invoke(datanommer.commands.latest, [])
+    assert result.exit_code == 0, result.output
 
     json_object = json.loads(result.output)
 

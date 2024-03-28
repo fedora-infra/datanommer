@@ -2,7 +2,7 @@ import logging
 
 import click
 from fedora_messaging.message import load_message
-from sqlalchemy import and_
+from sqlalchemy import and_, select
 
 import datanommer.models as m
 
@@ -37,11 +37,11 @@ def main(config_path, topic, category):
     if topic and category:
         raise click.UsageError("can't use both --topic and --category, choose one.")
 
-    query = m.Message.query
+    query = select(m.Message)
     if topic:
-        query = query.filter(m.Message.topic == topic)
+        query = query.where(m.Message.topic == topic)
     elif category:
-        query = query.filter(m.Message.category == category)
+        query = query.where(m.Message.category == category)
 
     query = (
         query.join(
@@ -52,11 +52,11 @@ def main(config_path, topic, category):
             ),
             isouter=True,
         )
-        .filter(m.users_assoc_table.c.msg_id.is_(None))
+        .where(m.users_assoc_table.c.msg_id.is_(None))
         .order_by(m.Message.timestamp)
     )
 
-    for message in query:
+    for message in m.session.scalars(query):
         fm_msg = load_message(
             {
                 "topic": message.topic,

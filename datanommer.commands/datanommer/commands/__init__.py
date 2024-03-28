@@ -16,11 +16,11 @@
 import json
 import logging
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import click
 from fedora_messaging import config as fedora_messaging_config
-from sqlalchemy import func
+from sqlalchemy import func, select
 
 import datanommer.models as m
 
@@ -83,14 +83,14 @@ def dump(config_path, since, before):
         alembic_ini=config["alembic_ini"],
     )
 
-    query = m.Message.query
+    query = select(m.Message)
     if before:
         try:
             before = datetime.fromisoformat(before)
         except ValueError:
             raise click.ClickException("Invalid date format")
 
-        query = query.filter(m.Message.timestamp <= before)
+        query = query.where(m.Message.timestamp <= before)
 
     if since:
         try:
@@ -98,9 +98,11 @@ def dump(config_path, since, before):
         except ValueError:
             raise click.ClickException("Invalid date format")
 
-        query = query.filter(m.Message.timestamp >= since)
+        query = query.where(m.Message.timestamp >= since)
 
-    results = [json.dumps(msg.as_fedora_message_dict()) for msg in query.all()]
+    results = [
+        json.dumps(msg.as_fedora_message_dict()) for msg in m.session.scalars(query)
+    ]
     click.echo(f"[{','.join(results)}]")
 
 
@@ -157,23 +159,17 @@ def stats(config_path, topic, category):
     )
 
     if topic:
+        query = select(m.Message.topic, func.count(m.Message.topic))
         if category:
-            query = m.session.query(
-                m.Message.topic, func.count(m.Message.topic)
-            ).filter(m.Message.category == category)
-        else:
-            query = m.session.query(m.Message.topic, func.count(m.Message.topic))
+            query = query.where(m.Message.category == category)
         query = query.group_by(m.Message.topic)
     else:
+        query = select(m.Message.category, func.count(m.Message.category))
         if category:
-            query = m.session.query(
-                m.Message.category, func.count(m.Message.category)
-            ).filter(m.Message.category == category)
-        else:
-            query = m.session.query(m.Message.category, func.count(m.Message.category))
+            query = query.where(m.Message.category == category)
         query = query.group_by(m.Message.category)
 
-    results = query.all()
+    results = m.session.execute(query).all()
 
     if topic:
         for topic, count in results:
@@ -295,30 +291,28 @@ def latest(config_path, topic, category, overall, timestamp, timesince, human):
     )
 
     if topic:
-        queries = [m.Message.query.filter(m.Message.topic == topic)]
+        queries = [select(m.Message).where(m.Message.topic == topic)]
 
     elif category:
-        queries = [m.Message.query.filter(m.Message.category == category)]
+        queries = [select(m.Message).where(m.Message.category == category)]
     elif not overall:
         # If no args..
-        categories = [
-            c[0]
-            for c in m.session.query(m.Message.category)
-            .distinct()
-            .order_by(m.Message.category)
-        ]
+        categories_query = (
+            select(m.Message.category).distinct().order_by(m.Message.category)
+        )
+        categories = m.session.scalars(categories_query)
         queries = [
-            m.Message.query.filter(m.Message.category == category)
+            select(m.Message).where(m.Message.category == category)
             for category in categories
         ]
     else:
         # Show only the single latest message, regardless of type.
-        queries = [m.Message.query]
+        queries = [select(m.Message)]
 
     # Only check messages from the last year to speed up queries
     a_year = timedelta(days=365)
-    earliest = datetime.utcnow() - a_year
-    queries = [q.filter(m.Message.timestamp > earliest) for q in queries]
+    earliest = datetime.now(tz=timezone.utc) - a_year
+    queries = [q.where(m.Message.timestamp > earliest) for q in queries]
 
     # Order and limit to the latest.
     queries = [q.order_by(m.Message.timestamp.desc()).limit(1) for q in queries]
@@ -337,7 +331,7 @@ def latest(config_path, topic, category, overall, timestamp, timesince, human):
             return f'{{"{key}": {json.dumps(val.as_fedora_message_dict())}}}'
 
     results = []
-    for result in sum((query.all() for query in queries), []):
+    for result in sum((list(m.session.scalars(query)) for query in queries), []):
         results.append(formatter(result.category, result))
 
     click.echo(f"[{','.join(results)}]")

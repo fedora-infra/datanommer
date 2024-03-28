@@ -80,7 +80,6 @@ def test_extract_users_topic_and_category(mock_config, mock_init):
     result = runner.invoke(
         extract_users, ["--category", "bodhi", "--topic", "some.topic"]
     )
-    print(result.output)
     assert result.exit_code != 0, result.output
     assert "Error: can't use both --topic and --category, choose one." in result.output
 
@@ -92,8 +91,8 @@ def test_extract_users_no_users(datanommer_models, mock_config, mock_init):
     result = runner.invoke(extract_users)
 
     assert result.exit_code == 0, result.output
-    users_count = m.session.execute(
+    users_count = m.session.scalar(
         sa.select(sa.func.count(m.users_assoc_table.c.msg_id))
-    ).scalar_one()
+    )
     assert users_count == 0
     assert result.output == ""

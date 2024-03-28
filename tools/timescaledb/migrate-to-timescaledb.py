@@ -13,7 +13,9 @@ from sqlalchemy import (
     create_engine,
     DateTime,
     ForeignKey,
+    func,
     Integer,
+    select,
     Table,
     UnicodeText,
 )
@@ -143,7 +145,7 @@ def windowed_query(q, column, windowsize):
     while True:
         subq = q
         if last_id is not None:
-            subq = subq.filter(column > last_id)
+            subq = subq.where(column > last_id)
         chunk = subq.limit(windowsize).all()
         if not chunk:
             break
@@ -177,26 +179,25 @@ def main(config_path, since):
 
     with Session(src_engine) as src_db:
         click.echo("Querying messages...")
-        old_messages = src_db.query(OldMessage).order_by(OldMessage.id)
-        latest = dm.Message.query.order_by(dm.Message.id.desc()).first()
+        old_messages = src_db.scalars(select(OldMessage).order_by(OldMessage.id))
+        latest = dm.session.scalars(
+            select(dm.Message).order_by(dm.Message.id.desc()).limit(1)
+        ).first()
         if latest:
             try:
-                latest_in_src = (
-                    src_db.query(OldMessage)
-                    .filter(OldMessage.msg_id == latest.msg_id)
-                    .one()
-                )
+                latest_in_src = src_db.execute(
+                    select(OldMessage).where(OldMessage.msg_id == latest.msg_id)
+                ).scalar_one()
             except NoResultFound:
-                latest_in_src = (
-                    src_db.query(OldMessage)
-                    .filter(OldMessage.timestamp == latest.timestamp)
-                    .filter(OldMessage.topic == latest.topic)
-                    .one()
-                )
-            old_messages = old_messages.filter(OldMessage.id > latest_in_src.id)
+                latest_in_src = src_db.execute(
+                    select(OldMessage)
+                    .where(OldMessage.timestamp == latest.timestamp)
+                    .where(OldMessage.topic == latest.topic)
+                ).scalar_one()
+            old_messages = old_messages.where(OldMessage.id > latest_in_src.id)
             click.echo(f"Resuming from message {latest.msg_id}")
         if since:
-            old_messages = old_messages.filter(OldMessage.timestamp > since)
+            old_messages = old_messages.where(OldMessage.timestamp > since)
             click.echo(f"Only importing messages after {since}")
         total = old_messages.count()
         with click.progressbar(
@@ -215,8 +216,12 @@ def main(config_path, since):
                 bar.update(1, old_message)
         dm.session.commit()
         # Verify counts
-        click.echo(f"Messages in the old DB: {src_db.query(OldMessage).count()}")
-        click.echo(f"Messages in the new DB: {dm.Message.query.count()}")
+        click.echo(
+            f"Messages in the old DB: {src_db.scalar(select(func.count(OldMessage.id)))}"
+        )
+        click.echo(
+            f"Messages in the new DB: {dm.session.scalar(select(func.count(dm.Message.id)))}"
+        )
 
 
 if __name__ == "__main__":

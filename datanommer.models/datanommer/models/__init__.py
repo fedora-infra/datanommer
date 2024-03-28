@@ -31,9 +31,11 @@ from sqlalchemy import (
     DDL,
     event,
     ForeignKey,
+    func,
     Integer,
     not_,
     or_,
+    select,
     String,
     Table,
     text,
@@ -81,7 +83,7 @@ def init(uri=None, alembic_ini=None, engine=None, create=False):
         raise ValueError("One of uri or engine must be specified")
 
     if uri and not engine:
-        engine = create_engine(uri)
+        engine = create_engine(uri, future=True)
 
     # We need to hang our own attribute on the sqlalchemy session to stop
     # ourselves from initializing twice.  That is only a problem if the code
@@ -95,7 +97,8 @@ def init(uri=None, alembic_ini=None, engine=None, create=False):
     DeclarativeBase.query = session.query_property()
 
     if create:
-        session.execute(text("CREATE EXTENSION IF NOT EXISTS timescaledb"))
+        with engine.begin() as connection:
+            connection.execute(text("CREATE EXTENSION IF NOT EXISTS timescaledb"))
         DeclarativeBase.metadata.create_all(engine)
         # Loads the alembic configuration and generates the version table, with
         # the most recent revision stamped as head
@@ -310,7 +313,9 @@ class Message(DeclarativeBase):
 
     @classmethod
     def from_msg_id(cls, msg_id):
-        return cls.query.filter(cls.msg_id == msg_id).first()
+        return session.execute(
+            select(cls).where(cls.msg_id == msg_id)
+        ).scalar_one_or_none()
 
     def as_dict(self, request=None):
         return dict(
@@ -416,7 +421,8 @@ class Message(DeclarativeBase):
         not_topics = not_topics or []
         contains = contains or []
 
-        query = Message.query
+        Message = cls
+        query = select(Message)
 
         # A little argument validation.  We could provide some defaults in
         # these mixed cases.. but instead we'll just leave it up to our caller.
@@ -427,58 +433,58 @@ class Message(DeclarativeBase):
             )
 
         if start and end:
-            query = query.filter(between(Message.timestamp, start, end))
+            query = query.where(between(Message.timestamp, start, end))
 
         if msg_id:
-            query = query.filter(Message.msg_id == msg_id)
+            query = query.where(Message.msg_id == msg_id)
 
         # Add the four positive filters as necessary
         if users:
-            query = query.filter(
+            query = query.where(
                 or_(*(Message.users.any(User.name == u) for u in users))
             )
 
         if packages:
-            query = query.filter(
+            query = query.where(
                 or_(*(Message.packages.any(Package.name == p) for p in packages))
             )
 
         if categories:
-            query = query.filter(
+            query = query.where(
                 or_(*(Message.category == category for category in categories))
             )
 
         if topics:
-            query = query.filter(or_(*(Message.topic == topic for topic in topics)))
+            query = query.where(or_(*(Message.topic == topic for topic in topics)))
 
         if contains:
-            query = query.filter(
+            query = query.where(
                 or_(*(Message.msg.like(f"%{contain}%") for contain in contains))
             )
 
         # And then the four negative filters as necessary
         if not_users:
-            query = query.filter(
+            query = query.where(
                 not_(or_(*(Message.users.any(User.name == u) for u in not_users)))
             )
 
         if not_packs:
-            query = query.filter(
+            query = query.where(
                 not_(or_(*(Message.packages.any(Package.name == p) for p in not_packs)))
             )
 
         if not_cats:
-            query = query.filter(
+            query = query.where(
                 not_(or_(*(Message.category == category for category in not_cats)))
             )
 
         if not_topics:
-            query = query.filter(
+            query = query.where(
                 not_(or_(*(Message.topic == topic for topic in not_topics)))
             )
 
         # Finally, tag on our pagination arguments
-        total = query.count()
+        total = session.scalar(query.with_only_columns(func.count(Message.id)))
         query = query.order_by(getattr(Message.timestamp, order)())
 
         if not rows_per_page:
@@ -491,7 +497,7 @@ class Message(DeclarativeBase):
             return total, page, query
         else:
             # Execute!
-            messages = query.all()
+            messages = list(session.scalars(query))
             return total, pages, messages
 
 
@@ -509,8 +515,8 @@ class NamedSingleton:
         if name in cls._cache:
             # If we cache the instance, SQLAlchemy will run this query anyway because the instance
             # will be from a different transaction. So just cache the id.
-            return cls.query.get(cls._cache[name])
-        obj = cls.query.filter_by(name=name).one_or_none()
+            return session.get(cls, cls._cache[name])
+        obj = session.execute(select(cls).where(cls.name == name)).one_or_none()
         if obj is None:
             obj = cls(name=name)
             session.add(obj)
