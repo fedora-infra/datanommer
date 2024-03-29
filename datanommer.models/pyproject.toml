@@ -48,11 +48,10 @@ mediawiki-messages = {version = "*", optional = true}
 koschei-messages = {version = "*", optional = true}
 fedora-messaging-git-hook-messages = {version = "*", optional = true}
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 pre-commit = "*"
 black = "*"
-isort = "*"
-flake8 = "*"
+ruff = "*"
 pytest = "*"
 liccheck = "*"
 pytest-cov = "*"
@@ -82,6 +81,7 @@ schemas = [
   "koschei-messages",
   "fedora-messaging-git-hook-messages",
 ]
+
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

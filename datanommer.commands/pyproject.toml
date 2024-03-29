@@ -23,12 +23,11 @@ python = "^3.10"
 "datanommer.models" = "^1.0.0"
 fedora-messaging = ">=2.1.0"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 pre-commit = "*"
 "datanommer.models" = {path = "../datanommer.models", develop = true}
 black = "*"
-isort = "*"
-flake8 = "*"
+ruff = "*"
 pytest = "*"
 liccheck = "*"
 pytest-cov = "*"

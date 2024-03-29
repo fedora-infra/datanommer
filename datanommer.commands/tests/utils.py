@@ -4,9 +4,10 @@ from fedora_messaging import message as fedora_message
 
 def generate_message(
     topic="org.fedoraproject.test.a.nice.message",
-    body={"encouragement": "You're doing great!"},
+    body=None,
     headers=None,
 ):
+    body = body or {"encouragement": "You're doing great!"}
     return fedora_message.Message(topic=topic, body=body, headers=headers)
 
 

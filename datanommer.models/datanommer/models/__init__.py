@@ -316,9 +316,7 @@ class Message(DeclarativeBase):
 
     @classmethod
     def from_msg_id(cls, msg_id):
-        return session.execute(
-            select(cls).where(cls.msg_id == msg_id)
-        ).scalar_one_or_none()
+        return session.execute(select(cls).where(cls.msg_id == msg_id)).scalar_one_or_none()
 
     def as_dict(self, request=None):
         return dict(
@@ -341,9 +339,7 @@ class Message(DeclarativeBase):
     def as_fedora_message_dict(self):
         headers = self.headers or {}
         if "sent-at" not in headers:
-            headers["sent-at"] = self.timestamp.astimezone(
-                datetime.timezone.utc
-            ).isoformat()
+            headers["sent-at"] = self.timestamp.astimezone(datetime.timezone.utc).isoformat()
         return dict(
             body=self.msg,
             headers=headers,
@@ -358,6 +354,7 @@ class Message(DeclarativeBase):
             "The __json__() method has been renamed to as_dict(), and will be removed "
             "in the next major version",
             DeprecationWarning,
+            stacklevel=2,
         )
         return self.as_dict(request)
 
@@ -431,8 +428,7 @@ class Message(DeclarativeBase):
         # these mixed cases.. but instead we'll just leave it up to our caller.
         if (start is not None and end is None) or (end is not None and start is None):
             raise ValueError(
-                "Either both start and end must be specified "
-                "or neither must be specified"
+                "Either both start and end must be specified or neither must be specified"
             )
 
         if start and end:
@@ -443,33 +439,23 @@ class Message(DeclarativeBase):
 
         # Add the four positive filters as necessary
         if users:
-            query = query.where(
-                or_(*(Message.users.any(User.name == u) for u in users))
-            )
+            query = query.where(or_(*(Message.users.any(User.name == u) for u in users)))
 
         if packages:
-            query = query.where(
-                or_(*(Message.packages.any(Package.name == p) for p in packages))
-            )
+            query = query.where(or_(*(Message.packages.any(Package.name == p) for p in packages)))
 
         if categories:
-            query = query.where(
-                or_(*(Message.category == category for category in categories))
-            )
+            query = query.where(or_(*(Message.category == category for category in categories)))
 
         if topics:
             query = query.where(or_(*(Message.topic == topic for topic in topics)))
 
         if contains:
-            query = query.where(
-                or_(*(Message.msg.like(f"%{contain}%") for contain in contains))
-            )
+            query = query.where(or_(*(Message.msg.like(f"%{contain}%") for contain in contains)))
 
         # And then the four negative filters as necessary
         if not_users:
-            query = query.where(
-                not_(or_(*(Message.users.any(User.name == u) for u in not_users)))
-            )
+            query = query.where(not_(or_(*(Message.users.any(User.name == u) for u in not_users))))
 
         if not_packs:
             query = query.where(
@@ -477,14 +463,10 @@ class Message(DeclarativeBase):
             )
 
         if not_cats:
-            query = query.where(
-                not_(or_(*(Message.category == category for category in not_cats)))
-            )
+            query = query.where(not_(or_(*(Message.category == category for category in not_cats))))
 
         if not_topics:
-            query = query.where(
-                not_(or_(*(Message.topic == topic for topic in not_topics)))
-            )
+            query = query.where(not_(or_(*(Message.topic == topic for topic in not_topics))))
 
         # Finally, tag on our pagination arguments
         total = session.scalar(query.with_only_columns(func.count(Message.id)))

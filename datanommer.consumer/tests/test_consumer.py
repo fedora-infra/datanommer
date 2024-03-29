@@ -45,9 +45,9 @@ def test_add_exception(datanommer_models, consumer, mocker):
         topic="nice.message", body={"encouragement": "You're doing great!"}
     )
 
-    dm.add = mocker.Mock(side_effect=Exception("an exception"))
+    dm.add = mocker.Mock(side_effect=RuntimeError("an exception"))
     consumer = datanommer.consumer.Nommer()
-    with pytest.raises(Exception):
+    with pytest.raises(RuntimeError):
         consumer(example_message)
 
 

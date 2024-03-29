@@ -29,9 +29,10 @@ from datanommer.models import add, init, Message, Package, session, User
 
 def generate_message(
     topic="org.fedoraproject.test.a.nice.message",
-    body={"encouragement": "You're doing great!"},
+    body=None,
     headers=None,
 ):
+    body = (body or {"encouragement": "You're doing great!"},)
     return fedora_message.Message(topic=topic, body=body, headers=headers)
 
 
@@ -444,7 +445,7 @@ def test_grep_rows_per_page_zero(datanommer_models):
     try:
         total, pages, messages = Message.grep(rows_per_page=0)
     except ZeroDivisionError as e:
-        assert False, e
+        pytest.fail(e)
     assert total == 200
     assert pages == 1
     assert len(messages) == 200
@@ -470,8 +471,7 @@ def test_add_duplicate(datanommer_models, caplog):
     # duplicate message
     assert session.scalar(select(func.count(Message.id))) == 1
     assert (
-        "Skipping message from org.fedoraproject.test.a.nice.message"
-        in caplog.records[0].message
+        "Skipping message from org.fedoraproject.test.a.nice.message" in caplog.records[0].message
     )
 
 
@@ -501,7 +501,7 @@ def test_add_duplicate_package(datanommer_models):
     try:
         add(example_message)
     except IntegrityError as e:
-        assert False, e
+        pytest.fail(e)
     assert session.scalar(select(func.count(Message.id))) == 1
     dbmsg = session.scalar(select(Message))
     assert len(dbmsg.packages) == 1
@@ -528,7 +528,7 @@ def test_add_message_with_error_on_packages(datanommer_models, caplog):
     try:
         add(example_message)
     except KeyError as e:
-        assert False, e
+        pytest.fail(e)
     assert session.scalar(select(func.count(Message.id))) == 1
     assert caplog.records[0].message == (
         f"Could not get the list of packages from a message on "
@@ -578,7 +578,7 @@ def test_as_fedora_message_dict_no_headers(datanommer_models):
     try:
         message_dict = dbmsg.as_fedora_message_dict()
     except TypeError as e:
-        assert False, e
+        pytest.fail(e)
 
     assert list(message_dict["headers"].keys()) == ["sent-at"]
 

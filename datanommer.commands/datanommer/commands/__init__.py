@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 import importlib.metadata
+import itertools
 import json
 import logging
 import time
@@ -37,9 +38,7 @@ def get_config(config_path=None):
     conf = fedora_messaging_config.conf["consumer_config"]
     for key in ("datanommer_sqlalchemy_url", "alembic_ini"):
         if key not in conf:
-            raise click.ClickException(
-                f"{key} not defined in the fedora-messaging config"
-            )
+            raise click.ClickException(f"{key} not defined in the fedora-messaging config")
     return conf
 
 
@@ -67,12 +66,8 @@ def create(config_path):
 
 @click.command()
 @config_option
-@click.option(
-    "--since", default=None, help="Only after datetime, ex 2013-02-14T08:05:59.87"
-)
-@click.option(
-    "--before", default=None, help="Only before datetime, ex 2013-02-14T08:05:59.87"
-)
+@click.option("--since", default=None, help="Only after datetime, ex 2013-02-14T08:05:59.87")
+@click.option("--before", default=None, help="Only before datetime, ex 2013-02-14T08:05:59.87")
 def dump(config_path, since, before):
     """Dump the contents of the datanommer database as JSON.
 
@@ -90,22 +85,20 @@ def dump(config_path, since, before):
     if before:
         try:
             before = datetime.fromisoformat(before)
-        except ValueError:
-            raise click.ClickException("Invalid date format")
+        except ValueError as e:
+            raise click.ClickException("Invalid date format") from e
 
         query = query.where(m.Message.timestamp <= before)
 
     if since:
         try:
             since = datetime.fromisoformat(since)
-        except ValueError:
-            raise click.ClickException("Invalid date format")
+        except ValueError as e:
+            raise click.ClickException("Invalid date format") from e
 
         query = query.where(m.Message.timestamp >= since)
 
-    results = [
-        json.dumps(msg.as_fedora_message_dict()) for msg in m.session.scalars(query)
-    ]
+    results = [json.dumps(msg.as_fedora_message_dict()) for msg in m.session.scalars(query)]
     click.echo(f"[{','.join(results)}]")
 
 
@@ -184,20 +177,14 @@ def stats(config_path, topic, category):
 
 @click.command()
 @config_option
-@click.option(
-    "--topic", default=None, help="Show the latest for only a specific topic."
-)
-@click.option(
-    "--category", default=None, help="Show the latest for only a specific category."
-)
+@click.option("--topic", default=None, help="Show the latest for only a specific topic.")
+@click.option("--category", default=None, help="Show the latest for only a specific category.")
 @click.option(
     "--overall",
     is_flag=True,
     help="Show only the latest message out of all message types.",
 )
-@click.option(
-    "--timestamp", is_flag=True, help="Show only the timestamp of the message(s)."
-)
+@click.option("--timestamp", is_flag=True, help="Show only the timestamp of the message(s).")
 @click.option(
     "--timesince",
     is_flag=True,
@@ -300,13 +287,10 @@ def latest(config_path, topic, category, overall, timestamp, timesince, human):
         queries = [select(m.Message).where(m.Message.category == category)]
     elif not overall:
         # If no args..
-        categories_query = (
-            select(m.Message.category).distinct().order_by(m.Message.category)
-        )
+        categories_query = select(m.Message.category).distinct().order_by(m.Message.category)
         categories = m.session.scalars(categories_query)
         queries = [
-            select(m.Message).where(m.Message.category == category)
-            for category in categories
+            select(m.Message).where(m.Message.category == category) for category in categories
         ]
     else:
         # Show only the single latest message, regardless of type.
@@ -334,7 +318,7 @@ def latest(config_path, topic, category, overall, timestamp, timesince, human):
             return f'{{"{key}": {json.dumps(val.as_fedora_message_dict())}}}'
 
     results = []
-    for result in sum((list(m.session.scalars(query)) for query in queries), []):
+    for result in itertools.chain.from_iterable(m.session.scalars(query) for query in queries):
         results.append(formatter(result.category, result))
 
     click.echo(f"[{','.join(results)}]")

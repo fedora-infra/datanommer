@@ -14,9 +14,7 @@ log = logging.getLogger(__name__)
 
 @click.command()
 @config_option
-@click.option(
-    "--topic", default=None, help="Only extract users for messages of a specific topic."
-)
+@click.option("--topic", default=None, help="Only extract users for messages of a specific topic.")
 @click.option(
     "--category",
     default=None,

@@ -45,16 +45,12 @@ def test_jsonencodeddict_null(connection, table):
 def test_jsonencodeddict_compare(connection, table):
     # Make sure NULL values are supported
     connection.execute(table.insert().values(data={"foo": "bar"}))
-    for row in connection.execute(
-        select(table.c.data).where(table.c.data == {"foo": "bar"})
-    ):
+    for row in connection.execute(select(table.c.data).where(table.c.data == {"foo": "bar"})):
         assert row.data == {"foo": "bar"}
 
 
 def test_jsonencodeddict_compare_like(connection, table):
     # Make sure NULL values are supported
     connection.execute(table.insert().values(data={"foo": "bar"}))
-    for row in connection.execute(
-        select(table.c.data).where(table.c.data.like("%foo%"))
-    ):
+    for row in connection.execute(select(table.c.data).where(table.c.data.like("%foo%"))):
         assert row.data == {"foo": "bar"}

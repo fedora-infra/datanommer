@@ -82,9 +82,7 @@ def import_message(message):
     try:
         msg = loads(msg)
     except JSONDecodeError:
-        click.echo(
-            f"Can't decode json in message {message.msg_id} ({message.timestamp})"
-        )
+        click.echo(f"Can't decode json in message {message.msg_id} ({message.timestamp})")
         with open("failed.log", "a") as failedlog:
             failedlog.write(
                 dumps(
@@ -136,7 +134,7 @@ def import_message(message):
 
 # https://github.com/sqlalchemy/sqlalchemy/wiki/RangeQuery-and-WindowedRangeQuery
 def windowed_query(q, column, windowsize):
-    """ "Break a Query into chunks on a given column."""
+    """Break a Query into chunks on a given column."""
 
     single_entity = q.is_single_entity
     q = q.add_columns(column).order_by(column)
@@ -216,9 +214,7 @@ def main(config_path, since):
                 bar.update(1, old_message)
         dm.session.commit()
         # Verify counts
-        click.echo(
-            f"Messages in the old DB: {src_db.scalar(select(func.count(OldMessage.id)))}"
-        )
+        click.echo(f"Messages in the old DB: {src_db.scalar(select(func.count(OldMessage.id)))}")
         click.echo(
             f"Messages in the new DB: {dm.session.scalar(select(func.count(dm.Message.id)))}"
         )

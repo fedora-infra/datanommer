@@ -32,9 +32,7 @@ def datanommer_db(postgresql_proc, datanommer_db_url):
         # template_dbname=postgresql_proc.template_dbname,
         version=postgresql_proc.version,
     ):
-        engine = sa.create_engine(
-            datanommer_db_url, future=True, poolclass=sa.pool.NullPool
-        )
+        engine = sa.create_engine(datanommer_db_url, future=True, poolclass=sa.pool.NullPool)
         # Renew the global object, dm.init checks a custom attribute
         dm.session = scoped_session(dm.maker)
         dm.init(engine=engine, create=True)

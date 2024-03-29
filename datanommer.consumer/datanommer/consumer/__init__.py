@@ -27,10 +27,10 @@ __version__ = importlib.metadata.version("datanommer.consumer")
 def get_datanommer_sqlalchemy_url():
     try:
         return config.conf["consumer_config"]["datanommer_sqlalchemy_url"]
-    except KeyError:
+    except KeyError as e:
         raise ValueError(
             "datanommer_sqlalchemy_url not defined in the fedora-messaging config"
-        )
+        ) from e
 
 
 log = logging.getLogger("datanommer-consumer")

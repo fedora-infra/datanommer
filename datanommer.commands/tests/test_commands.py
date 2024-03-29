@@ -42,9 +42,7 @@ def test_get_datanommer_sqlalchemy_url_config(mocker):
         "datanommer_sqlalchemy_url": "",
         "alembic_ini": "/some/where",
     }
-    mocker.patch.dict(
-        datanommer.commands.fedora_messaging_config.conf["consumer_config"], conf
-    )
+    mocker.patch.dict(datanommer.commands.fedora_messaging_config.conf["consumer_config"], conf)
     load_config = mocker.patch(
         "datanommer.commands.fedora_messaging_config.conf.load_config",
     )
@@ -67,9 +65,7 @@ def test_create(mocker):
     assert result.exit_code == 0, result.output
 
     assert result.output == "Creating Datanommer database and tables\n"
-    mock_model_init.assert_called_once_with(
-        "TESTURL", alembic_ini="/some/where", create=True
-    )
+    mock_model_init.assert_called_once_with("TESTURL", alembic_ini="/some/where", create=True)
 
 
 def test_stats(datanommer_models, mock_config, mock_init):
@@ -120,15 +116,9 @@ def test_stats_topics(datanommer_models, mock_config, mock_init):
     result = runner.invoke(datanommer.commands.stats, ["--topic"])
     assert result.exit_code == 0, result.output
 
-    assert (
-        "org.fedoraproject.prod.git.receive.valgrind.master has 1 entries"
-        in result.output
-    )
+    assert "org.fedoraproject.prod.git.receive.valgrind.master has 1 entries" in result.output
     assert "org.fedoraproject.stg.fas.user.create has 1 entries" in result.output
-    assert (
-        "org.fedoraproject.prod.git.branch.valgrind.master has 1 entries"
-        in result.output
-    )
+    assert "org.fedoraproject.prod.git.branch.valgrind.master has 1 entries" in result.output
 
 
 def test_stats_category_topics(datanommer_models, mock_config, mock_init):
@@ -153,15 +143,9 @@ def test_stats_category_topics(datanommer_models, mock_config, mock_init):
     result = runner.invoke(datanommer.commands.stats, ["--topic", "--category", "git"])
     assert result.exit_code == 0, result.output
 
-    assert (
-        "org.fedoraproject.prod.git.receive.valgrind.master has 1 entries"
-        in result.output
-    )
+    assert "org.fedoraproject.prod.git.receive.valgrind.master has 1 entries" in result.output
     assert "org.fedoraproject.stg.fas.user.create has 1 entries" not in result.output
-    assert (
-        "org.fedoraproject.prod.git.branch.valgrind.master has 1 entries"
-        in result.output
-    )
+    assert "org.fedoraproject.prod.git.branch.valgrind.master has 1 entries" in result.output
 
 
 def test_stats_category(datanommer_models, mock_config, mock_init):
@@ -205,9 +189,7 @@ def test_dump(datanommer_models, mock_config, mock_init):
 
     json_object = json.loads(result.output)
 
-    assert (
-        json_object[0]["topic"] == "org.fedoraproject.prod.git.branch.valgrind.master"
-    )
+    assert json_object[0]["topic"] == "org.fedoraproject.prod.git.branch.valgrind.master"
 
 
 def test_dump_before(datanommer_models, mock_config, mock_init):
@@ -229,12 +211,8 @@ def test_dump_before(datanommer_models, mock_config, mock_init):
 
     json_object = json.loads(result.output)
 
-    assert (
-        json_object[0]["topic"] == "org.fedoraproject.prod.git.branch.valgrind.master"
-    )
-    assert (
-        json_object[1]["topic"] == "org.fedoraproject.prod.git.receive.valgrind.master"
-    )
+    assert json_object[0]["topic"] == "org.fedoraproject.prod.git.branch.valgrind.master"
+    assert json_object[1]["topic"] == "org.fedoraproject.prod.git.receive.valgrind.master"
     assert len(json_object) == 2
 
 
@@ -257,12 +235,8 @@ def test_dump_since(datanommer_models, mock_config, mock_init):
 
     json_object = json.loads(result.output)
 
-    assert (
-        json_object[0]["topic"] == "org.fedoraproject.prod.git.receive.valgrind.master"
-    )
-    assert (
-        json_object[1]["topic"] == "org.fedoraproject.prod.log.receive.valgrind.master"
-    )
+    assert json_object[0]["topic"] == "org.fedoraproject.prod.git.receive.valgrind.master"
+    assert json_object[1]["topic"] == "org.fedoraproject.prod.log.receive.valgrind.master"
     assert len(json_object) == 2
 
 
@@ -288,9 +262,7 @@ def test_dump_timespan(datanommer_models, mock_config, mock_init):
 
     json_object = json.loads(result.output)
 
-    assert (
-        json_object[0]["topic"] == "org.fedoraproject.prod.git.receive.valgrind.master"
-    )
+    assert json_object[0]["topic"] == "org.fedoraproject.prod.git.receive.valgrind.master"
     assert len(json_object) == 1
 
 
@@ -397,15 +369,11 @@ def test_latest_timestamp_human(datanommer_models, mocker, mock_config, mock_ini
     m.add(msg1)
 
     msg2 = generate_message(topic="org.fedoraproject.stg.fas.user.create")
-    msg2._properties.headers["sent-at"] = datetime(
-        2013, 2, 15, 15, 15, 15, 15
-    ).isoformat()
+    msg2._properties.headers["sent-at"] = datetime(2013, 2, 15, 15, 15, 15, 15).isoformat()
     m.add(msg2)
 
     msg3 = generate_message(topic="org.fedoraproject.prod.git.receive.valgrind.master")
-    msg3._properties.headers["sent-at"] = datetime(
-        2013, 2, 16, 16, 16, 16, 16
-    ).isoformat()
+    msg3._properties.headers["sent-at"] = datetime(2013, 2, 16, 16, 16, 16, 16).isoformat()
     m.add(msg3)
 
     # datanommer-latest defaults to the last year, so mock the
@@ -496,9 +464,7 @@ def test_latest_timesince(datanommer_models, mocker, mock_config, mock_init):
 def test_latest_timesince_human(datanommer_models, mock_config, mock_init, mocker):
     now = datetime.now()
     # mocker.patch.object(datanommer.commands.datetime, "now", return_value=now)
-    patched_datetime = mocker.patch(
-        "datanommer.commands.datetime", mocker.Mock(wraps=datetime)
-    )
+    patched_datetime = mocker.patch("datanommer.commands.datetime", mocker.Mock(wraps=datetime))
     patched_datetime.now.return_value = now
 
     msg1 = generate_message(topic="org.fedoraproject.prod.git.branch.valgrind.master")

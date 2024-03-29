@@ -1,11 +1,23 @@
-[tool.isort]
-profile = "black"
-lines_after_imports = 2
-force_alphabetical_sort_within_sections = true
-known_first_party = ["datanommer"]
-
 [tool.black]
+line-length = 100
 target-version = ["py310"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "S", "B", "RUF"]
+ignore = ["RUF012"]
+
+[tool.ruff.lint.isort]
+lines-after-imports = 2
+order-by-type = false
+known-first-party = ["datanommer"]
+
+[tool.ruff.lint.per-file-ignores]
+"*/tests/*" = ["S101", "E501"]
+"tools/towncrier/get-authors.py" = ["S602", "S603", "S607"]
 
 [tool.pytest.ini_options]
 addopts = "-v --cov-config ../pyproject.toml --cov --cov-report term-missing --cov-report html --cov-report xml"
