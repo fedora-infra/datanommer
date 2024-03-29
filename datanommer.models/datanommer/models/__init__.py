@@ -482,7 +482,7 @@ class Message(DeclarativeBase):
             return total, page, query
         else:
             # Execute!
-            messages = list(session.scalars(query))
+            messages = session.scalars(query).all()
             return total, pages, messages
 
 
@@ -501,7 +501,7 @@ class NamedSingleton:
             # If we cache the instance, SQLAlchemy will run this query anyway because the instance
             # will be from a different transaction. So just cache the id.
             return session.get(cls, cls._cache[name])
-        obj = session.execute(select(cls).where(cls.name == name)).one_or_none()
+        obj = session.execute(select(cls).where(cls.name == name)).scalar_one_or_none()
         if obj is None:
             obj = cls(name=name)
             session.add(obj)

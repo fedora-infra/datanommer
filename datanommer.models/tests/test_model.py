@@ -22,9 +22,9 @@ from bodhi.messages.schemas.update import UpdateCommentV1
 from fedora_messaging import message as fedora_message
 from sqlalchemy import create_engine, func, select
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm.query import Query
+from sqlalchemy.sql.selectable import Select
 
-from datanommer.models import add, init, Message, Package, session, User
+import datanommer.models as dm
 
 
 def generate_message(
@@ -32,7 +32,7 @@ def generate_message(
     body=None,
     headers=None,
 ):
-    body = (body or {"encouragement": "You're doing great!"},)
+    body = body or {"encouragement": "You're doing great!"}
     return fedora_message.Message(topic=topic, body=body, headers=headers)
 
 
@@ -67,36 +67,36 @@ def test_init_uri_and_engine():
     engine = create_engine(uri, future=True)
 
     with pytest.raises(ValueError, match="uri and engine cannot both be specified"):
-        init(uri, engine=engine)
+        dm.init(uri, engine=engine)
 
 
 def test_init_no_uri_and_no_engine():
     with pytest.raises(ValueError, match="One of uri or engine must be specified"):
-        init()
+        dm.init()
 
 
 def test_init_with_engine(caplog):
     uri = "sqlite:///db.db"
     engine = create_engine(uri, future=True)
 
-    init(engine=engine)
+    dm.init(engine=engine)
 
     assert not caplog.records
 
     # if the init with just the engine worked, trying it again will fail
-    init(engine=engine)
+    dm.init(engine=engine)
     assert caplog.records[0].message == "Session already initialized.  Bailing"
 
 
 def test_init_no_init_twice(datanommer_models, mocker, caplog):
-    init("sqlite:///db.db")
+    dm.init("sqlite:///db.db")
     assert caplog.records[0].message == "Session already initialized.  Bailing"
 
 
 def test_unclassified_category(datanommer_models):
     example_message = generate_message(topic="too.short")
-    add(example_message)
-    dbmsg = session.scalar(select(Message))
+    dm.add(example_message)
+    dbmsg = dm.session.scalar(select(dm.Message))
 
     assert dbmsg.category == "Unclassified"
 
@@ -104,8 +104,8 @@ def test_unclassified_category(datanommer_models):
 def test_from_msg_id(datanommer_models):
     example_message = generate_message()
     example_message.id = "ACUSTOMMESSAGEID"
-    add(example_message)
-    dbmsg = Message.from_msg_id("ACUSTOMMESSAGEID")
+    dm.add(example_message)
+    dbmsg = dm.Message.from_msg_id("ACUSTOMMESSAGEID")
 
     assert dbmsg.msg_id == "ACUSTOMMESSAGEID"
 
@@ -114,8 +114,8 @@ def test_add_missing_msg_id(datanommer_models, caplog):
     caplog.set_level(logging.INFO)
     example_message = generate_message()
     example_message._properties.message_id = None
-    add(example_message)
-    dbmsg = session.scalar(select(Message))
+    dm.add(example_message)
+    dbmsg = dm.session.scalar(select(dm.Message))
     assert (
         "Message on org.fedoraproject.test.a.nice.message was received without a msg_id"
         in caplog.records[-1].message
@@ -127,9 +127,9 @@ def test_add_missing_timestamp(datanommer_models):
     example_message = generate_message()
     example_message._properties.headers["sent-at"] = None
 
-    add(example_message)
+    dm.add(example_message)
 
-    dbmsg = session.scalar(select(Message))
+    dbmsg = dm.session.scalar(select(dm.Message))
     timediff = datetime.datetime.utcnow() - dbmsg.timestamp
     # 10 seconds between adding the message and checking
     # the timestamp should be more than enough.
@@ -140,9 +140,9 @@ def test_add_timestamp_with_Z(datanommer_models):
     example_message = generate_message()
     example_message._properties.headers["sent-at"] = "2021-07-27T04:22:42Z"
 
-    add(example_message)
+    dm.add(example_message)
 
-    dbmsg = session.scalar(select(Message))
+    dbmsg = dm.session.scalar(select(dm.Message))
     assert dbmsg.timestamp.astimezone(datetime.timezone.utc) == datetime.datetime(
         2021, 7, 27, 4, 22, 42, tzinfo=datetime.timezone.utc
     )
@@ -152,76 +152,79 @@ def test_add_timestamp_with_junk(datanommer_models, caplog):
     example_message = generate_message()
     example_message._properties.headers["sent-at"] = "2021-07-27T04:22:42JUNK"
 
-    add(example_message)
+    dm.add(example_message)
 
     assert "Failed to parse sent-at timestamp value" in caplog.records[0].message
 
-    assert session.scalar(select(func.count(Message.id))) == 0
+    assert dm.session.scalar(select(func.count(dm.Message.id))) == 0
 
 
 def test_add_and_check_for_others(datanommer_models):
     # There are no users or packages at the start
-    assert session.scalar(select(func.count(User.id))) == 0
-    assert session.scalar(select(func.count(Package.id))) == 0
+    assert dm.session.scalar(select(func.count(dm.User.id))) == 0
+    assert dm.session.scalar(select(func.count(dm.Package.id))) == 0
 
     # Then add a message
-    add(generate_bodhi_update_complete_message())
+    dm.add(generate_bodhi_update_complete_message())
 
     # There should now be two of each
-    assert session.scalar(select(func.count(User.id))) == 2
-    assert session.scalar(select(func.count(Package.id))) == 2
+    assert dm.session.scalar(select(func.count(dm.User.id))) == 2
+    assert dm.session.scalar(select(func.count(dm.Package.id))) == 2
 
     # If we add it again, there should be no duplicates
-    add(generate_bodhi_update_complete_message())
-    assert session.scalar(select(func.count(User.id))) == 2
-    assert session.scalar(select(func.count(Package.id))) == 2
+    dm.add(generate_bodhi_update_complete_message())
+    assert dm.session.scalar(select(func.count(dm.User.id))) == 2
+    assert dm.session.scalar(select(func.count(dm.Package.id))) == 2
 
     # Add a new username
-    add(generate_bodhi_update_complete_message(text="this is @abompard in a comment"))
-    assert session.scalar(select(func.count(User.id))) == 3
-    assert session.scalar(select(func.count(Package.id))) == 2
+    dm.add(generate_bodhi_update_complete_message(text="this is @abompard in a comment"))
+    assert dm.session.scalar(select(func.count(dm.User.id))) == 3
+    assert dm.session.scalar(select(func.count(dm.Package.id))) == 2
 
 
 def test_add_nothing(datanommer_models):
-    assert session.scalar(select(func.count(Message.id))) == 0
+    assert dm.session.scalar(select(func.count(dm.Message.id))) == 0
 
 
 def test_add_and_check(datanommer_models):
-    add(generate_message())
-    session.flush()
-    assert session.scalar(select(func.count(Message.id))) == 1
+    dm.add(generate_message())
+    dm.session.flush()
+    assert dm.session.scalar(select(func.count(dm.Message.id))) == 1
 
 
 def test_categories(datanommer_models):
-    add(generate_bodhi_update_complete_message())
-    session.flush()
-    obj = session.scalar(select(Message))
+    dm.add(generate_bodhi_update_complete_message())
+    dm.session.flush()
+    obj = dm.session.scalar(select(dm.Message))
     assert obj.category == "bodhi"
 
 
 def test_categories_with_umb(datanommer_models):
-    add(generate_message(topic="/topic/VirtualTopic.eng.brew.task.closed"))
-    session.flush()
-    obj = session.scalar(select(Message))
+    dm.add(generate_message(topic="/topic/VirtualTopic.eng.brew.task.closed"))
+    dm.session.flush()
+    obj = dm.session.scalar(select(dm.Message))
     assert obj.category == "brew"
 
 
 def test_grep_all(datanommer_models):
     example_message = generate_message()
-    add(example_message)
-    session.flush()
-    t, p, r = Message.grep()
+    print("example message:", repr(example_message))
+    print(repr(example_message.body))
+    dm.add(example_message)
+    dm.session.flush()
+    t, p, r = dm.Message.grep()
     assert t == 1
     assert p == 1
     assert len(r) == 1
+    print(repr(r))
     assert r[0].msg == example_message.body
 
 
 def test_grep_category(datanommer_models):
     example_message = generate_message(topic="org.fedoraproject.prod.bodhi.newupdate")
-    add(example_message)
-    session.flush()
-    t, p, r = Message.grep(categories=["bodhi"])
+    dm.add(example_message)
+    dm.session.flush()
+    t, p, r = dm.Message.grep(categories=["bodhi"])
     assert t == 1
     assert p == 1
     assert len(r) == 1
@@ -230,9 +233,9 @@ def test_grep_category(datanommer_models):
 
 def test_grep_not_category(datanommer_models):
     example_message = generate_message(topic="org.fedoraproject.prod.bodhi.newupdate")
-    add(example_message)
-    session.flush()
-    t, p, r = Message.grep(not_categories=["bodhi"])
+    dm.add(example_message)
+    dm.session.flush()
+    t, p, r = dm.Message.grep(not_categories=["bodhi"])
     assert t == 0
     assert p == 0
     assert len(r) == 0
@@ -243,8 +246,8 @@ def test_add_headers(datanommer_models):
     example_message = generate_message(
         topic="org.fedoraproject.prod.bodhi.newupdate", headers=example_headers
     )
-    add(example_message)
-    dbmsg = session.scalar(select(Message))
+    dm.add(example_message)
+    dbmsg = dm.session.scalar(select(dm.Message))
     assert dbmsg.headers["foo"] == "bar"
     assert dbmsg.headers["baz"] == 1
     assert dbmsg.headers["wibble"] == ["zork", "zap"]
@@ -252,9 +255,9 @@ def test_add_headers(datanommer_models):
 
 def test_grep_topics(datanommer_models):
     example_message = generate_message(topic="org.fedoraproject.prod.bodhi.newupdate")
-    add(example_message)
-    session.flush()
-    t, p, r = Message.grep(topics=["org.fedoraproject.prod.bodhi.newupdate"])
+    dm.add(example_message)
+    dm.session.flush()
+    t, p, r = dm.Message.grep(topics=["org.fedoraproject.prod.bodhi.newupdate"])
     assert t == 1
     assert p == 1
     assert len(r) == 1
@@ -263,9 +266,9 @@ def test_grep_topics(datanommer_models):
 
 def test_grep_not_topics(datanommer_models):
     example_message = generate_message(topic="org.fedoraproject.prod.bodhi.newupdate")
-    add(example_message)
-    session.flush()
-    t, p, r = Message.grep(not_topics=["org.fedoraproject.prod.bodhi.newupdate"])
+    dm.add(example_message)
+    dm.session.flush()
+    t, p, r = dm.Message.grep(not_topics=["org.fedoraproject.prod.bodhi.newupdate"])
     assert t == 0
     assert p == 0
     assert len(r) == 0
@@ -276,31 +279,31 @@ def test_grep_start_end_validation(datanommer_models):
         ValueError,
         match="Either both start and end must be specified or neither must be specified",
     ):
-        Message.grep(start="2020-03-26")
+        dm.Message.grep(start="2020-03-26")
     with pytest.raises(
         ValueError,
         match="Either both start and end must be specified or neither must be specified",
     ):
-        Message.grep(end="2020-03-26")
+        dm.Message.grep(end="2020-03-26")
 
 
 def test_grep_start_end(datanommer_models):
     example_message = generate_message()
     example_message._properties.headers["sent-at"] = "2021-04-01T00:00:01"
-    add(example_message)
+    dm.add(example_message)
 
     bodhi_example_message = generate_bodhi_update_complete_message()
     bodhi_example_message._properties.headers["sent-at"] = "2021-06-01T00:00:01"
-    add(bodhi_example_message)
+    dm.add(bodhi_example_message)
 
-    session.flush()
-    total, pages, messages = Message.grep(start="2021-04-01", end="2021-05-01")
+    dm.session.flush()
+    total, pages, messages = dm.Message.grep(start="2021-04-01", end="2021-05-01")
     assert total == 1
     assert pages == 1
     assert len(messages) == 1
     assert messages[0].msg == example_message.body
 
-    total, pages, messages = Message.grep(start="2021-06-01", end="2021-07-01")
+    total, pages, messages = dm.Message.grep(start="2021-06-01", end="2021-07-01")
     assert total == 1
     assert pages == 1
     assert len(messages) == 1
@@ -309,25 +312,25 @@ def test_grep_start_end(datanommer_models):
 
 def test_grep_msg_id(datanommer_models):
     example_message = generate_message()
-    add(example_message)
+    dm.add(example_message)
 
     bodhi_example_message = generate_bodhi_update_complete_message()
-    add(bodhi_example_message)
+    dm.add(bodhi_example_message)
 
-    session.flush()
-    total, pages, messages = Message.grep(msg_id=example_message.id)
+    dm.session.flush()
+    total, pages, messages = dm.Message.grep(msg_id=example_message.id)
     assert total == 1
     assert pages == 1
     assert len(messages) == 1
     assert messages[0].msg == example_message.body
 
-    total, pages, messages = Message.grep(msg_id=bodhi_example_message.id)
+    total, pages, messages = dm.Message.grep(msg_id=bodhi_example_message.id)
     assert total == 1
     assert pages == 1
     assert len(messages) == 1
     assert messages[0].msg == bodhi_example_message.body
 
-    total, pages, messages = Message.grep(msg_id="NOTAMESSAGEID")
+    total, pages, messages = dm.Message.grep(msg_id="NOTAMESSAGEID")
     assert total == 0
     assert pages == 0
     assert len(messages) == 0
@@ -335,14 +338,14 @@ def test_grep_msg_id(datanommer_models):
 
 def test_grep_users(datanommer_models):
     example_message = generate_message()
-    add(example_message)
+    dm.add(example_message)
 
     bodhi_example_message = generate_bodhi_update_complete_message()
-    add(bodhi_example_message)
+    dm.add(bodhi_example_message)
 
-    session.flush()
+    dm.session.flush()
 
-    total, pages, messages = Message.grep(users=["dudemcpants"])
+    total, pages, messages = dm.Message.grep(users=["dudemcpants"])
 
     assert total == 1
     assert pages == 1
@@ -353,14 +356,14 @@ def test_grep_users(datanommer_models):
 
 def test_grep_not_users(datanommer_models):
     example_message = generate_message()
-    add(example_message)
+    dm.add(example_message)
 
     bodhi_example_message = generate_bodhi_update_complete_message()
-    add(bodhi_example_message)
+    dm.add(bodhi_example_message)
 
-    session.flush()
+    dm.session.flush()
 
-    total, pages, messages = Message.grep(not_users=["dudemcpants"])
+    total, pages, messages = dm.Message.grep(not_users=["dudemcpants"])
 
     assert total == 1
     assert pages == 1
@@ -371,14 +374,14 @@ def test_grep_not_users(datanommer_models):
 
 def test_grep_packages(datanommer_models):
     example_message = generate_message()
-    add(example_message)
+    dm.add(example_message)
 
     bodhi_example_message = generate_bodhi_update_complete_message()
-    add(bodhi_example_message)
+    dm.add(bodhi_example_message)
 
-    session.flush()
+    dm.session.flush()
 
-    total, pages, messages = Message.grep(packages=["kernel"])
+    total, pages, messages = dm.Message.grep(packages=["kernel"])
 
     assert total == 1
     assert pages == 1
@@ -389,14 +392,14 @@ def test_grep_packages(datanommer_models):
 
 def test_grep_not_packages(datanommer_models):
     example_message = generate_message()
-    add(example_message)
+    dm.add(example_message)
 
     bodhi_example_message = generate_bodhi_update_complete_message()
-    add(bodhi_example_message)
+    dm.add(bodhi_example_message)
 
-    session.flush()
+    dm.session.flush()
 
-    total, pages, messages = Message.grep(not_packages=["kernel"])
+    total, pages, messages = dm.Message.grep(not_packages=["kernel"])
 
     assert total == 1
     assert pages == 1
@@ -407,9 +410,9 @@ def test_grep_not_packages(datanommer_models):
 
 def test_grep_contains(datanommer_models):
     example_message = generate_message(topic="org.fedoraproject.prod.bodhi.newupdate")
-    add(example_message)
-    session.flush()
-    t, p, r = Message.grep(contains=["doing"])
+    dm.add(example_message)
+    dm.session.flush()
+    t, p, r = dm.Message.grep(contains=["doing"])
     assert t == 1
     assert p == 1
     assert len(r) == 1
@@ -420,16 +423,16 @@ def test_grep_rows_per_page_none(datanommer_models):
     for x in range(0, 200):
         example_message = generate_message()
         example_message.id = f"{x}"
-        add(example_message)
+        dm.add(example_message)
 
-    session.flush()
+    dm.session.flush()
 
-    total, pages, messages = Message.grep()
+    total, pages, messages = dm.Message.grep()
     assert total == 200
     assert pages == 2
     assert len(messages) == 100
 
-    total, pages, messages = Message.grep(rows_per_page=None)
+    total, pages, messages = dm.Message.grep(rows_per_page=None)
     assert total == 200
     assert pages == 1
     assert len(messages) == 200
@@ -439,11 +442,11 @@ def test_grep_rows_per_page_zero(datanommer_models):
     for x in range(0, 200):
         example_message = generate_message()
         example_message.id = f"{x}"
-        add(example_message)
-    session.flush()
+        dm.add(example_message)
+    dm.session.flush()
 
     try:
-        total, pages, messages = Message.grep(rows_per_page=0)
+        total, pages, messages = dm.Message.grep(rows_per_page=0)
     except ZeroDivisionError as e:
         pytest.fail(e)
     assert total == 200
@@ -453,23 +456,23 @@ def test_grep_rows_per_page_zero(datanommer_models):
 
 def test_grep_defer(datanommer_models):
     example_message = generate_message()
-    add(example_message)
+    dm.add(example_message)
 
-    session.flush()
+    dm.session.flush()
 
-    total, pages, query = Message.grep(defer=True)
-    assert isinstance(query, Query)
+    total, pages, query = dm.Message.grep(defer=True)
+    assert isinstance(query, Select)
 
-    assert query.all() == Message.grep()[2]
+    assert dm.session.scalars(query).all() == dm.Message.grep()[2]
 
 
 def test_add_duplicate(datanommer_models, caplog):
     example_message = generate_message()
-    add(example_message)
-    add(example_message)
+    dm.add(example_message)
+    dm.add(example_message)
     # if no exception was thrown, then we successfully ignored the
     # duplicate message
-    assert session.scalar(select(func.count(Message.id))) == 1
+    assert dm.session.scalar(select(func.count(dm.Message.id))) == 1
     assert (
         "Skipping message from org.fedoraproject.test.a.nice.message" in caplog.records[0].message
     )
@@ -479,9 +482,9 @@ def test_add_integrity_error(datanommer_models, mocker, caplog):
     mock_session_add = mocker.patch("datanommer.models.session.add")
     mock_session_add.side_effect = IntegrityError("asdf", "asd", "asdas")
     example_message = generate_message()
-    add(example_message)
+    dm.add(example_message)
     assert "Unknown Integrity Error: message" in caplog.records[0].message
-    assert session.scalar(select(func.count(Message.id))) == 0
+    assert dm.session.scalar(select(func.count(dm.Message.id))) == 0
 
 
 def test_add_duplicate_package(datanommer_models):
@@ -499,11 +502,11 @@ def test_add_duplicate_package(datanommer_models):
         headers=None,
     )
     try:
-        add(example_message)
+        dm.add(example_message)
     except IntegrityError as e:
         pytest.fail(e)
-    assert session.scalar(select(func.count(Message.id))) == 1
-    dbmsg = session.scalar(select(Message))
+    assert dm.session.scalar(select(func.count(dm.Message.id))) == 1
+    dbmsg = dm.session.scalar(select(dm.Message))
     assert len(dbmsg.packages) == 1
     assert dbmsg.packages[0].name == "pkg"
 
@@ -526,10 +529,10 @@ def test_add_message_with_error_on_packages(datanommer_models, caplog):
         headers=None,
     )
     try:
-        add(example_message)
+        dm.add(example_message)
     except KeyError as e:
         pytest.fail(e)
-    assert session.scalar(select(func.count(Message.id))) == 1
+    assert dm.session.scalar(select(func.count(dm.Message.id))) == 1
     assert caplog.records[0].message == (
         f"Could not get the list of packages from a message on "
         f"org.fedoraproject.test.a.nice.message with id {example_message.id}"
@@ -538,9 +541,9 @@ def test_add_message_with_error_on_packages(datanommer_models, caplog):
 
 def test_as_fedora_message_dict(datanommer_models):
     example_message = generate_message()
-    add(example_message)
+    dm.add(example_message)
 
-    dbmsg = session.scalar(select(Message))
+    dbmsg = dm.session.scalar(select(dm.Message))
 
     message_json = json.dumps(dbmsg.as_fedora_message_dict())
 
@@ -551,9 +554,9 @@ def test_as_fedora_message_dict(datanommer_models):
 def test_as_fedora_message_dict_old_headers(datanommer_models):
     # Messages received with fedmsg don't have the sent-at header
     example_message = generate_message()
-    add(example_message)
+    dm.add(example_message)
 
-    dbmsg = session.scalar(select(Message))
+    dbmsg = dm.session.scalar(select(dm.Message))
     del dbmsg.headers["sent-at"]
 
     message_dict = dbmsg.as_fedora_message_dict()
@@ -567,9 +570,9 @@ def test_as_fedora_message_dict_old_headers(datanommer_models):
 def test_as_fedora_message_dict_no_headers(datanommer_models):
     # Messages can have no headers
     example_message = generate_message()
-    add(example_message)
+    dm.add(example_message)
 
-    dbmsg = session.scalar(select(Message))
+    dbmsg = dm.session.scalar(select(dm.Message))
     assert len(dbmsg.headers.keys()) == 4
 
     # Clear the headers
@@ -584,8 +587,8 @@ def test_as_fedora_message_dict_no_headers(datanommer_models):
 
 
 def test_as_dict(datanommer_models):
-    add(generate_message())
-    dbmsg = session.scalar(select(Message))
+    dm.add(generate_message())
+    dbmsg = dm.session.scalar(select(dm.Message))
     message_dict = dbmsg.as_dict()
 
     # we should have 14 keys in this dict
@@ -595,8 +598,8 @@ def test_as_dict(datanommer_models):
 
 
 def test_as_dict_with_users_and_packages(datanommer_models):
-    add(generate_bodhi_update_complete_message())
-    dbmsg = session.scalar(select(Message))
+    dm.add(generate_bodhi_update_complete_message())
+    dbmsg = dm.session.scalar(select(dm.Message))
     message_dict = dbmsg.as_dict()
 
     assert message_dict["users"] == ["dudemcpants", "ryanlerch"]
@@ -606,23 +609,23 @@ def test_as_dict_with_users_and_packages(datanommer_models):
 def test___json__deprecated(datanommer_models, caplog, mocker):
     mock_as_dict = mocker.patch("datanommer.models.Message.as_dict")
 
-    add(generate_message())
+    dm.add(generate_message())
 
     with pytest.warns(DeprecationWarning):
-        dbmsg = session.scalar(select(Message))
+        dbmsg = dm.session.scalar(select(dm.Message))
         dbmsg.__json__()
 
     mock_as_dict.assert_called_once()
 
 
 def test_singleton_create(datanommer_models):
-    Package.get_or_create("foobar")
-    assert [p.name for p in session.scalars(select(Package))] == ["foobar"]
+    dm.Package.get_or_create("foobar")
+    assert [p.name for p in dm.session.scalars(select(dm.Package))] == ["foobar"]
 
 
 def test_singleton_get_existing(datanommer_models):
-    p1 = Package.get_or_create("foobar")
+    p1 = dm.Package.get_or_create("foobar")
     # Clear the in-memory cache
-    Package._cache.clear()
-    p2 = Package.get_or_create("foobar")
+    dm.Package._cache.clear()
+    p2 = dm.Package.get_or_create("foobar")
     assert p1.id == p2.id
