@@ -14,12 +14,12 @@
 # You should have received a copy of the GNU General Public License along
 # with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import dm as dm
 import pytest
 from fedora_messaging import message
 from sqlalchemy import func, select
 
 import datanommer.consumer
+import datanommer.models as dm
 
 
 @pytest.fixture
