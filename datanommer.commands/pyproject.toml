@@ -50,49 +50,6 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 
-[tool.liccheck]
-authorized_licenses = [
-  "bsd",
-  "new bsd",
-  "simplified bsd",
-  "apache",
-  "apache 2.0",
-  "apache software",
-  "Apache License 2.0",
-  "Apache License, Version 2.0",
-  "gnu lgpl",
-  "gpl v2",
-  "GNU General Public License v2 or later (GPLv2+)",
-  "GNU General Public License v3 (GPLv3)",
-  "GNU General Public License v3 or later (GPLv3+)",
-  "GNU Library or Lesser General Public License (LGPL)",
-  "GNU Lesser General Public License v2 or later (LGPLv2+)",
-  "GNU Lesser General Public License v3 (LGPLv3)",
-  "GNU Lesser General Public License v3 or later (LGPLv3+)",
-  "GPLv3+",
-  "LGPLv2+",
-  "gpl v3",
-  "lgpl with exceptions or zpl",
-  "isc",
-  "isc license (iscl)",
-  "mit",
-  "python software foundation",
-  "zpl 2.1",
-  "mpl-2.0",
-  "MPL 2.0",
-  "Mozilla Public License 2.0 (MPL 2.0)",
-  "lgpl",
-  "CC0 (copyright waived)",
-  "Public Domain",
-  "Public Domain <http://unlicense.org>",
-  'Zope Public',
-  "The Unlicense (Unlicense)",
-]
-
-[tool.liccheck.authorized_packages]
-twisted = "23.8.0"
-
-
 [tool.towncrier]
 package = "datanommer.commands"
 directory = "news/"
