@@ -1,3 +1,5 @@
+import datetime
+
 import pytest
 import sqlalchemy as sa
 from click.testing import CliRunner
@@ -90,3 +92,25 @@ def test_extract_users_no_users(datanommer_models, mock_config, mock_init):
     users_count = m.session.scalar(sa.select(sa.func.count(m.users_assoc_table.c.msg_id)))
     assert users_count == 0
     assert result.output == "Considering 1 message\n"
+
+
+def test_extract_start(datanommer_models, mock_config, mock_init):
+    now = datetime.datetime.now(tz=datetime.timezone.utc)
+    msg = generate_bodhi_update_complete_message()
+    # Set the message to have happenned 3 days ago
+    msg._properties.headers["sent-at"] = (now - datetime.timedelta(days=3)).isoformat()
+    m.add(msg)
+    m.session.execute(m.users_assoc_table.delete())
+    m.session.commit()
+
+    runner = CliRunner()
+    # Only look at messages from yesterday on
+    result = runner.invoke(
+        extract_users, ["--start", (now - datetime.timedelta(days=1)).strftime(r"%Y-%m-%d")]
+    )
+
+    assert result.exit_code == 0, result.output
+    # Message must not have had users set
+    users_count = m.session.scalar(sa.select(sa.func.count(m.users_assoc_table.c.msg_id)))
+    assert users_count == 0
+    assert result.output == "No messages matched.\n"

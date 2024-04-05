@@ -21,6 +21,12 @@ log = logging.getLogger(__name__)
     help="Only extract users for messages of a specific category.",
 )
 @click.option(
+    "--start",
+    default=None,
+    type=click.DateTime(),
+    help="Only extract users for messages after a specific timestamp.",
+)
+@click.option(
     "--force-schema",
     default=None,
     help=(
@@ -28,7 +34,7 @@ log = logging.getLogger(__name__)
         "exposed entry point / plugin, for example: wiki.article.edit.v1"
     ),
 )
-def main(config_path, topic, category, force_schema):
+def main(config_path, topic, category, start, force_schema):
     """Go over old messages, extract users and store them.
 
     This is useful when a message schema has been added and we want to populate the users table
@@ -48,6 +54,8 @@ def main(config_path, topic, category, force_schema):
         query = query.where(m.Message.topic == topic)
     elif category:
         query = query.where(m.Message.category == category)
+    if start:
+        query = query.where(m.Message.timestamp >= start)
 
     query = query.join(
         m.users_assoc_table,
