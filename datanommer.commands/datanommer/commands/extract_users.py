@@ -34,7 +34,12 @@ log = logging.getLogger(__name__)
         "exposed entry point / plugin, for example: wiki.article.edit.v1"
     ),
 )
-def main(config_path, topic, category, start, force_schema):
+@click.option(
+    "--debug",
+    is_flag=True,
+    help="Show more information.",
+)
+def main(config_path, topic, category, start, force_schema, debug):
     """Go over old messages, extract users and store them.
 
     This is useful when a message schema has been added and we want to populate the users table
@@ -71,27 +76,30 @@ def main(config_path, topic, category, start, force_schema):
         click.echo("No messages matched.")
         return
 
-    query = query.order_by(m.Message.timestamp)
-    click.echo(f"Considering {total} message{'s' if total > 1 else ''}")
+    if debug:
+        click.echo(f"Considering {total} message{'s' if total > 1 else ''}")
 
-    for message in m.session.scalars(query):
-        headers = message.headers
-        if force_schema:
-            headers["fedora_messaging_schema"] = force_schema
-        fm_msg = load_message(
-            {
-                "topic": message.topic,
-                "headers": headers,
-                "id": message.msg_id,
-                "body": message.msg,
-            }
-        )
-        usernames = fm_msg.usernames
-        if not usernames:
-            continue
-        message._insert_list(m.User, m.users_assoc_table, usernames)
-        click.echo(
-            f"Usernames for message {message.msg_id} of topic {message.topic}"
-            f": {', '.join(usernames)}"
-        )
-    m.session.commit()
+    query = query.order_by(m.Message.timestamp)
+    with click.progressbar(m.session.scalars(query), length=total) as bar:
+        for message in bar:
+            headers = message.headers
+            if force_schema:
+                headers["fedora_messaging_schema"] = force_schema
+            fm_msg = load_message(
+                {
+                    "topic": message.topic,
+                    "headers": headers,
+                    "id": message.msg_id,
+                    "body": message.msg,
+                }
+            )
+            usernames = fm_msg.usernames
+            if not usernames:
+                continue
+            message._insert_list(m.User, m.users_assoc_table, usernames)
+            if debug:
+                click.echo(
+                    f"Usernames for message {message.msg_id} of topic {message.topic}"
+                    f": {', '.join(usernames)}"
+                )
+        m.session.commit()
