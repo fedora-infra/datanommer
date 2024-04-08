@@ -31,6 +31,7 @@ psycopg2 = "^2.9.1"
 fedora-messaging = ">=2.1.0"
 anitya-schema = {version = "*", optional = true}
 bodhi-messages = {version = "*", optional = true}
+bugzilla2fedmsg-schema = {version = "*", optional = true}
 ci-messages = {version = "*", optional = true}
 copr-messaging = {version = "*", optional = true}
 discourse2fedmsg-messages = {version = "*", optional = true}
@@ -64,6 +65,7 @@ towncrier = "*"
 schemas = [
   "anitya-schema",
   "bodhi-messages",
+  "bugzilla2fedmsg-schema",
   "ci-messages",
   "copr-messaging",
   "discourse2fedmsg-messages",
