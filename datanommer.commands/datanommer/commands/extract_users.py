@@ -27,6 +27,12 @@ log = logging.getLogger(__name__)
     help="Only extract users for messages after a specific timestamp.",
 )
 @click.option(
+    "--end",
+    default=None,
+    type=click.DateTime(),
+    help="Only extract users for messages before a specific timestamp.",
+)
+@click.option(
     "--force-schema",
     default=None,
     help=(
@@ -39,7 +45,7 @@ log = logging.getLogger(__name__)
     is_flag=True,
     help="Show more information.",
 )
-def main(config_path, topic, category, start, force_schema, debug):
+def main(config_path, topic, category, start, end, force_schema, debug):
     """Go over old messages, extract users and store them.
 
     This is useful when a message schema has been added and we want to populate the users table
@@ -61,6 +67,8 @@ def main(config_path, topic, category, start, force_schema, debug):
         query = query.where(m.Message.category == category)
     if start:
         query = query.where(m.Message.timestamp >= start)
+    if end:
+        query = query.where(m.Message.timestamp < end)
 
     query = query.join(
         m.users_assoc_table,
@@ -76,8 +84,7 @@ def main(config_path, topic, category, start, force_schema, debug):
         click.echo("No messages matched.")
         return
 
-    if debug:
-        click.echo(f"Considering {total} message{'s' if total > 1 else ''}")
+    click.echo(f"Considering {total} message{'s' if total > 1 else ''}")
 
     query = query.order_by(m.Message.timestamp)
     with click.progressbar(m.session.scalars(query), length=total) as bar:
