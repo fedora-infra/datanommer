@@ -981,6 +981,21 @@ coverage = {version = ">=7.0.0", extras = ["toml"]}
 fedora-messaging = ">=3.3.0,<4.0.0"
 
 [[package]]
+name = "meetbot-messages"
+version = "1.0.1"
+description = "A schema package for messages sent by meetbot"
+optional = true
+python-versions = ">=3.8,<4.0"
+files = [
+    {file = "meetbot-messages-1.0.1.tar.gz", hash = "sha256:8f3f0f0a46ffc0408bb0805f0e608596eae848330fbb878c9ad9de21b77140c8"},
+    {file = "meetbot_messages-1.0.1-py3-none-any.whl", hash = "sha256:e5e16a3217a57750d9584199a16f7562c68594489bf6e37a69390d115bf302df"},
+]
+
+[package.dependencies]
+coverage = {version = ">=7.0.0", extras = ["toml"]}
+fedora-messaging = ">=3.3.0,<4.0.0"
+
+[[package]]
 name = "mirakuru"
 version = "2.5.2"
 description = "Process executor (not only) for tests."
@@ -2025,9 +2040,9 @@ test = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 
 [extras]
-schemas = ["anitya-schema", "bodhi-messages", "bugzilla2fedmsg-schema", "ci-messages", "copr-messaging", "discourse2fedmsg-messages", "fedocal-messages", "fedora-elections-messages", "fedora-messaging-git-hook-messages", "fedora-messaging-the-new-hotness-schema", "fedora-planet-messages", "fedorainfra-ansible-messages", "kerneltest-messages", "koji-fedoramessaging-messages", "koschei-messages", "mdapi-messages", "mediawiki-messages", "noggin-messages", "nuancier-messages", "pagure-messages"]
+schemas = ["anitya-schema", "bodhi-messages", "bugzilla2fedmsg-schema", "ci-messages", "copr-messaging", "discourse2fedmsg-messages", "fedocal-messages", "fedora-elections-messages", "fedora-messaging-git-hook-messages", "fedora-messaging-the-new-hotness-schema", "fedora-planet-messages", "fedorainfra-ansible-messages", "kerneltest-messages", "koji-fedoramessaging-messages", "koschei-messages", "mdapi-messages", "mediawiki-messages", "meetbot-messages", "noggin-messages", "nuancier-messages", "pagure-messages"]
 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "7dc54b01975b7a5ba3d4dc00a3cbfc75929adf5ad91ebf6158e599605fdbb48e"
+content-hash = "942be09b08f04939322dede469e213ba9da34dc7eec8f0ab11e737c031754e1a"
