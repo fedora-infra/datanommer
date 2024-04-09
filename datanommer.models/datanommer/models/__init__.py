@@ -129,7 +129,7 @@ def add(message):
             log.exception("Failed to parse sent-at timestamp value")
             return
     else:
-        sent_at = datetime.datetime.utcnow()
+        sent_at = datetime.datetime.now(tz=datetime.timezone.utc)
 
     # Workaround schemas misbehaving
     try:

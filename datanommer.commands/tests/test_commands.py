@@ -379,7 +379,6 @@ def test_latest_timestamp_human(datanommer_models, mocker, mock_config, mock_ini
     # datanommer-latest defaults to the last year, so mock the
     # datetime calls to go back to 2013
     mock_dt = mocker.patch("datanommer.commands.datetime")
-    mock_dt.utcnow.return_value = datetime(2013, 3, 1)
     mock_dt.now.return_value = datetime(2013, 3, 1)
 
     runner = CliRunner()
@@ -409,7 +408,6 @@ def test_latest_timestamp(datanommer_models, mocker, mock_config, mock_init):
     # datanommer-latest defaults to the last year, so mock the
     # datetime calls to go back to 2013
     mock_dt = mocker.patch("datanommer.commands.datetime")
-    mock_dt.utcnow.return_value = datetime(2013, 3, 1)
     mock_dt.now.return_value = datetime(2013, 3, 1)
 
     runner = CliRunner()
@@ -444,7 +442,6 @@ def test_latest_timesince(datanommer_models, mocker, mock_config, mock_init):
     # datanommer-latest defaults to the last year, so mock the
     # datetime calls to go back to 2013
     mock_dt = mocker.patch("datanommer.commands.datetime")
-    mock_dt.utcnow.return_value = now
     mock_dt.now.return_value = now
 
     runner = CliRunner()

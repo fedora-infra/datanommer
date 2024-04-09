@@ -130,7 +130,7 @@ def test_add_missing_timestamp(datanommer_models):
     dm.add(example_message)
 
     dbmsg = dm.session.scalar(select(dm.Message))
-    timediff = datetime.datetime.utcnow() - dbmsg.timestamp
+    timediff = datetime.datetime.now(tz=datetime.timezone.utc) - dbmsg.timestamp
     # 10 seconds between adding the message and checking
     # the timestamp should be more than enough.
     assert timediff < datetime.timedelta(seconds=10)
