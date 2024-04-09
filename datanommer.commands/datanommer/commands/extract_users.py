@@ -1,3 +1,4 @@
+import datetime
 import logging
 
 import click
@@ -9,6 +10,8 @@ import datanommer.models as m
 from . import config_option, get_config
 
 
+# Go trough messages these many days at a time
+CHUNK_DAYS = 30
 log = logging.getLogger(__name__)
 
 
@@ -67,8 +70,14 @@ def main(config_path, topic, category, start, end, force_schema, debug):
         query = query.where(m.Message.category == category)
     if start:
         query = query.where(m.Message.timestamp >= start)
+    else:
+        start = m.session.execute(
+            select(m.Message.timestamp).order_by(m.Message.timestamp).limit(1)
+        ).scalar_one()
     if end:
         query = query.where(m.Message.timestamp < end)
+    else:
+        end = datetime.datetime.now()
 
     query = query.join(
         m.users_assoc_table,
@@ -87,26 +96,31 @@ def main(config_path, topic, category, start, end, force_schema, debug):
     click.echo(f"Considering {total} message{'s' if total > 1 else ''}")
 
     query = query.order_by(m.Message.timestamp)
-    with click.progressbar(m.session.scalars(query), length=total) as bar:
-        for message in bar:
-            headers = message.headers
-            if force_schema:
-                headers["fedora_messaging_schema"] = force_schema
-            fm_msg = load_message(
-                {
-                    "topic": message.topic,
-                    "headers": headers,
-                    "id": message.msg_id,
-                    "body": message.msg,
-                }
-            )
-            usernames = fm_msg.usernames
-            if not usernames:
-                continue
-            message._insert_list(m.User, m.users_assoc_table, usernames)
-            if debug:
-                click.echo(
-                    f"Usernames for message {message.msg_id} of topic {message.topic}"
-                    f": {', '.join(usernames)}"
+    with click.progressbar(length=total) as bar:
+        chunk_end = start
+        while chunk_end < end:
+            chunk_end += datetime.timedelta(days=CHUNK_DAYS)
+            chunk_query = query.where(m.Message.timestamp < chunk_end)
+            for message in m.session.scalars(chunk_query):
+                bar.update(1)
+                headers = message.headers
+                if force_schema:
+                    headers["fedora_messaging_schema"] = force_schema
+                fm_msg = load_message(
+                    {
+                        "topic": message.topic,
+                        "headers": headers,
+                        "id": message.msg_id,
+                        "body": message.msg,
+                    }
                 )
-        m.session.commit()
+                usernames = fm_msg.usernames
+                if not usernames:
+                    continue
+                message._insert_list(m.User, m.users_assoc_table, usernames)
+                if debug:
+                    click.echo(
+                        f"Usernames for message {message.msg_id} of topic {message.topic}"
+                        f": {', '.join(usernames)}"
+                    )
+            m.session.commit()

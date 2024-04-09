@@ -24,9 +24,16 @@ def bodhi_message_db(datanommer_models):
 
 def test_extract_users(bodhi_message_db, mock_config, mock_init):
     runner = CliRunner()
-    result = runner.invoke(extract_users)
+    result = runner.invoke(extract_users, ["--debug"])
 
     assert result.exit_code == 0, result.output
+
+    expected_output = (
+        "Considering 1 message\n\n"
+        f"Usernames for message {bodhi_message_db.msg_id} of topic {bodhi_message_db.topic}: "
+        "dudemcpants, ryanlerch\n"
+    )
+    assert result.output == expected_output
 
     m.session.refresh(bodhi_message_db)
     assert len(bodhi_message_db.users) > 0
@@ -91,7 +98,7 @@ def test_extract_users_no_users(datanommer_models, mock_config, mock_init):
     assert result.exit_code == 0, result.output
     users_count = m.session.scalar(sa.select(sa.func.count(m.users_assoc_table.c.msg_id)))
     assert users_count == 0
-    assert result.output == "Considering 1 message\n"
+    assert result.output.strip() == "Considering 1 message"
 
 
 def test_extract_start(datanommer_models, mock_config, mock_init):
@@ -114,3 +121,28 @@ def test_extract_start(datanommer_models, mock_config, mock_init):
     users_count = m.session.scalar(sa.select(sa.func.count(m.users_assoc_table.c.msg_id)))
     assert users_count == 0
     assert result.output == "No messages matched.\n"
+
+
+def test_extract_end(bodhi_message_db, mock_config, mock_init):
+    now = datetime.datetime.now()
+    runner = CliRunner()
+    # Only look at messages from yesterday on
+    result = runner.invoke(
+        extract_users, ["--end", (now - datetime.timedelta(days=1)).strftime(r"%Y-%m-%d")]
+    )
+
+    assert result.exit_code == 0, result.output
+    # Message must not have had users set
+    users_count = m.session.scalar(sa.select(sa.func.count(m.users_assoc_table.c.msg_id)))
+    assert users_count == 0
+    assert result.output == "No messages matched.\n"
+
+
+def test_extract_force_schema(bodhi_message_db, mock_config, mock_init):
+    runner = CliRunner()
+    result = runner.invoke(extract_users, ["--force-schema", "base.message"])
+
+    assert result.exit_code == 0, result.output
+
+    m.session.refresh(bodhi_message_db)
+    assert len(bodhi_message_db.users) == 0
