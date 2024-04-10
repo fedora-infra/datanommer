@@ -11,7 +11,7 @@ from . import config_option, get_config
 
 
 # Go trough messages these many days at a time
-CHUNK_DAYS = 10
+CHUNK_DAYS = 30
 log = logging.getLogger(__name__)
 
 
@@ -103,11 +103,16 @@ def main(config_path, topic, category, start, end, force_schema, chunk_size_days
     click.echo(f"Considering {total} message{'s' if total > 1 else ''}")
 
     query = query.order_by(m.Message.timestamp)
+    chunk_timedelta = datetime.timedelta(days=chunk_size_days)
     with click.progressbar(length=total) as bar:
+        chunk_start = start - chunk_timedelta
         chunk_end = start
         while chunk_end < end:
-            chunk_end += datetime.timedelta(days=chunk_size_days)
-            chunk_query = query.where(m.Message.timestamp < chunk_end)
+            chunk_start += chunk_timedelta
+            chunk_end += chunk_timedelta
+            chunk_query = query.where(
+                m.Message.timestamp >= chunk_start, m.Message.timestamp < chunk_end
+            )
             for message in m.session.scalars(chunk_query):
                 bar.update(1)
                 headers = message.headers
