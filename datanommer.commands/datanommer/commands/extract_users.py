@@ -11,7 +11,7 @@ from . import config_option, get_config
 
 
 # Go trough messages these many days at a time
-CHUNK_DAYS = 30
+CHUNK_DAYS = 10
 log = logging.getLogger(__name__)
 
 
@@ -44,11 +44,18 @@ log = logging.getLogger(__name__)
     ),
 )
 @click.option(
+    "--chunk-size-days",
+    default=CHUNK_DAYS,
+    type=int,
+    show_default=True,
+    help="Go through messages these many days at a time (lower is slower but saves memory).",
+)
+@click.option(
     "--debug",
     is_flag=True,
     help="Show more information.",
 )
-def main(config_path, topic, category, start, end, force_schema, debug):
+def main(config_path, topic, category, start, end, force_schema, chunk_size_days, debug):
     """Go over old messages, extract users and store them.
 
     This is useful when a message schema has been added and we want to populate the users table
@@ -99,7 +106,7 @@ def main(config_path, topic, category, start, end, force_schema, debug):
     with click.progressbar(length=total) as bar:
         chunk_end = start
         while chunk_end < end:
-            chunk_end += datetime.timedelta(days=CHUNK_DAYS)
+            chunk_end += datetime.timedelta(days=chunk_size_days)
             chunk_query = query.where(m.Message.timestamp < chunk_end)
             for message in m.session.scalars(chunk_query):
                 bar.update(1)
