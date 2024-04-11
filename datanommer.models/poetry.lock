@@ -1774,6 +1774,20 @@ pymysql = ["pymysql"]
 sqlcipher = ["sqlcipher3_binary"]
 
 [[package]]
+name = "tahrir-messages"
+version = "1.0.2"
+description = "A schema package for messages sent by tahrir"
+optional = true
+python-versions = "<4.0,>=3.8"
+files = [
+    {file = "tahrir_messages-1.0.2-py3-none-any.whl", hash = "sha256:7d5a213cccafbf1ef2f3f21f814fc6e6bf45ffb760a6e3abed638ac033453c6d"},
+    {file = "tahrir_messages-1.0.2.tar.gz", hash = "sha256:a51fab28856baef98376633c0f8e1b60783f4f5e50e41d04435f7b3ed41748ee"},
+]
+
+[package.dependencies]
+fedora-messaging = ">=3.3.0,<4.0.0"
+
+[[package]]
 name = "toml"
 version = "0.10.2"
 description = "Python Library for Tom's Obvious, Minimal Language"
@@ -2054,9 +2068,9 @@ test = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 
 [extras]
-schemas = ["anitya-schema", "bodhi-messages", "bugzilla2fedmsg-schema", "ci-messages", "copr-messaging", "discourse2fedmsg-messages", "fedocal-messages", "fedora-elections-messages", "fedora-messaging-git-hook-messages", "fedora-messaging-the-new-hotness-schema", "fedora-planet-messages", "fedorainfra-ansible-messages", "fmn-messages", "kerneltest-messages", "koji-fedoramessaging-messages", "koschei-messages", "mdapi-messages", "mediawiki-messages", "meetbot-messages", "noggin-messages", "nuancier-messages", "pagure-messages"]
+schemas = ["anitya-schema", "bodhi-messages", "bugzilla2fedmsg-schema", "ci-messages", "copr-messaging", "discourse2fedmsg-messages", "fedocal-messages", "fedora-elections-messages", "fedora-messaging-git-hook-messages", "fedora-messaging-the-new-hotness-schema", "fedora-planet-messages", "fedorainfra-ansible-messages", "fmn-messages", "kerneltest-messages", "koji-fedoramessaging-messages", "koschei-messages", "mdapi-messages", "mediawiki-messages", "meetbot-messages", "noggin-messages", "nuancier-messages", "pagure-messages", "tahrir-messages"]
 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "addc4fb72092e0e5b444955aea3ee8febf8c3a30819e969277c921c4ebdf23b3"
+content-hash = "a118fd66bf761ca4692236986d30d2fcd2f0e42c3bdbeb6003fe3eb528564a66"
