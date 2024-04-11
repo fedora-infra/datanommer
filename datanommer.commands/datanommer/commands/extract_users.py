@@ -2,7 +2,8 @@ import datetime
 import logging
 
 import click
-from fedora_messaging.message import load_message
+from fedora_messaging.exceptions import ValidationError
+from fedora_messaging.message import load_message as load_message
 from sqlalchemy import and_, func, select
 
 import datanommer.models as m
@@ -115,18 +116,7 @@ def main(config_path, topic, category, start, end, force_schema, chunk_size_days
             )
             for message in m.session.scalars(chunk_query):
                 bar.update(1)
-                headers = message.headers
-                if force_schema:
-                    headers["fedora_messaging_schema"] = force_schema
-                fm_msg = load_message(
-                    {
-                        "topic": message.topic,
-                        "headers": headers,
-                        "id": message.msg_id,
-                        "body": message.msg,
-                    }
-                )
-                usernames = fm_msg.usernames
+                usernames = get_usernames(message, force_schema=force_schema)
                 if not usernames:
                     continue
                 message._insert_list(m.User, m.users_assoc_table, usernames)
@@ -136,3 +126,28 @@ def main(config_path, topic, category, start, end, force_schema, chunk_size_days
                         f": {', '.join(usernames)}"
                     )
             m.session.commit()
+
+
+def get_usernames(db_message, force_schema):
+    headers = db_message.headers
+    if force_schema and headers is not None:
+        headers["fedora_messaging_schema"] = force_schema
+    try:
+        fm_message = load_message(
+            {
+                "topic": db_message.topic,
+                "headers": headers,
+                "id": db_message.msg_id,
+                "body": db_message.msg,
+            }
+        )
+    except ValidationError as e:
+        try:
+            # Remove this block after fedora-messaging 3.6.0 and use e.summary
+            error_msg = e.args[0].summary
+        except AttributeError:
+            error_msg = str(e).split("\n")[0]
+        click.echo(f"Could not load message {db_message.msg_id}: {error_msg}", err=True)
+        return None
+
+    return fm_message.usernames

@@ -146,3 +146,21 @@ def test_extract_force_schema(bodhi_message_db, mock_config, mock_init):
 
     m.session.refresh(bodhi_message_db)
     assert len(bodhi_message_db.users) == 0
+
+
+def test_extract_invalid_message(bodhi_message_db, mock_config, mock_init):
+    bodhi_message_db.msg = "this is invalid"
+    m.session.commit()
+
+    runner = CliRunner()
+    result = runner.invoke(extract_users)
+
+    assert result.exit_code == 0, result.output
+    assert result.output == (
+        "Considering 1 message\n\n"
+        f"Could not load message {bodhi_message_db.msg_id}: "
+        "'this is invalid' is not of type 'object'\n"
+    )
+
+    m.session.refresh(bodhi_message_db)
+    assert len(bodhi_message_db.users) == 0
