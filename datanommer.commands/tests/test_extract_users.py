@@ -1,4 +1,5 @@
 import datetime
+from unittest.mock import Mock
 
 import pytest
 import sqlalchemy as sa
@@ -20,6 +21,12 @@ def bodhi_message_db(datanommer_models):
     msg_in_db = m.Message.from_msg_id(msg.id)
     assert len(msg_in_db.users) == 0
     return msg_in_db
+
+
+@pytest.fixture(autouse=True)
+def no_expunge(datanommer_models, monkeypatch):
+    monkeypatch.setattr(m.session, "expunge_all", Mock(name="expunge_all"))
+    monkeypatch.setattr(m.session, "expunge", Mock(name="expunge"))
 
 
 def test_extract_users(bodhi_message_db, mock_config, mock_init):
@@ -158,8 +165,8 @@ def test_extract_invalid_message(bodhi_message_db, mock_config, mock_init):
     assert result.exit_code == 0, result.output
     assert result.output == (
         "Considering 1 message\n\n"
-        f"Could not load message {bodhi_message_db.msg_id}: "
-        "'this is invalid' is not of type 'object'\n"
+        f"Could not load message {bodhi_message_db.msg_id} on topic "
+        f"{bodhi_message_db.topic}: 'this is invalid' is not of type 'object'\n"
     )
 
     m.session.refresh(bodhi_message_db)

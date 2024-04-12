@@ -118,6 +118,7 @@ def main(config_path, topic, category, start, end, force_schema, chunk_size_days
                 bar.update(1)
                 usernames = get_usernames(message, force_schema=force_schema)
                 if not usernames:
+                    m.session.expunge(message)
                     continue
                 message._insert_list(m.User, m.users_assoc_table, usernames)
                 if debug:
@@ -126,6 +127,7 @@ def main(config_path, topic, category, start, end, force_schema, chunk_size_days
                         f": {', '.join(usernames)}"
                     )
             m.session.commit()
+            m.session.expunge_all()
 
 
 def get_usernames(db_message, force_schema):
@@ -147,7 +149,10 @@ def get_usernames(db_message, force_schema):
             error_msg = e.args[0].summary
         except AttributeError:
             error_msg = str(e).split("\n")[0]
-        click.echo(f"Could not load message {db_message.msg_id}: {error_msg}", err=True)
+        click.echo(
+            f"Could not load message {db_message.msg_id} on topic {db_message.topic}: {error_msg}",
+            err=True,
+        )
         return None
 
     return fm_message.usernames
