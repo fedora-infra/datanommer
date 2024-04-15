@@ -4,6 +4,27 @@ Release Notes
 
 .. towncrier release notes start
 
+v1.2.0
+======
+
+Released on 2024-04-15.
+This is a feature release that adds schema packages and upgrades the SQLAlchemy
+API to the 2.0 style.
+
+Features
+^^^^^^^^
+
+* Upgrade to the SQLAlchemy 2.0 API (`981e2a4
+  <https://github.com/fedora-infra/datanommer/commit/981e2a4>`_).
+* Add a few schema packages to the dependencies.
+
+Development Improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Use Ruff instead of flake8 and isort and bandit (:issue:`4f7ffaa`
+     `#4f7ffaa <https://github.com/fedora-infra/datanommer/issues/4f7ffaa>`_).
+
+
 v1.1.0
 ======
 

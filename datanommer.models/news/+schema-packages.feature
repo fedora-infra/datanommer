@@ -1,1 +1,0 @@
-Add a few schema packages to the dependencies
