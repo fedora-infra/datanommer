@@ -11,8 +11,8 @@ import datanommer.models as m
 from . import config_option, get_config
 
 
-# Go trough messages these many days at a time
-CHUNK_DAYS = 30
+# Go trough messages these at a time
+CHUNK_SIZE = 10000
 log = logging.getLogger(__name__)
 
 
@@ -45,18 +45,18 @@ log = logging.getLogger(__name__)
     ),
 )
 @click.option(
-    "--chunk-size-days",
-    default=CHUNK_DAYS,
+    "--chunk-size",
+    default=CHUNK_SIZE,
     type=int,
     show_default=True,
-    help="Go through messages these many days at a time (lower is slower but saves memory).",
+    help="Go through messages these many at a time (lower is slower but saves memory).",
 )
 @click.option(
     "--debug",
     is_flag=True,
     help="Show more information.",
 )
-def main(config_path, topic, category, start, end, force_schema, chunk_size_days, debug):
+def main(config_path, topic, category, start, end, force_schema, chunk_size, debug):
     """Go over old messages, extract users and store them.
 
     This is useful when a message schema has been added and we want to populate the users table
@@ -104,16 +104,10 @@ def main(config_path, topic, category, start, end, force_schema, chunk_size_days
     click.echo(f"Considering {total} message{'s' if total > 1 else ''}")
 
     query = query.order_by(m.Message.timestamp)
-    chunk_timedelta = datetime.timedelta(days=chunk_size_days)
     with click.progressbar(length=total) as bar:
-        chunk_start = start - chunk_timedelta
-        chunk_end = start
-        while chunk_end < end:
-            chunk_start += chunk_timedelta
-            chunk_end += chunk_timedelta
-            chunk_query = query.where(
-                m.Message.timestamp >= chunk_start, m.Message.timestamp < chunk_end
-            )
+        for chunk in range(int(total / chunk_size) + 1):
+            offset = chunk * chunk_size
+            chunk_query = query.limit(chunk_size).offset(offset)
             for message in m.session.scalars(chunk_query):
                 bar.update(1)
                 usernames = get_usernames(message, force_schema=force_schema)
