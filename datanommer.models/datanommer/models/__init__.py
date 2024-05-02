@@ -32,6 +32,7 @@ from sqlalchemy import (
     event,
     ForeignKey,
     func,
+    Index,
     Integer,
     not_,
     or_,
@@ -213,7 +214,15 @@ packages_assoc_table = Table(
 
 class Message(DeclarativeBase):
     __tablename__ = "messages"
-    __table_args__ = (UniqueConstraint("msg_id", "timestamp"),)
+    __table_args__ = (
+        UniqueConstraint("msg_id", "timestamp"),
+        Index(
+            "ix_messages_headers",
+            "headers",
+            postgresql_using="gin",
+            postgresql_ops={"headers": "jsonb_path_ops"},
+        ),
+    )
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     msg_id = Column(Unicode, nullable=True, default=None, index=True)
@@ -400,6 +409,7 @@ class Message(DeclarativeBase):
 
             (user == 'ralph') AND
             NOT (category == 'bodhi' OR category == 'wiki')
+
         """
 
         users = users or []
@@ -500,13 +510,8 @@ class Message(DeclarativeBase):
 
         ----
 
-        The ``jsons`` argument is a list of jsonpath filters, please refer to
-        `PostgreSQL's documentation
-        <https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-SQLJSON-PATH>`_
-        on the matter to learn how to build the jsonpath expression.
-
-        The ``jsons_and`` argument is similar to the ``jsons`` argument, but all
-        the values must match for a message to be returned.
+        If the `defer` argument evaluates to True, the query won't actually
+        be executed, but a SQLAlchemy query object returned instead.
         """
         query = cls.make_query(**kwargs)
         # Finally, tag on our pagination arguments
