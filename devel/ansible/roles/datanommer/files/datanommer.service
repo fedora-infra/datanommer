@@ -5,7 +5,7 @@ Description=datanommer
 User=vagrant
 Restart=on-failure
 RestartSec=5s
-WorkingDirectory=/home/vagrant/datanommer
+WorkingDirectory=/home/vagrant/datanommer/datanommer.consumer
 ExecStart=/bin/sh -c 'source /srv/venv/bin/activate && poetry run fedora-messaging consume --callback datanommer.consumer:Nommer'
 
 [Install]
