@@ -43,6 +43,7 @@ datanommer-dump = "datanommer.commands:dump"
 datanommer-stats = "datanommer.commands:stats"
 datanommer-latest = "datanommer.commands:latest"
 datanommer-extract-users = "datanommer.commands.extract_users:main"
+datanommer-populate-json = "datanommer.commands.populate_json:main"
 
 
 [build-system]

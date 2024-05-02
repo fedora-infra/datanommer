@@ -171,7 +171,8 @@ def test_extract_force_schema(bodhi_message_db, mock_config, mock_init):
 
 
 def test_extract_invalid_message(bodhi_message_db, mock_config, mock_init):
-    bodhi_message_db.msg = "this is invalid"
+    bodhi_message_db.msg_raw = "this is invalid"
+    bodhi_message_db.msg_json = None
     m.session.commit()
 
     runner = CliRunner()

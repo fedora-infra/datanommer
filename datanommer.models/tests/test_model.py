@@ -428,6 +428,44 @@ def test_grep_contains(datanommer_models):
     assert r[0].msg == example_message.body
 
 
+def test_grep_jsons(datanommer_models):
+    example_message = generate_bodhi_update_complete_message()
+    dm.add(example_message)
+    dm.session.flush()
+    t, p, r = dm.Message.grep(jsons=['$.comment.update.status == "pending"'])
+    assert t == 1
+    assert p == 1
+    assert len(r) == 1
+    assert r[0].msg == example_message.body
+
+
+def test_grep_jsons_and_all_match(datanommer_models):
+    example_message = generate_bodhi_update_complete_message()
+    dm.add(example_message)
+    dm.session.flush()
+    t, p, r = dm.Message.grep(
+        jsons_and=['$.comment.update.status == "pending"', '$.comment.user.name == "dudemcpants"']
+    )
+    assert t == 1
+    assert p == 1
+    assert len(r) == 1
+    assert r[0].msg == example_message.body
+
+
+def test_grep_jsons_and_one_match(datanommer_models):
+    example_message = generate_bodhi_update_complete_message()
+    dm.add(example_message)
+    dm.session.flush()
+    t, p, r = dm.Message.grep(
+        jsons_and=[
+            '$.comment.update.status == "pending"',
+            '$.comment.user.name == "does-not-match"',
+        ]
+    )
+    assert t == 0
+    assert len(r) == 0
+
+
 def test_grep_rows_per_page(datanommer_models, add_200_messages):
     total, pages, messages = dm.Message.grep()
     assert total == 200

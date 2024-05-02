@@ -25,6 +25,7 @@ from warnings import warn
 from sqlalchemy import (
     and_,
     between,
+    cast,
     Column,
     create_engine,
     DateTime,
@@ -32,6 +33,7 @@ from sqlalchemy import (
     event,
     ForeignKey,
     func,
+    Index,
     Integer,
     not_,
     or_,
@@ -156,7 +158,7 @@ def add(message):
         msg_id=message.id,
         topic=message.topic,
         timestamp=sent_at,
-        msg=message.body,
+        msg_json=message.body,
         headers=headers,
         users=usernames,
         packages=packages,
@@ -213,7 +215,15 @@ packages_assoc_table = Table(
 
 class Message(DeclarativeBase):
     __tablename__ = "messages"
-    __table_args__ = (UniqueConstraint("msg_id", "timestamp"),)
+    __table_args__ = (
+        UniqueConstraint("msg_id", "timestamp"),
+        Index(
+            "json_root",
+            "msg_json",
+            postgresql_using="gin",
+            postgresql_ops={"msg_json": "jsonb_path_ops"},
+        ),
+    )
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     msg_id = Column(Unicode, nullable=True, default=None, index=True)
@@ -227,7 +237,8 @@ class Message(DeclarativeBase):
     crypto = Column(UnicodeText)
     source_name = Column(Unicode, default="datanommer")
     source_version = Column(Unicode, default=lambda context: __version__)
-    msg = Column(_JSONEncodedDict, nullable=False)
+    msg_raw = Column(_JSONEncodedDict, nullable=True)
+    msg_json = Column(postgresql.JSONB(none_as_null=True), nullable=True)
     headers = Column(postgresql.JSONB(none_as_null=True))
     users = relationship(
         "User",
@@ -247,6 +258,10 @@ class Message(DeclarativeBase):
             Message.timestamp == packages_assoc_table.c.msg_timestamp,
         ),
     )
+
+    @property
+    def msg(self):
+        return self.msg_json if self.msg_json is not None else self.msg_raw
 
     @validates("topic")
     def get_category(self, key, topic):
@@ -373,6 +388,8 @@ class Message(DeclarativeBase):
         topics=None,
         not_topics=None,
         contains=None,
+        jsons=None,
+        jsons_and=None,
     ):
         """Flexible query interface for messages.
 
@@ -400,6 +417,16 @@ class Message(DeclarativeBase):
 
             (user == 'ralph') AND
             NOT (category == 'bodhi' OR category == 'wiki')
+
+        ----
+
+        The ``jsons`` argument is a list of jsonpath filters, please refer to
+        `PostgreSQL's documentation
+        <https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-SQLJSON-PATH>`_
+        on the matter to learn how to build the jsonpath expression.
+
+        The ``jsons_and`` argument is similar to the ``jsons`` argument, but all
+        the values must match for a message to be returned.
         """
 
         users = users or []
@@ -411,6 +438,8 @@ class Message(DeclarativeBase):
         topics = topics or []
         not_topics = not_topics or []
         contains = contains or []
+        jsons = jsons or []
+        jsons_and = jsons_and or []
 
         Message = cls
         query = select(Message)
@@ -442,7 +471,19 @@ class Message(DeclarativeBase):
             query = query.where(or_(*(Message.topic == topic for topic in topics)))
 
         if contains:
-            query = query.where(or_(*(Message.msg.like(f"%{contain}%") for contain in contains)))
+            query = query.where(
+                or_(
+                    *(
+                        cast(Message.msg_json, UnicodeText).like(f"%{contain}%")
+                        for contain in contains
+                    )
+                )
+            )
+
+        if jsons:
+            query = query.where(or_(*(Message.msg_json.path_match(j) for j in jsons)))
+        if jsons_and:
+            query = query.where(and_(*(Message.msg_json.path_match(j) for j in jsons_and)))
 
         # And then the four negative filters as necessary
         if not_users:
@@ -507,6 +548,11 @@ class Message(DeclarativeBase):
 
         The ``jsons_and`` argument is similar to the ``jsons`` argument, but all
         the values must match for a message to be returned.
+
+        ----
+
+        If the `defer` argument evaluates to True, the query won't actually
+        be executed, but a SQLAlchemy query object returned instead.
         """
         query = cls.make_query(**kwargs)
         # Finally, tag on our pagination arguments

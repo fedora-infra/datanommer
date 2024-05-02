@@ -1,0 +1,1 @@
+Add a JSONB column to the database to make jsonpath queries
