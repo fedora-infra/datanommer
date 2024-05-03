@@ -10,9 +10,9 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
+
 import importlib.metadata
 import os
-import re
 import sys
 
 
@@ -114,15 +114,6 @@ intersphinx_mapping = {"python": ("https://docs.python.org/3", None)}
 # -- Misc -----
 
 
-github_url = "https://github.com/fedora-infra/datanommer"
-
-extlinks = {
-    "commit": (f"{github_url}/commit/%s", "%s"),
-    "issue": (f"{github_url}/issues/%s", "#%s"),
-    "pr": (f"{github_url}/pull/%s", "PR#%s"),
-}
-
-
 def run_apidoc(_):
     from sphinx.ext import apidoc
 
@@ -171,17 +162,8 @@ def run_apidoc(_):
         )
 
 
-def changelog_github_links(app, docname, source):
-    if not docname.endswith("NEWS"):
-        return
-    github_issue_re = re.compile(r"#(\d+)")
-    for docnr, doc in enumerate(source):
-        source[docnr] = github_issue_re.sub(f"[#\\1]({github_url}/issues/\\1)", doc)
-
-
 def setup(app):
     app.connect("builder-inited", run_apidoc)
-    # app.connect("source-read", changelog_github_links)
 
 
 def generate_click_commands(output, module, *, with_header=True, nested=None):
