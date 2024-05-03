@@ -1,7 +1,7 @@
 import pytest
 from sqlalchemy import Column, create_engine, Integer, MetaData, select, Table, text
 
-from datanommer.models import JSONEncodedDict
+from datanommer.models import _JSONEncodedDict
 
 
 @pytest.fixture
@@ -18,7 +18,7 @@ def table(connection):
         "test_table",
         metadata,
         Column("id", Integer, primary_key=True),
-        Column("data", JSONEncodedDict),
+        Column("data", _JSONEncodedDict),
     )
     metadata.create_all(connection)
     yield table

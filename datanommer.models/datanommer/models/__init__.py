@@ -168,7 +168,7 @@ def add(message):
 # https://docs.sqlalchemy.org/en/14/core/custom_types.html#marshal-json-strings
 
 
-class JSONEncodedDict(TypeDecorator):
+class _JSONEncodedDict(TypeDecorator):
     """Represents an immutable structure as a json-encoded string."""
 
     impl = UnicodeText
@@ -227,7 +227,7 @@ class Message(DeclarativeBase):
     crypto = Column(UnicodeText)
     source_name = Column(Unicode, default="datanommer")
     source_version = Column(Unicode, default=lambda context: __version__)
-    msg = Column(JSONEncodedDict, nullable=False)
+    msg = Column(_JSONEncodedDict, nullable=False)
     headers = Column(postgresql.JSONB(none_as_null=True))
     users = relationship(
         "User",

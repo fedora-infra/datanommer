@@ -2,6 +2,8 @@
 Release Notes
 =============
 
+For ``datanommer.models``
+
 .. towncrier release notes start
 
 v1.2.0
@@ -21,8 +23,8 @@ Features
 Development Improvements
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-* Use Ruff instead of flake8 and isort and bandit (:issue:`4f7ffaa`
-     `#4f7ffaa <https://github.com/fedora-infra/datanommer/issues/4f7ffaa>`_).
+* Use Ruff instead of flake8 and isort and bandit (`4f7ffaa
+  <https://github.com/fedora-infra/datanommer/commit/4f7ffaa>`_).
 
 
 v1.1.0
@@ -38,8 +40,8 @@ Dependency Changes
 
 * Drop support for python 3.7, add support for python 3.10 (`PR#890
   <https://github.com/fedora-infra/datanommer/pull/890>`_).
-* Add the ``koji-fedoramessaging-messages`` package (:issue:`1257`
-     `#1257 <https://github.com/fedora-infra/datanommer/issues/1257>`_).
+* Add the ``koji-fedoramessaging-messages`` package (`#1257
+  <https://github.com/fedora-infra/datanommer/issues/1257>`_).
 
 
 v1.0.4

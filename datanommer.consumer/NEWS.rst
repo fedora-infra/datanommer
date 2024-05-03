@@ -2,6 +2,8 @@
 Release Notes
 =============
 
+For ``datanommer.consumer``
+
 .. towncrier release notes start
 
 v1.2.0
@@ -12,8 +14,8 @@ Released on 2024-04-15. This is a minor release.
 Development Improvements
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-* Use Ruff instead of flake8 and isort and bandit (:issue:`4f7ffaa`
-     `#4f7ffaa <https://github.com/fedora-infra/datanommer/issues/4f7ffaa>`_).
+* Use Ruff instead of flake8 and isort and bandit (`4f7ffaa
+  <https://github.com/fedora-infra/datanommer/commit/4f7ffaa>`_).
 
 
 v1.1.0

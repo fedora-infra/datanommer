@@ -199,7 +199,7 @@ def latest(config_path, topic, category, overall, timestamp, timesince, human):
     """Print the latest message(s) ingested by datanommer.
 
     The default is to display the latest message in each message category. The
-    latest in only a specified category or topic can also be returned:
+    latest in only a specified category or topic can also be returned::
 
         $ datanommer-latest --category bodhi
         [{"bodhi": {
@@ -235,7 +235,7 @@ def latest(config_path, topic, category, overall, timestamp, timesince, human):
           },
         }}]
 
-    Or to display the latest, regardless of the topic or category:
+    Or to display the latest, regardless of the topic or category::
 
         $ datanommer-latest --overall
         [{"bodhi": {
@@ -255,7 +255,7 @@ def latest(config_path, topic, category, overall, timestamp, timesince, human):
         }}]
 
     You can combine either a --topic, --category or --overall argument while
-    requesting information about the timestamp of the latest:
+    requesting information about the timestamp of the latest::
 
         $ datanommer-latest --category wiki --timestamp
         [1361166918.0]
@@ -264,7 +264,7 @@ def latest(config_path, topic, category, overall, timestamp, timesince, human):
         $ datanommer-latest --category wiki --timestamp --human
         ["2013-02-18 05:55:18"]
 
-    Or how recent that timestamp is:
+    Or how recent that timestamp is::
 
         # 49250 seconds ago
         $ datanommer-latest --category wiki --timesince

@@ -1,0 +1,5 @@
+sphinx
+myst-parser
+sphinx-click
+./datanommer.models
+./datanommer.commands

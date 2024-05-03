@@ -25,11 +25,19 @@ below.
 .. note:: If you do not wish to use GitHub, please send patches to
           infrastructure@lists.fedoraproject.org.
 
+
 Development Environment
 =======================
-Vagrant allows contributors to get quickly up and running with a datanommer development environment by
-automatically configuring a virtual machine. This virtual machine also includes a running datanommer
-service to make it easy to test your changes. To get started, first install the Vagrant and Virtualization
+
+Vagrant allows contributors to get quickly up and running with a datanommer
+development environment by automatically configuring a virtual machine. This
+virtual machine also includes a running datanommer service to make it easy to
+test your changes.
+
+The datanommer Vagrant environment is configured to be empty when first
+provisioned, but to consume messages from the stage Fedora Messaging queue.
+
+To get started, first install the Vagrant and Virtualization
 packages needed, and start the libvirt service::
 
     $ sudo dnf install ansible libvirt vagrant-libvirt vagrant-sshfs vagrant-hostmanager
@@ -46,19 +54,22 @@ Next, SSH into your newly provisioned development environment::
 
     $ vagrant ssh
 
-The vagrant setup also defines 4 handy commands to interact with the datanommer consumer: 
+The vagrant setup also defines 4 handy commands to interact with the datanommer
+consumer::
 
     $ datanommer-consumer-start
     $ datanommer-consumer-stop
     $ datanommer-consumer-restart
     $ datanommer-consumer-logs
 
-Note also, that the commands provided by datanommer.commands are also available to interact with the datanommer database:
+Note also, that the commands provided by datanommer.commands are also available
+to interact with the datanommer database::
 
     $ datanommer-dump
     $ datanommer-latest
     $ datanommer-stats
     $ datanommer-create-db
+
 
 Guidelines
 ==========
@@ -81,10 +92,33 @@ instructions to configure your editor to run it on the files you edit.
 
 Tests
 -----
-The test suites can be run using `tox <http://tox.readthedocs.io/>`_ by simply
-running ``tox`` from the repository root. All code must have test coverage or
-be explicitly marked as not covered using the ``# pragma: no cover`` comment. This should
-only be done if there is a good reason to not write tests.
+Datanommer is comprised of 3 seperate modules in this single repository. There
+is top-level `Tox <http://tox.readthedocs.io/>`_ file to run the tests on all 3
+modules::
+
+    $ tox
+
+However, tests can also be run on a single module by invotking tox in that
+modules' directory. For example::
+
+    $ cd datanommer.models/
+    $ tox
+
+Note, that the tests use virtual environments that are not created from scratch
+with every subsequent run of the tests. Therefore, *when changes happen to
+dependencies, the tests may fail to run correctly*. To recreate the virtual
+envrionments,  run the tests commands with the ``-r`` flag, for example::
+
+    $ tox -r
+
+or::
+
+    $ cd datanommer.models/
+    $ tox -r
+
+All code must have test coverage or be explicitly marked as not covered using
+the ``# pragma: no cover`` comment. This should only be done if there is a good
+reason to not write tests.
 
 Your pull request should contain tests for your new feature or bug fix. If
 you're not certain how to write tests, we will be happy to help you.

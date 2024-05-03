@@ -1,0 +1,1 @@
+../datanommer.commands/NEWS.rst

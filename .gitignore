@@ -6,7 +6,8 @@ tw2*
 data
 build
 dist
-doc/build
+docs/_build
+docs/_source
 *.egg*
 README.pdf
 *.pid

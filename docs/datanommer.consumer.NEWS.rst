@@ -1,0 +1,1 @@
+../datanommer.consumer/NEWS.rst
