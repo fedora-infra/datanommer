@@ -4,7 +4,7 @@ import logging
 import click
 from fedora_messaging.exceptions import ValidationError
 from fedora_messaging.message import load_message as load_message
-from sqlalchemy import and_, func, select
+from sqlalchemy import and_, func, not_, select
 
 import datanommer.models as m
 
@@ -14,6 +14,14 @@ from . import config_option, get_config
 # Go trough messages these at a time
 CHUNK_SIZE = 10000
 log = logging.getLogger(__name__)
+
+SKIP_TOPICS = [
+    "%.anitya.%",
+    "%.discourse.%",
+    "%.hotness.update.bug.file",
+    "%.koschei.%",
+    "%.mdapi.%",
+]
 
 
 @click.command()
@@ -76,6 +84,8 @@ def main(config_path, topic, category, start, end, force_schema, chunk_size, deb
         query = query.where(m.Message.topic == topic)
     elif category:
         query = query.where(m.Message.category == category)
+    else:
+        query = query.where(and_(*[not_(m.Message.topic.like(skipped)) for skipped in SKIP_TOPICS]))
     if start:
         query = query.where(m.Message.timestamp >= start)
     else:
@@ -86,6 +96,11 @@ def main(config_path, topic, category, start, end, force_schema, chunk_size, deb
         query = query.where(m.Message.timestamp < end)
     else:
         end = datetime.datetime.now()
+    if force_schema is None:
+        query = query.where(
+            m.Message.headers.has_key("fedora_messaging_schema"),
+            m.Message.headers["fedora_messaging_schema"].astext != "base.message",
+        )
 
     query = query.join(
         m.users_assoc_table,

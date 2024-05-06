@@ -96,8 +96,23 @@ def test_extract_users_topic_and_category(mock_config, mock_init):
     assert "Error: can't use both --topic and --category, choose one." in result.output
 
 
+def test_extract_users_skipped_topic(bodhi_message_db, mock_config, mock_init):
+    bodhi_message_db.topic = "org.release-monitoring.prod.anitya.project.version.update"
+    m.session.commit()
+
+    runner = CliRunner()
+    result = runner.invoke(extract_users)
+
+    assert result.exit_code == 0, result.output
+
+    m.session.refresh(bodhi_message_db)
+    assert len(bodhi_message_db.users) == 0
+
+
 def test_extract_users_no_users(datanommer_models, mock_config, mock_init):
     msg = generate_message()
+    # change the schema header or the script won't pick it up
+    msg._headers["fedora_messaging_schema"] = "testing"
     m.add(msg)
     runner = CliRunner()
     result = runner.invoke(extract_users)
