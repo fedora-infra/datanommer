@@ -1,0 +1,4 @@
+[allowlist]
+paths = [
+    "docs/sysadmin.rst",
+]
