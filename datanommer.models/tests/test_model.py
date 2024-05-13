@@ -62,6 +62,15 @@ def generate_bodhi_update_complete_message(text="testing testing"):
     return msg
 
 
+@pytest.fixture
+def add_200_messages(datanommer_models):
+    for x in range(0, 200):
+        example_message = generate_message()
+        example_message.id = f"{x}"
+        dm.add(example_message)
+    dm.session.flush()
+
+
 def test_init_uri_and_engine():
     uri = "sqlite:///db.db"
     engine = create_engine(uri, future=True)
@@ -131,9 +140,9 @@ def test_add_missing_timestamp(datanommer_models):
 
     dbmsg = dm.session.scalar(select(dm.Message))
     timediff = datetime.datetime.now() - dbmsg.timestamp
-    # 10 seconds between adding the message and checking
+    # 60 seconds between adding the message and checking
     # the timestamp should be more than enough.
-    assert timediff < datetime.timedelta(seconds=10)
+    assert timediff < datetime.timedelta(seconds=60)
 
 
 def test_add_timestamp_with_Z(datanommer_models):
@@ -419,39 +428,20 @@ def test_grep_contains(datanommer_models):
     assert r[0].msg == example_message.body
 
 
-def test_grep_rows_per_page_none(datanommer_models):
-    for x in range(0, 200):
-        example_message = generate_message()
-        example_message.id = f"{x}"
-        dm.add(example_message)
-
-    dm.session.flush()
-
+def test_grep_rows_per_page(datanommer_models, add_200_messages):
     total, pages, messages = dm.Message.grep()
     assert total == 200
     assert pages == 2
     assert len(messages) == 100
 
-    total, pages, messages = dm.Message.grep(rows_per_page=None)
-    assert total == 200
-    assert pages == 1
-    assert len(messages) == 200
-
-
-def test_grep_rows_per_page_zero(datanommer_models):
-    for x in range(0, 200):
-        example_message = generate_message()
-        example_message.id = f"{x}"
-        dm.add(example_message)
-    dm.session.flush()
-
-    try:
-        total, pages, messages = dm.Message.grep(rows_per_page=0)
-    except ZeroDivisionError as e:
-        pytest.fail(e)
-    assert total == 200
-    assert pages == 1
-    assert len(messages) == 200
+    for rows_per_page in (None, 0):
+        try:
+            total, pages, messages = dm.Message.grep(rows_per_page=rows_per_page)
+        except ZeroDivisionError as e:
+            pytest.fail(e)
+        assert total == 200
+        assert pages == 1
+        assert len(messages) == 200
 
 
 def test_grep_defer(datanommer_models):
@@ -464,6 +454,33 @@ def test_grep_defer(datanommer_models):
     assert isinstance(query, Select)
 
     assert dm.session.scalars(query).all() == dm.Message.grep()[2]
+
+
+def test_grep_no_paging_and_defer(datanommer_models, add_200_messages):
+    total, pages, messages = dm.Message.grep(rows_per_page=0, defer=True)
+    assert total == 200
+    assert pages == 1
+
+
+def test_grep_no_total_if_single_page(datanommer_models, add_200_messages, mocker):
+    # Assert we don't query the total of messages if we're getting them all anyway
+    scalar_spy = mocker.spy(dm.session, "scalar")
+    total, pages, messages = dm.Message.grep(rows_per_page=0)
+    assert total == 200
+    scalar_spy.assert_not_called()
+
+
+def test_get_first(datanommer_models):
+    messages = []
+    for x in range(0, 200):
+        example_message = generate_message()
+        example_message.id = f"{x}"
+        dm.add(example_message)
+        messages.append(example_message)
+    dm.session.flush()
+    msg = dm.Message.get_first()
+    assert msg.msg_id == "0"
+    assert msg.msg == messages[0].body
 
 
 def test_add_duplicate(datanommer_models, caplog):

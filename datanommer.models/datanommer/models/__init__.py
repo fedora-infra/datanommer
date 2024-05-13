@@ -359,13 +359,10 @@ class Message(DeclarativeBase):
         return self.as_dict(request)
 
     @classmethod
-    def grep(
+    def make_query(
         cls,
         start=None,
         end=None,
-        page=1,
-        rows_per_page=100,
-        order="asc",
         msg_id=None,
         users=None,
         not_users=None,
@@ -376,7 +373,6 @@ class Message(DeclarativeBase):
         topics=None,
         not_topics=None,
         contains=None,
-        defer=False,
     ):
         """Flexible query interface for messages.
 
@@ -404,11 +400,6 @@ class Message(DeclarativeBase):
 
             (user == 'ralph') AND
             NOT (category == 'bodhi' OR category == 'wiki')
-
-        ----
-
-        If the `defer` argument evaluates to True, the query won't actually
-        be executed, but a SQLAlchemy query object returned instead.
         """
 
         users = users or []
@@ -468,22 +459,87 @@ class Message(DeclarativeBase):
         if not_topics:
             query = query.where(not_(or_(*(Message.topic == topic for topic in not_topics))))
 
+        return query
+
+    @classmethod
+    def grep(
+        cls,
+        *,
+        page=1,
+        rows_per_page=100,
+        order="asc",
+        defer=False,
+        **kwargs,
+    ):
+        """Flexible query interface for messages.
+
+        Arguments are filters.  start and end should be :mod:`datetime` objs.
+
+        Other filters should be lists of strings.  They are applied in a
+        conjunctive-normal-form (CNF) kind of way
+
+        for example, the following::
+
+          users = ['ralph', 'lmacken']
+          categories = ['bodhi', 'wiki']
+
+        should return messages where
+
+          (user=='ralph' OR user=='lmacken') AND
+          (category=='bodhi' OR category=='wiki')
+
+        Furthermore, you can use a negative version of each argument.
+
+            users = ['ralph']
+            not_categories = ['bodhi', 'wiki']
+
+        should return messages where
+
+            (user == 'ralph') AND
+            NOT (category == 'bodhi' OR category == 'wiki')
+
+        ----
+
+        The ``jsons`` argument is a list of jsonpath filters, please refer to
+        `PostgreSQL's documentation
+        <https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-SQLJSON-PATH>`_
+        on the matter to learn how to build the jsonpath expression.
+
+        The ``jsons_and`` argument is similar to the ``jsons`` argument, but all
+        the values must match for a message to be returned.
+        """
+        query = cls.make_query(**kwargs)
         # Finally, tag on our pagination arguments
-        total = session.scalar(query.with_only_columns(func.count(Message.id)))
+        Message = cls
+
+        query_total = query.with_only_columns(func.count(Message.id))
+        total = None
         query = query.order_by(getattr(Message.timestamp, order)())
 
         if not rows_per_page:
             pages = 1
         else:
+            total = session.scalar(query_total)
             pages = int(math.ceil(total / float(rows_per_page)))
             query = query.offset(rows_per_page * (page - 1)).limit(rows_per_page)
 
         if defer:
-            return total, page, query
+            if total is None:
+                total = session.scalar(query_total)
+            return total, pages, query
         else:
             # Execute!
             messages = session.scalars(query).all()
+            if pages == 1:
+                total = len(messages)
             return total, pages, messages
+
+    @classmethod
+    def get_first(cls, *, order="asc", **kwargs):
+        """Get the first message matching the regular grep filters."""
+        query = cls.make_query(**kwargs)
+        query = query.order_by(getattr(Message.timestamp, order)())
+        return session.scalars(query).first()
 
 
 class NamedSingleton:
