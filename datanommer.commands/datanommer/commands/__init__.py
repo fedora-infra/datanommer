@@ -21,34 +21,16 @@ import time
 from datetime import datetime, timedelta, timezone
 
 import click
-from fedora_messaging import config as fedora_messaging_config
 from sqlalchemy import func, select
 
 import datanommer.models as m
+
+from .utils import config_option, get_config
 
 
 __version__ = importlib.metadata.version("datanommer.commands")
 
 log = logging.getLogger("datanommer")
-
-
-def get_config(config_path=None):
-    if config_path:
-        fedora_messaging_config.conf.load_config(config_path)
-    conf = fedora_messaging_config.conf["consumer_config"]
-    for key in ("datanommer_sqlalchemy_url", "alembic_ini"):
-        if key not in conf:
-            raise click.ClickException(f"{key} not defined in the fedora-messaging config")
-    return conf
-
-
-config_option = click.option(
-    "-c",
-    "--config",
-    "config_path",
-    help="Load this Fedora Messaging config file",
-    type=click.Path(exists=True, readable=True),
-)
 
 
 @click.command()
