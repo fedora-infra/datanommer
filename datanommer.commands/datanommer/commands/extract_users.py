@@ -120,11 +120,16 @@ def main(config_path, topic, category, start, end, force_schema, chunk_size, deb
 
     query = query.order_by(m.Message.timestamp)
     with click.progressbar(length=total) as bar:
-        for chunk in range(int(total / chunk_size) + 1):
-            offset = chunk * chunk_size
-            chunk_query = query.limit(chunk_size).offset(offset)
+        has_messages = True
+        chunk_start = start
+        while has_messages:
+            chunk_query = query.where(m.Message.timestamp >= chunk_start).limit(chunk_size)
+            if chunk_start != start:
+                chunk_query = chunk_query.offset(1)
+            has_messages = False
             for message in m.session.scalars(chunk_query):
                 bar.update(1)
+                has_messages = True
                 usernames = get_usernames(message, force_schema=force_schema)
                 if not usernames:
                     m.session.expunge(message)
@@ -135,6 +140,7 @@ def main(config_path, topic, category, start, end, force_schema, chunk_size, deb
                         f"Usernames for message {message.msg_id} of topic {message.topic}"
                         f": {', '.join(usernames)}"
                     )
+            chunk_start = message.timestamp
             m.session.commit()
             m.session.expunge_all()
 
