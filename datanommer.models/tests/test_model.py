@@ -528,7 +528,10 @@ def test_add_duplicate_package(datanommer_models):
     assert dbmsg.packages[0].name == "pkg"
 
 
-def test_add_message_with_error_on_packages(datanommer_models, caplog):
+@pytest.mark.parametrize(
+    "property_name,name_in_msg", [("usernames", "users"), ("packages", "packages")]
+)
+def test_add_message_with_error_on_property(datanommer_models, caplog, property_name, name_in_msg):
     # Define a special message schema and register it
     class CustomMessage(fedora_message.Message):
         @property
@@ -537,6 +540,11 @@ def test_add_message_with_error_on_packages(datanommer_models, caplog):
 
         def _filter_headers(self):
             return {}
+
+    def _crash(self):
+        raise KeyError
+
+    setattr(CustomMessage, property_name, property(_crash))
 
     fedora_message._schema_name_to_class["CustomMessage"] = CustomMessage
     fedora_message._class_to_schema_name[CustomMessage] = "CustomMessage"
@@ -551,7 +559,7 @@ def test_add_message_with_error_on_packages(datanommer_models, caplog):
         pytest.fail(e)
     assert dm.session.scalar(select(func.count(dm.Message.id))) == 1
     assert caplog.records[0].message == (
-        f"Could not get the list of packages from a message on "
+        f"Could not get the list of {name_in_msg} from a message on "
         f"org.fedoraproject.test.a.nice.message with id {example_message.id}"
     )
 
