@@ -21,8 +21,8 @@ def datanommer_db_url(postgresql_proc):
     )
 
 
-@pytest.fixture()
-def datanommer_db(postgresql_proc, datanommer_db_url):
+@pytest.fixture(scope="session")
+def datanommer_db_engine(postgresql_proc, datanommer_db_url):
     with DatabaseJanitor(
         user=postgresql_proc.user,
         host=postgresql_proc.host,
@@ -32,12 +32,20 @@ def datanommer_db(postgresql_proc, datanommer_db_url):
         # template_dbname=postgresql_proc.template_dbname,
         version=postgresql_proc.version,
     ):
-        engine = sa.create_engine(datanommer_db_url, future=True, poolclass=sa.pool.NullPool)
+        engine = sa.create_engine(datanommer_db_url, future=True)
         # Renew the global object, dm.init checks a custom attribute
         dm.session = scoped_session(dm.maker)
         dm.init(engine=engine, create=True)
         yield engine
-        dm.session.close()
+        engine.dispose()
+
+
+@pytest.fixture()
+def datanommer_db(datanommer_db_url, datanommer_db_engine):
+    for table in reversed(dm.DeclarativeBase.metadata.sorted_tables):
+        dm.session.execute(table.delete())
+    dm.session.commit()
+    yield datanommer_db_engine
 
 
 @pytest.fixture()
