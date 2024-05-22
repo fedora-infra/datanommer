@@ -41,7 +41,7 @@ class Nommer:
         m.init(get_datanommer_sqlalchemy_url())
 
     def __call__(self, message):
-        log.info("Nomming %r" % message)
+        log.info("Nomming %r", message)
         try:
             m.add(message)
         except Exception:
