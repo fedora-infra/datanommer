@@ -1,1 +1,0 @@
-Add a ``get_first()`` method on ``Message`` to get the first message matching a grep-like query

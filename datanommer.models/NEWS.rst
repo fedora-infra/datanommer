@@ -6,6 +6,35 @@ For ``datanommer.models``
 
 .. towncrier release notes start
 
+v1.3.0
+======
+
+Released on 2024-05-22.
+
+Features
+^^^^^^^^
+
+* Add a ``get_first()`` method on ``Message`` to get the first message matching
+  a grep-like query (`99fb739 <https://github.com/fedora-infra/datanommer/commit/99fb739>`_).
+
+Bug Fixes
+^^^^^^^^^
+
+* Don't compute the total when not necessary (`99fb739 <https://github.com/fedora-infra/datanommer/commit/99fb739>`_).
+
+Documentation Improvements
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Add online documentation with Sphinx, see https://datanommer.readthedocs.io
+  (`2631885 <https://github.com/fedora-infra/datanommer/commit/2631885>`_).
+
+Other Changes
+^^^^^^^^^^^^^
+
+* Improve the unit tests (`610067f <https://github.com/fedora-infra/datanommer/commit/610067f>`_, `075052c <https://github.com/fedora-infra/datanommer/commit/075052c>`_).
+* Update dependencies
+
+
 v1.2.0
 ======
 

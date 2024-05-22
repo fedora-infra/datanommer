@@ -6,6 +6,27 @@ For ``datanommer.commands``
 
 .. towncrier release notes start
 
+v1.3.0
+======
+
+Released on 2024-05-22.
+
+Features
+^^^^^^^^
+
+* Improve the extract-users script (
+  `dbf28ff <https://github.com/fedora-infra/datanommer/commit/dbf28ff>`_,
+  `ac7394e <https://github.com/fedora-infra/datanommer/commit/ac7394e>`_,
+  `ec2e581 <https://github.com/fedora-infra/datanommer/commit/ec2e581>`_,
+  `2fd0175 <https://github.com/fedora-infra/datanommer/commit/2fd0175>`_
+  ).
+
+Other Changes
+^^^^^^^^^^^^^
+
+* Update dependencies
+
+
 v1.2.0
 ======
 
