@@ -122,9 +122,10 @@ def main(config_path, topic, category, start, end, force_schema, chunk_size, deb
     with click.progressbar(length=total) as bar:
         has_messages = True
         chunk_start = start
+        first_run = True
         while has_messages:
             chunk_query = query.where(m.Message.timestamp >= chunk_start).limit(chunk_size)
-            if chunk_start != start:
+            if not first_run:
                 chunk_query = chunk_query.offset(1)
             has_messages = False
             for message in m.session.scalars(chunk_query):
@@ -141,6 +142,7 @@ def main(config_path, topic, category, start, end, force_schema, chunk_size, deb
                         f": {', '.join(usernames)}"
                     )
             chunk_start = message.timestamp
+            first_run = False
             m.session.commit()
             m.session.expunge_all()
 
