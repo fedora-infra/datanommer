@@ -538,7 +538,7 @@ class Message(DeclarativeBase):
     def get_first(cls, *, order="asc", **kwargs):
         """Get the first message matching the regular grep filters."""
         query = cls.make_query(**kwargs)
-        query = query.order_by(getattr(Message.timestamp, order)())
+        query = query.order_by(getattr(Message.timestamp, order)()).limit(1)
         return session.scalars(query).first()
 
 
