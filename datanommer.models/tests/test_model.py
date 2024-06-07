@@ -345,6 +345,55 @@ def test_grep_msg_id(datanommer_models):
     assert len(messages) == 0
 
 
+def test_grep_agents(datanommer_models):
+    example_message = generate_message()
+    dm.add(example_message)
+
+    bodhi_example_message = generate_bodhi_update_complete_message()
+    dm.add(bodhi_example_message)
+
+    dm.session.flush()
+
+    total, pages, messages = dm.Message.grep(agents=["dudemcpants"])
+
+    assert total == 1
+    assert pages == 1
+    assert len(messages) == 1
+
+    assert messages[0].msg == bodhi_example_message.body
+
+
+def test_grep_not_agents(datanommer_models, mocker):
+    example_message = generate_message()  # has agent_name == None
+    dm.add(example_message)
+
+    bodhi_example_message = generate_bodhi_update_complete_message()
+    dm.add(bodhi_example_message)  # has agent_name == "dudemcpants"
+
+    class MessageWithAgent(fedora_message.Message):
+        topic = "org.fedoraproject.test.a.message.with.agent"
+        agent_name = "dummy-agent-name"
+
+    fedora_message._schema_name_to_class["MessageWithAgent"] = MessageWithAgent
+    fedora_message._class_to_schema_name[MessageWithAgent] = "MessageWithAgent"
+
+    example_message_with_agent = MessageWithAgent(
+        body={"subject": "this is a message with an agent"}
+    )
+    dm.add(example_message_with_agent)
+
+    dm.session.flush()
+
+    total, pages, messages = dm.Message.grep(not_agents=["dudemcpants"])
+
+    # Messages with agent_name == None are not returned
+    assert total == 1
+    assert pages == 1
+    assert len(messages) == 1
+
+    assert messages[0].msg == example_message_with_agent.body
+
+
 def test_grep_users(datanommer_models):
     example_message = generate_message()
     dm.add(example_message)
@@ -617,7 +666,7 @@ def test_as_dict(datanommer_models):
     message_dict = dbmsg.as_dict()
 
     # we should have 14 keys in this dict
-    assert len(message_dict) == 14
+    assert len(message_dict) == 15
     assert message_dict["msg"] == {"encouragement": "You're doing great!"}
     assert message_dict["topic"] == "org.fedoraproject.test.a.nice.message"
 
@@ -641,6 +690,15 @@ def test___json__deprecated(datanommer_models, caplog, mocker):
         dbmsg.__json__()
 
     mock_as_dict.assert_called_once()
+
+
+def test_username_deprecated(datanommer_models, caplog, mocker):
+    dm.add(generate_message())
+    dbmsg = dm.session.scalar(select(dm.Message))
+    dbmsg.agent_name = "dummy"
+
+    with pytest.warns(DeprecationWarning):
+        assert dbmsg.username == "dummy"
 
 
 def test_singleton_create(datanommer_models):

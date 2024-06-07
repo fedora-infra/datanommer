@@ -4,27 +4,30 @@ import logging
 import click
 from fedora_messaging.exceptions import ValidationError
 from fedora_messaging.message import load_message as load_message
-from sqlalchemy import and_, func, not_, select
+from sqlalchemy import and_, not_, select
 
 import datanommer.models as m
 
-from . import config_option, get_config
+from .utils import CHUNK_SIZE, config_option, get_config, iterate_over_messages
 
 
-# Go trough messages these at a time
-CHUNK_SIZE = 10000
 log = logging.getLogger(__name__)
 
-SKIP_TOPICS = [
+USERNAMES_SKIP_TOPICS = [
     "%.anitya.%",
     "%.discourse.%",
     "%.hotness.update.bug.file",
+    "%.hotness.update.drop",
     "%.koschei.%",
     "%.mdapi.%",
 ]
+AGENT_SKIP_TOPICS = [
+    "%.hotness.update.bug.file",
+    "%.hotness.update.drop",
+]
 
 
-@click.command()
+@click.group()
 @config_option
 @click.option("--topic", default=None, help="Only extract users for messages of a specific topic.")
 @click.option(
@@ -64,44 +67,56 @@ SKIP_TOPICS = [
     is_flag=True,
     help="Show more information.",
 )
-def main(config_path, topic, category, start, end, force_schema, chunk_size, debug):
-    """Go over old messages, extract users and store them.
-
-    This is useful when a message schema has been added and we want to populate the users table
-    with the new information.
-    """
-    config = get_config(config_path)
+@click.pass_context
+def main(ctx, config_path, topic, category, start, end, force_schema, chunk_size, debug):
+    ctx.ensure_object(dict)
+    ctx.obj["options"] = ctx.params
+    ctx.obj["config"] = config = get_config(config_path)
     m.init(
         config["datanommer_sqlalchemy_url"],
         alembic_ini=config["alembic_ini"],
     )
-
     if topic and category:
         raise click.UsageError("can't use both --topic and --category, choose one.")
+
+    if not start:
+        ctx.obj["options"]["start"] = m.session.execute(
+            select(m.Message.timestamp).order_by(m.Message.timestamp).limit(1)
+        ).scalar_one()
 
     query = select(m.Message)
     if topic:
         query = query.where(m.Message.topic == topic)
     elif category:
         query = query.where(m.Message.category == category)
-    else:
-        query = query.where(and_(*[not_(m.Message.topic.like(skipped)) for skipped in SKIP_TOPICS]))
-    if start:
-        query = query.where(m.Message.timestamp >= start)
-    else:
-        start = m.session.execute(
-            select(m.Message.timestamp).order_by(m.Message.timestamp).limit(1)
-        ).scalar_one()
+
+    query = query.where(m.Message.timestamp >= ctx.obj["options"]["start"])
     if end:
         query = query.where(m.Message.timestamp < end)
     else:
         end = datetime.datetime.now()
+
     if force_schema is None:
         query = query.where(
             m.Message.headers.has_key("fedora_messaging_schema"),
             m.Message.headers["fedora_messaging_schema"].astext != "base.message",
         )
+    ctx.obj["query"] = query
 
+
+@main.command("usernames")
+@click.pass_context
+def extract_usernames(ctx):
+    """Go over old messages, extract users and store them.
+
+    This is useful when a message schema has been added and we want to populate the users table
+    with the new information.
+    """
+    debug = ctx.obj["options"]["debug"]
+    query = ctx.obj["query"]
+    query = query.where(
+        and_(*[not_(m.Message.topic.like(skipped)) for skipped in USERNAMES_SKIP_TOPICS])
+    )
     query = query.join(
         m.users_assoc_table,
         and_(
@@ -111,43 +126,22 @@ def main(config_path, topic, category, start, end, force_schema, chunk_size, deb
         isouter=True,
     ).where(m.users_assoc_table.c.msg_id.is_(None))
 
-    total = m.session.scalar(query.with_only_columns(func.count(m.Message.id)))
-    if not total:
-        click.echo("No messages matched.")
-        return
-
-    click.echo(f"Considering {total} message{'s' if total > 1 else ''}")
-
-    query = query.order_by(m.Message.timestamp)
-    with click.progressbar(length=total) as bar:
-        has_messages = True
-        chunk_start = start
-        first_run = True
-        while has_messages:
-            chunk_query = query.where(m.Message.timestamp >= chunk_start).limit(chunk_size)
-            if not first_run:
-                chunk_query = chunk_query.offset(1)
-            has_messages = False
-            for message in m.session.scalars(chunk_query):
-                bar.update(1)
-                has_messages = True
-                usernames = get_usernames(message, force_schema=force_schema)
-                if not usernames:
-                    m.session.expunge(message)
-                    continue
-                message._insert_list(m.User, m.users_assoc_table, usernames)
-                if debug:
-                    click.echo(
-                        f"Usernames for message {message.msg_id} of topic {message.topic}"
-                        f": {', '.join(usernames)}"
-                    )
-            chunk_start = message.timestamp
-            first_run = False
-            m.session.commit()
-            m.session.expunge_all()
+    for message in iterate_over_messages(
+        query, ctx.obj["options"]["start"], ctx.obj["options"]["chunk_size"]
+    ):
+        fm_message = get_fedora_message(message, force_schema=ctx.obj["options"]["force_schema"])
+        if fm_message is None or not fm_message.usernames:
+            m.session.expunge(message)
+            continue
+        message._insert_list(m.User, m.users_assoc_table, fm_message.usernames)
+        if debug:
+            click.echo(
+                f"Usernames for message {message.msg_id} of topic {message.topic}"
+                f": {', '.join(fm_message.usernames)}"
+            )
 
 
-def get_usernames(db_message, force_schema):
+def get_fedora_message(db_message, force_schema):
     headers = db_message.headers
     if force_schema and headers is not None:
         headers["fedora_messaging_schema"] = force_schema
@@ -172,4 +166,34 @@ def get_usernames(db_message, force_schema):
         )
         return None
 
-    return fm_message.usernames
+    return fm_message
+
+
+@main.command("agent")
+@click.pass_context
+def extract_agent(ctx):
+    """Go over old messages, extract the agent_name and store it.
+
+    This is useful when a message schema has been added and we want to populate the agent_name
+    column with the new information.
+    """
+    debug = ctx.obj["options"]["debug"]
+    query = ctx.obj["query"]
+    query = query.where(
+        and_(*[not_(m.Message.topic.like(skipped)) for skipped in AGENT_SKIP_TOPICS])
+    )
+    query = query.where(m.Message.agent_name.is_(None))
+
+    for message in iterate_over_messages(
+        query, ctx.obj["options"]["start"], ctx.obj["options"]["chunk_size"]
+    ):
+        fm_message = get_fedora_message(message, force_schema=ctx.obj["options"]["force_schema"])
+        if fm_message is None or not fm_message.agent_name:
+            m.session.expunge(message)
+            continue
+        message.agent_name = fm_message.agent_name
+        if debug:
+            click.echo(
+                f"Agent for message {message.msg_id} of topic {message.topic}"
+                f": {fm_message.agent_name}"
+            )

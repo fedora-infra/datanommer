@@ -16,7 +16,7 @@ def mock_init(mocker):
 @pytest.fixture
 def mock_config(mocker):
     mocker.patch.dict(
-        datanommer.commands.fedora_messaging_config.conf["consumer_config"],
+        datanommer.commands.utils.fedora_messaging_config.conf["consumer_config"],
         {
             "datanommer_sqlalchemy_url": "",
             "alembic_ini": None,

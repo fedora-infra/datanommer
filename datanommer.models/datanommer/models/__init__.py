@@ -159,6 +159,7 @@ def add(message):
         timestamp=sent_at,
         msg=message.body,
         headers=headers,
+        agent_name=getattr(message, "agent_name", None),
         users=usernames,
         packages=packages,
     )
@@ -232,7 +233,7 @@ class Message(DeclarativeBase):
     certificate = Column(UnicodeText)
     signature = Column(UnicodeText)
     category = Column(Unicode, nullable=False, index=True)
-    username = Column(Unicode)
+    agent_name = Column(Unicode, index=True)
     crypto = Column(UnicodeText)
     source_name = Column(Unicode, default="datanommer")
     source_version = Column(Unicode, default=lambda context: __version__)
@@ -335,7 +336,8 @@ class Message(DeclarativeBase):
             timestamp=self.timestamp,
             certificate=self.certificate,
             signature=self.signature,
-            username=self.username,
+            agent_name=self.agent_name,
+            username=self.agent_name,  # DEPRECATED
             crypto=self.crypto,
             msg=self.msg,
             headers=self.headers,
@@ -367,6 +369,16 @@ class Message(DeclarativeBase):
         )
         return self.as_dict(request)
 
+    @property
+    def username(self):
+        warn(
+            "The username attribute has been renamed to agent_name, and will be removed "
+            "in the next major version",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.agent_name
+
     @classmethod
     def make_query(
         cls,
@@ -381,6 +393,8 @@ class Message(DeclarativeBase):
         not_categories=None,
         topics=None,
         not_topics=None,
+        agents=None,
+        not_agents=None,
         contains=None,
     ):
         """Flexible query interface for messages.
@@ -420,6 +434,8 @@ class Message(DeclarativeBase):
         not_cats = not_categories or []
         topics = topics or []
         not_topics = not_topics or []
+        agents = agents or []
+        not_agents = not_agents or []
         contains = contains or []
 
         Message = cls
@@ -451,6 +467,9 @@ class Message(DeclarativeBase):
         if topics:
             query = query.where(or_(*(Message.topic == topic for topic in topics)))
 
+        if agents:
+            query = query.where(or_(*(Message.agent_name == agent for agent in agents)))
+
         if contains:
             query = query.where(or_(*(Message.msg.like(f"%{contain}%") for contain in contains)))
 
@@ -469,6 +488,10 @@ class Message(DeclarativeBase):
         if not_topics:
             query = query.where(not_(or_(*(Message.topic == topic for topic in not_topics))))
 
+        if not_agents:
+            query = query.where(not_(or_(*(Message.agent_name == agent for agent in not_agents))))
+
+        print(query)
         return query
 
     @classmethod

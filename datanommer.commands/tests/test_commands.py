@@ -29,7 +29,7 @@ from .utils import generate_bodhi_update_complete_message, generate_message
 
 def test_get_datanommer_sqlalchemy_url_keyerror(mocker):
     mocker.patch.dict(
-        datanommer.commands.fedora_messaging_config.conf["consumer_config"],
+        datanommer.commands.utils.fedora_messaging_config.conf["consumer_config"],
         {},
         clear=True,
     )
@@ -42,9 +42,11 @@ def test_get_datanommer_sqlalchemy_url_config(mocker):
         "datanommer_sqlalchemy_url": "",
         "alembic_ini": "/some/where",
     }
-    mocker.patch.dict(datanommer.commands.fedora_messaging_config.conf["consumer_config"], conf)
+    mocker.patch.dict(
+        datanommer.commands.utils.fedora_messaging_config.conf["consumer_config"], conf
+    )
     load_config = mocker.patch(
-        "datanommer.commands.fedora_messaging_config.conf.load_config",
+        "datanommer.commands.utils.fedora_messaging_config.conf.load_config",
     )
     datanommer.commands.get_config("some-path")
     load_config.assert_called_with("some-path")
@@ -53,7 +55,7 @@ def test_get_datanommer_sqlalchemy_url_config(mocker):
 def test_create(mocker):
     mock_model_init = mocker.patch("datanommer.commands.m.init")
     mocker.patch.dict(
-        datanommer.commands.fedora_messaging_config.conf["consumer_config"],
+        datanommer.commands.utils.fedora_messaging_config.conf["consumer_config"],
         {
             "datanommer_sqlalchemy_url": "TESTURL",
             "alembic_ini": "/some/where",
