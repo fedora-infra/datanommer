@@ -10,5 +10,5 @@ CURDIR=`pwd`
 set -x
 
 cd ../datanommer.models
-poetry install
+poetry install --all-extras
 cd "$CURDIR"

@@ -20,12 +20,12 @@ include = [
 
 [tool.poetry.dependencies]
 python = "^3.10"
-"datanommer.models" = "^1.0.0"
+"datanommer.models" = {version = "^1.0.0", extras = ["schemas"]}
 fedora-messaging = ">=2.1.0"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "*"
-"datanommer.models" = {path = "../datanommer.models", develop = true}
+"datanommer.models" = {path = "../datanommer.models", develop = true, extras = ["schemas"]}
 black = "*"
 ruff = "*"
 pytest = "*"

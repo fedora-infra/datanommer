@@ -16,10 +16,13 @@ def bodhi_message_db(datanommer_models):
     msg = generate_bodhi_update_complete_message()
     m.add(msg)
     m.session.execute(m.users_assoc_table.delete())
+    msg_in_db = m.Message.from_msg_id(msg.id)
+    msg_in_db.agent_name = None
     m.session.commit()
 
-    msg_in_db = m.Message.from_msg_id(msg.id)
+    m.session.refresh(msg_in_db)
     assert len(msg_in_db.users) == 0
+    assert msg_in_db.agent_name is None
     return msg_in_db
 
 
@@ -31,7 +34,7 @@ def no_expunge(datanommer_models, monkeypatch):
 
 def test_extract_users(bodhi_message_db, mock_config, mock_init):
     runner = CliRunner()
-    result = runner.invoke(extract_users, ["--debug"])
+    result = runner.invoke(extract_users, ["--debug", "usernames"])
 
     assert result.exit_code == 0, result.output
 
@@ -49,7 +52,9 @@ def test_extract_users(bodhi_message_db, mock_config, mock_init):
 
 def test_extract_users_topic(bodhi_message_db, mock_config, mock_init):
     runner = CliRunner()
-    result = runner.invoke(extract_users, ["--topic", "org.fedoraproject.stg.bodhi.update.comment"])
+    result = runner.invoke(
+        extract_users, ["--topic", "org.fedoraproject.stg.bodhi.update.comment", "usernames"]
+    )
 
     assert result.exit_code == 0, result.output
 
@@ -60,7 +65,7 @@ def test_extract_users_topic(bodhi_message_db, mock_config, mock_init):
 
 def test_extract_users_wrong_topic(bodhi_message_db, mock_config, mock_init):
     runner = CliRunner()
-    result = runner.invoke(extract_users, ["--topic", "something.else"])
+    result = runner.invoke(extract_users, ["--topic", "something.else", "usernames"])
 
     assert result.exit_code == 0, result.output
 
@@ -70,7 +75,7 @@ def test_extract_users_wrong_topic(bodhi_message_db, mock_config, mock_init):
 
 def test_extract_users_category(bodhi_message_db, mock_config, mock_init):
     runner = CliRunner()
-    result = runner.invoke(extract_users, ["--category", "bodhi"])
+    result = runner.invoke(extract_users, ["--category", "bodhi", "usernames"])
 
     assert result.exit_code == 0, result.output
 
@@ -81,7 +86,7 @@ def test_extract_users_category(bodhi_message_db, mock_config, mock_init):
 
 def test_extract_users_wrong_category(bodhi_message_db, mock_config, mock_init):
     runner = CliRunner()
-    result = runner.invoke(extract_users, ["--category", "git"])
+    result = runner.invoke(extract_users, ["--category", "git", "usernames"])
 
     assert result.exit_code == 0, result.output
 
@@ -91,7 +96,9 @@ def test_extract_users_wrong_category(bodhi_message_db, mock_config, mock_init):
 
 def test_extract_users_topic_and_category(mock_config, mock_init):
     runner = CliRunner()
-    result = runner.invoke(extract_users, ["--category", "bodhi", "--topic", "some.topic"])
+    result = runner.invoke(
+        extract_users, ["--category", "bodhi", "--topic", "some.topic", "usernames"]
+    )
     assert result.exit_code != 0, result.output
     assert "Error: can't use both --topic and --category, choose one." in result.output
 
@@ -101,7 +108,7 @@ def test_extract_users_skipped_topic(bodhi_message_db, mock_config, mock_init):
     m.session.commit()
 
     runner = CliRunner()
-    result = runner.invoke(extract_users)
+    result = runner.invoke(extract_users, ["usernames"])
 
     assert result.exit_code == 0, result.output
 
@@ -115,7 +122,7 @@ def test_extract_users_no_users(datanommer_models, mock_config, mock_init):
     msg._headers["fedora_messaging_schema"] = "testing"
     m.add(msg)
     runner = CliRunner()
-    result = runner.invoke(extract_users)
+    result = runner.invoke(extract_users, ["usernames"])
 
     assert result.exit_code == 0, result.output
     users_count = m.session.scalar(sa.select(sa.func.count(m.users_assoc_table.c.msg_id)))
@@ -135,7 +142,8 @@ def test_extract_start(datanommer_models, mock_config, mock_init):
     runner = CliRunner()
     # Only look at messages from yesterday on
     result = runner.invoke(
-        extract_users, ["--start", (now - datetime.timedelta(days=1)).strftime(r"%Y-%m-%d")]
+        extract_users,
+        ["--start", (now - datetime.timedelta(days=1)).strftime(r"%Y-%m-%d"), "usernames"],
     )
 
     assert result.exit_code == 0, result.output
@@ -150,7 +158,8 @@ def test_extract_end(bodhi_message_db, mock_config, mock_init):
     runner = CliRunner()
     # Only look at messages from yesterday on
     result = runner.invoke(
-        extract_users, ["--end", (now - datetime.timedelta(days=1)).strftime(r"%Y-%m-%d")]
+        extract_users,
+        ["--end", (now - datetime.timedelta(days=1)).strftime(r"%Y-%m-%d"), "usernames"],
     )
 
     assert result.exit_code == 0, result.output
@@ -162,7 +171,7 @@ def test_extract_end(bodhi_message_db, mock_config, mock_init):
 
 def test_extract_force_schema(bodhi_message_db, mock_config, mock_init):
     runner = CliRunner()
-    result = runner.invoke(extract_users, ["--force-schema", "base.message"])
+    result = runner.invoke(extract_users, ["--force-schema", "base.message", "usernames"])
 
     assert result.exit_code == 0, result.output
 
@@ -175,7 +184,7 @@ def test_extract_invalid_message(bodhi_message_db, mock_config, mock_init):
     m.session.commit()
 
     runner = CliRunner()
-    result = runner.invoke(extract_users)
+    result = runner.invoke(extract_users, ["usernames"])
 
     assert result.exit_code == 0, result.output
     assert result.output == (
@@ -186,3 +195,40 @@ def test_extract_invalid_message(bodhi_message_db, mock_config, mock_init):
 
     m.session.refresh(bodhi_message_db)
     assert len(bodhi_message_db.users) == 0
+
+
+def test_extract_agent(bodhi_message_db, mock_config, mock_init):
+    runner = CliRunner()
+    result = runner.invoke(extract_users, ["agent"])
+
+    assert result.exit_code == 0, result.output
+    assert result.output.strip() == "Considering 1 message"
+    m.session.refresh(bodhi_message_db)
+    assert bodhi_message_db.agent_name == "dudemcpants"
+
+
+def test_extract_agent_with(bodhi_message_db, mock_config, mock_init):
+    runner = CliRunner()
+    result = runner.invoke(extract_users, ["--debug", "agent"])
+
+    assert result.exit_code == 0, result.output
+    expected_output = (
+        "Considering 1 message\n\n"
+        f"Agent for message {bodhi_message_db.msg_id} of topic {bodhi_message_db.topic}: "
+        "dudemcpants\n"
+    )
+    assert result.output == expected_output
+
+
+def test_extract_agent_no_users(datanommer_models, mock_config, mock_init):
+    msg = generate_message()
+    # change the schema header or the script won't pick it up
+    msg._headers["fedora_messaging_schema"] = "testing"
+    m.add(msg)
+    runner = CliRunner()
+    result = runner.invoke(extract_users, ["agent"])
+
+    assert result.exit_code == 0, result.output
+    msg_in_db = m.Message.from_msg_id(msg.id)
+    assert msg_in_db.agent_name is None
+    assert result.output.strip() == "Considering 1 message"
