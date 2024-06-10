@@ -1,4 +1,6 @@
 [allowlist]
 paths = [
     "docs/sysadmin.rst",
+    "tools/timescaledb/migrate.toml",
+    "devel/ansible/roles/datanommer/templates/fedora-messaging.toml.j2",
 ]
