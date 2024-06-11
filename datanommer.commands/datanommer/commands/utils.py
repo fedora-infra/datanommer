@@ -33,6 +33,8 @@ config_option = click.option(
 
 
 def iterate_over_messages(query, start, chunk_size):
+    click.echo("Querying the database...")
+
     total = m.session.scalar(query.with_only_columns(func.count(m.Message.id)))
     if not total:
         click.echo("No messages matched.")
