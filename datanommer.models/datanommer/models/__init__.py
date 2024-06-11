@@ -491,7 +491,6 @@ class Message(DeclarativeBase):
         if not_agents:
             query = query.where(not_(or_(*(Message.agent_name == agent for agent in not_agents))))
 
-        print(query)
         return query
 
     @classmethod
