@@ -6,6 +6,14 @@ For ``datanommer.consumer``
 
 .. towncrier release notes start
 
+v1.4.0
+======
+
+Released on 2024-06-12.
+
+No significant changes.
+
+
 v1.2.0
 ======
 

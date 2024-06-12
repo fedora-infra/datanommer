@@ -1,1 +1,0 @@
-Rename the unused `username` column to `agent_name` and use it to store the agent name

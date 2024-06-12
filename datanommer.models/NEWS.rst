@@ -6,6 +6,23 @@ For ``datanommer.models``
 
 .. towncrier release notes start
 
+v1.4.0
+======
+
+Released on 2024-06-12.
+
+Features
+^^^^^^^^
+
+* Rename the unused `username` column to `agent_name` and use it to store the agent name (`#1309 <https://github.com/fedora-infra/datanommer/issues/1309>`_)
+* Add a JSON index on the message headers
+
+Bug Fixes
+^^^^^^^^^
+
+* Fix the `get_first()` query to actually return only one message
+
+
 v1.3.0
 ======
 

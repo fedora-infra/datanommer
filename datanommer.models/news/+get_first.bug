@@ -1,1 +1,0 @@
-Fix the `get_first()` query to actually return only one message
