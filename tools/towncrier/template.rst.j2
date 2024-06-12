@@ -8,54 +8,68 @@
    {%- endif -%}
 {%- endmacro -%}
 
-{{ top_line }}
-{{ top_underline * ((top_line)|length)-}}
+{{- top_line }}
+{{ top_underline * ((top_line)|length) -}}
 
 Released on {{ versiondata.date }}.
-{% for section, _ in sections.items() %}
-{% set underline = underlines[0] %}{% if section %}{{section}}
-{{ underline * section|length }}{% set underline = underlines[1] %}
 
-{% endif %}
+{% for section, _ in sections.items() -%}
+{%- set underline = underlines[0] -%}
+{%- if section -%}
+{{section}}
+{{ underline * section|length }}
+{%- set underline = underlines[1] -%}
+{%- endif -%}
 
-{% if sections[section] %}
-{% for category, val in definitions.items() if category in sections[section] and category != "author" %}
+{%- if sections[section] -%}
+{%- for category, val in definitions.items() if category in sections[section] and category != "author" -%}
 {{ definitions[category]['name'] }}
 {{ underline * definitions[category]['name']|length }}
 
-{% if definitions[category]['showcontent'] %}
-{% for text, values in sections[section][category].items() %}
-* {{ text }} ({% for value in values -%}
-                 {{ reference(value) }}
-                 {%- if not loop.last %}, {% endif -%}
-              {%- endfor %}).
-{% endfor %}
+{% if definitions[category]['showcontent'] -%}
+{%- for text, values in sections[section][category].items() %}
+* {{ text }}
+{%- if values %}
+{% if "\n  - " in text or '\n  * ' in text %}
+
+
+  (
+{%- else %}
+ (
+{%- endif -%}
+{%- for issue in values %}
+{{ reference(issue) }}{% if not loop.last %}, {% endif %}
+{%- endfor %}
+)
 {% else %}
+
+{% endif %}
+{% endfor -%}
+{%- else -%}
 * {{ sections[section][category]['']|sort|join(', ') }}
 
-{% endif %}
-{% if sections[section][category]|length == 0 %}
+{% endif -%}
+{%- if sections[section][category]|length == 0 %}
 No significant changes.
 
-{% else %}
-{% endif %}
+{% else -%}
+{%- endif %}
 
-{% endfor %}
-{% if sections[section]["author"] %}
+{% endfor -%}
+{% if sections[section]["author"] -%}
 {{definitions['author']["name"]}}
 {{ underline * definitions['author']['name']|length }}
 
 Many thanks to the contributors of bug reports, pull requests, and pull request
 reviews for this release:
 
-{% for text, values in sections[section]["author"].items() %}
+{% for text, values in sections[section]["author"].items() -%}
 * {{ text }}
-{% endfor %}
-{% endif %}
+{% endfor -%}
+{%- endif %}
 
-{% else %}
+{% else -%}
 No significant changes.
 
-
 {% endif %}
-{% endfor %}
+{%- endfor +%}

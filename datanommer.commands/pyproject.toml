@@ -57,7 +57,7 @@ title_format = "v{version}"
 issue_format = "{issue}"
 template = "../tools/towncrier/template.rst.j2"
 underlines = "=^-"
-wrap = true
+wrap = false
 all_bullets = true
 
   [[tool.towncrier.type]]
