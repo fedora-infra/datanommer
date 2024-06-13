@@ -39,7 +39,7 @@ def test_extract_users(bodhi_message_db, mock_config, mock_init):
     assert result.exit_code == 0, result.output
 
     expected_output = (
-        "Querying the database...\n"
+        "Counting messages...\n"
         "Considering 1 message\n\n"
         f"Usernames for message {bodhi_message_db.msg_id} of topic {bodhi_message_db.topic}: "
         "dudemcpants, ryanlerch\n"
@@ -128,7 +128,7 @@ def test_extract_users_no_users(datanommer_models, mock_config, mock_init):
     assert result.exit_code == 0, result.output
     users_count = m.session.scalar(sa.select(sa.func.count(m.users_assoc_table.c.msg_id)))
     assert users_count == 0
-    assert result.output.strip() == "Querying the database...\nConsidering 1 message"
+    assert result.output.strip() == "Counting messages...\nConsidering 1 message"
 
 
 def test_extract_start(datanommer_models, mock_config, mock_init):
@@ -151,7 +151,7 @@ def test_extract_start(datanommer_models, mock_config, mock_init):
     # Message must not have had users set
     users_count = m.session.scalar(sa.select(sa.func.count(m.users_assoc_table.c.msg_id)))
     assert users_count == 0
-    assert result.output == "Querying the database...\nNo messages matched.\n"
+    assert result.output == "Counting messages...\nNo messages matched.\n"
 
 
 def test_extract_end(bodhi_message_db, mock_config, mock_init):
@@ -167,7 +167,7 @@ def test_extract_end(bodhi_message_db, mock_config, mock_init):
     # Message must not have had users set
     users_count = m.session.scalar(sa.select(sa.func.count(m.users_assoc_table.c.msg_id)))
     assert users_count == 0
-    assert result.output == "Querying the database...\nNo messages matched.\n"
+    assert result.output == "Counting messages...\nNo messages matched.\n"
 
 
 def test_extract_force_schema(bodhi_message_db, mock_config, mock_init):
@@ -189,7 +189,7 @@ def test_extract_invalid_message(bodhi_message_db, mock_config, mock_init):
 
     assert result.exit_code == 0, result.output
     assert result.output == (
-        "Querying the database...\n"
+        "Counting messages...\n"
         "Considering 1 message\n\n"
         f"Could not load message {bodhi_message_db.msg_id} on topic "
         f"{bodhi_message_db.topic}: 'this is invalid' is not of type 'object'\n"
@@ -204,7 +204,7 @@ def test_extract_agent(bodhi_message_db, mock_config, mock_init):
     result = runner.invoke(extract_users, ["agent"])
 
     assert result.exit_code == 0, result.output
-    assert result.output.strip() == "Querying the database...\nConsidering 1 message"
+    assert result.output.strip() == "Counting messages...\nConsidering 1 message"
     m.session.refresh(bodhi_message_db)
     assert bodhi_message_db.agent_name == "dudemcpants"
 
@@ -215,7 +215,7 @@ def test_extract_agent_with(bodhi_message_db, mock_config, mock_init):
 
     assert result.exit_code == 0, result.output
     expected_output = (
-        "Querying the database...\n"
+        "Counting messages...\n"
         "Considering 1 message\n\n"
         f"Agent for message {bodhi_message_db.msg_id} of topic {bodhi_message_db.topic}: "
         "dudemcpants\n"
@@ -234,4 +234,4 @@ def test_extract_agent_no_users(datanommer_models, mock_config, mock_init):
     assert result.exit_code == 0, result.output
     msg_in_db = m.Message.from_msg_id(msg.id)
     assert msg_in_db.agent_name is None
-    assert result.output.strip() == "Querying the database...\nConsidering 1 message"
+    assert result.output.strip() == "Counting messages...\nConsidering 1 message"
