@@ -37,12 +37,13 @@ def test_extract_users(bodhi_message_db, mock_config, mock_init):
     result = runner.invoke(extract_users, ["--debug", "usernames"])
 
     assert result.exit_code == 0, result.output
-
     expected_output = (
         "Counting messages...\n"
         "Considering 1 message\n\n"
+        f"Working on 10000 messages sent after {bodhi_message_db.timestamp}\n"
         f"Usernames for message {bodhi_message_db.msg_id} of topic {bodhi_message_db.topic}: "
         "dudemcpants, ryanlerch\n"
+        f"Working on 10000 messages sent after {bodhi_message_db.timestamp}\n"
     )
     assert result.output == expected_output
 
@@ -128,7 +129,14 @@ def test_extract_users_no_users(datanommer_models, mock_config, mock_init):
     assert result.exit_code == 0, result.output
     users_count = m.session.scalar(sa.select(sa.func.count(m.users_assoc_table.c.msg_id)))
     assert users_count == 0
-    assert result.output.strip() == "Counting messages...\nConsidering 1 message"
+    start = datetime.datetime.fromisoformat(msg._headers["sent-at"]).astimezone()
+    start = str(start).split("+")[0]
+    assert result.output == (
+        "Counting messages...\n"
+        "Considering 1 message\n\n"
+        f"Working on 10000 messages sent after {start}\n"
+        f"Working on 10000 messages sent after {start}\n"
+    )
 
 
 def test_extract_start(datanommer_models, mock_config, mock_init):
@@ -191,8 +199,10 @@ def test_extract_invalid_message(bodhi_message_db, mock_config, mock_init):
     assert result.output == (
         "Counting messages...\n"
         "Considering 1 message\n\n"
+        f"Working on 10000 messages sent after {bodhi_message_db.timestamp}\n"
         f"Could not load message {bodhi_message_db.msg_id} on topic "
         f"{bodhi_message_db.topic}: 'this is invalid' is not of type 'object'\n"
+        f"Working on 10000 messages sent after {bodhi_message_db.timestamp}\n"
     )
 
     m.session.refresh(bodhi_message_db)
@@ -204,7 +214,12 @@ def test_extract_agent(bodhi_message_db, mock_config, mock_init):
     result = runner.invoke(extract_users, ["agent"])
 
     assert result.exit_code == 0, result.output
-    assert result.output.strip() == "Counting messages...\nConsidering 1 message"
+    assert result.output == (
+        "Counting messages...\n"
+        "Considering 1 message\n\n"
+        f"Working on 10000 messages sent after {bodhi_message_db.timestamp}\n"
+        f"Working on 10000 messages sent after {bodhi_message_db.timestamp}\n"
+    )
     m.session.refresh(bodhi_message_db)
     assert bodhi_message_db.agent_name == "dudemcpants"
 
@@ -217,8 +232,10 @@ def test_extract_agent_with(bodhi_message_db, mock_config, mock_init):
     expected_output = (
         "Counting messages...\n"
         "Considering 1 message\n\n"
+        f"Working on 10000 messages sent after {bodhi_message_db.timestamp}\n"
         f"Agent for message {bodhi_message_db.msg_id} of topic {bodhi_message_db.topic}: "
         "dudemcpants\n"
+        f"Working on 10000 messages sent after {bodhi_message_db.timestamp}\n"
     )
     assert result.output == expected_output
 
@@ -234,4 +251,9 @@ def test_extract_agent_no_users(datanommer_models, mock_config, mock_init):
     assert result.exit_code == 0, result.output
     msg_in_db = m.Message.from_msg_id(msg.id)
     assert msg_in_db.agent_name is None
-    assert result.output.strip() == "Counting messages...\nConsidering 1 message"
+    assert result.output == (
+        "Counting messages...\n"
+        "Considering 1 message\n\n"
+        f"Working on 10000 messages sent after {msg_in_db.timestamp}\n"
+        f"Working on 10000 messages sent after {msg_in_db.timestamp}\n"
+    )

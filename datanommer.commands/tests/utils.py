@@ -34,5 +34,4 @@ def generate_bodhi_update_complete_message():
         }
     )
     msg.topic = f"org.fedoraproject.stg.{msg.topic}"
-    print(msg.topic)
     return msg
