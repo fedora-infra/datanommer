@@ -15,22 +15,10 @@ queue_rules:
       - check-success=Unit tests (3.11, models)
       - check-success=Unit tests (3.11, consumer)
       - check-success=Unit tests (3.11, commands)
-    merge_conditions:
-      # Conditions to get out of the queue (= merged)
-      - check-success=Checks
-      - check-success=Licenses (models)
-      - check-success=Licenses (consumer)
-      - check-success=Licenses (commands)
-      - check-success=Unit tests (3.10, models)
-      - check-success=Unit tests (3.10, consumer)
-      - check-success=Unit tests (3.10, commands)
-      - check-success=Unit tests (3.11, models)
-      - check-success=Unit tests (3.11, consumer)
-      - check-success=Unit tests (3.11, commands)
     merge_method: rebase
 
 pull_request_rules:
-  - name: refactored queue action rule
+  - name: Merge on approval
     conditions: []
     actions:
       queue:
