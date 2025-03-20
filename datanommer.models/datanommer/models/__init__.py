@@ -547,7 +547,7 @@ class Message(DeclarativeBase):
             pages = 1
         else:
             total = session.scalar(query_total)
-            pages = int(math.ceil(total / float(rows_per_page)))
+            pages = math.ceil(total / float(rows_per_page))
             query = query.offset(rows_per_page * (page - 1)).limit(rows_per_page)
 
         if defer:
