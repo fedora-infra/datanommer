@@ -48,7 +48,7 @@ def iterate_over_messages(query, start, chunk_size):
         chunk_start = start
         first_run = True
         while has_messages:
-            if bar.is_hidden:
+            if bar.hidden or not bar.file.isatty():
                 click.echo(f"Working on {chunk_size} messages sent after {chunk_start}")
             chunk_query = query.where(m.Message.timestamp >= chunk_start).limit(chunk_size)
             if not first_run:
