@@ -1,8 +1,10 @@
 import datetime
+import io
 from unittest.mock import Mock
 
 import pytest
 import sqlalchemy as sa
+from click import progressbar
 from click.testing import CliRunner
 
 import datanommer.models as m
@@ -257,3 +259,22 @@ def test_extract_agent_no_users(datanommer_models, mock_config, mock_init):
         f"Working on 10000 messages sent after {msg_in_db.timestamp}\n"
         f"Working on 10000 messages sent after {msg_in_db.timestamp}\n"
     )
+
+
+def test_extract_is_tty(bodhi_message_db, mock_config, mock_init, mocker):
+    output = io.StringIO()
+    mocker.patch.object(output, "isatty", lambda: True)
+    mocker.patch(
+        "datanommer.commands.utils.click.progressbar", lambda **kw: progressbar(file=output, **kw)
+    )
+    runner = CliRunner()
+    result = runner.invoke(extract_users, ["--debug", "usernames"])
+
+    assert result.exit_code == 0, result.output
+    expected_output = (
+        "Counting messages...\n"
+        "Considering 1 message\n"
+        f"Usernames for message {bodhi_message_db.msg_id} of topic {bodhi_message_db.topic}: "
+        "dudemcpants, ryanlerch\n"
+    )
+    assert result.output == expected_output
