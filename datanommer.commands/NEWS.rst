@@ -6,6 +6,28 @@ For ``datanommer.commands``
 
 .. towncrier release notes start
 
+v1.4.1
+======
+
+Released on 2025-05-30.
+
+Dependency Changes
+^^^^^^^^^^^^^^^^^^
+
+* Add support for Python 3.9 (for RHEL9) (`#8d63e86 <https://github.com/fedora-infra/datanommer/issues/8d63e86>`_)
+
+Development Improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Test the command output on a TTY (`#ef1f572 <https://github.com/fedora-infra/datanommer/issues/ef1f572>`_)
+
+Other Changes
+^^^^^^^^^^^^^
+
+* Slighly clearer command message (`#940c642 <https://github.com/fedora-infra/datanommer/issues/940c642>`_)
+* Slight output improvement in the progressbar-based commands (`#1dc0db8 <https://github.com/fedora-infra/datanommer/issues/1dc0db8>`_)
+
+
 v1.4.0
 ======
 

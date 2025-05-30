@@ -6,6 +6,32 @@ For ``datanommer.models``
 
 .. towncrier release notes start
 
+v1.4.1
+======
+
+Released on 2025-05-30.
+
+Dependency Changes
+^^^^^^^^^^^^^^^^^^
+
+* Add schema package mailman3-fedmsg-plugin-schemas (`#8ad6c47 <https://github.com/fedora-infra/datanommer/issues/8ad6c47>`_)
+* Add schema package webhook-to-fedora-messaging-messages (`#865855c <https://github.com/fedora-infra/datanommer/issues/865855c>`_)
+* Update koji-fedoramessaging-messages (`#c64cb31 <https://github.com/fedora-infra/datanommer/issues/c64cb31>`_)
+* Add support for Python 3.9 (for RHEL9) (`#8d63e86 <https://github.com/fedora-infra/datanommer/issues/8d63e86>`_)
+* Add the schema package journal-to-fedora-messaging-messages (`#3d9bc35 <https://github.com/fedora-infra/datanommer/issues/3d9bc35>`_)
+* Add the `fedora-image-uploader-messages` schema package (`#7da3074 <https://github.com/fedora-infra/datanommer/issues/7da3074>`_)
+
+Bug Fixes
+^^^^^^^^^
+
+* Fix unit tests (`#085f5c4 <https://github.com/fedora-infra/datanommer/issues/085f5c4>`_)
+
+Other Changes
+^^^^^^^^^^^^^
+
+* Remove unneccessary int call (`#487341f <https://github.com/fedora-infra/datanommer/issues/487341f>`_)
+
+
 v1.4.0
 ======
 

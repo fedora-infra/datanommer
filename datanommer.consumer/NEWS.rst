@@ -6,6 +6,17 @@ For ``datanommer.consumer``
 
 .. towncrier release notes start
 
+v1.4.1
+======
+
+Released on 2025-05-30.
+
+Dependency Changes
+^^^^^^^^^^^^^^^^^^
+
+* Add support for Python 3.9 (for RHEL9) (`#8d63e86 <https://github.com/fedora-infra/datanommer/issues/8d63e86>`_)
+
+
 v1.4.0
 ======
 
