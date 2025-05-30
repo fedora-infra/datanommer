@@ -24,6 +24,7 @@ import click
 from sqlalchemy import func, select
 
 import datanommer.models as m
+from datanommer.models.view import refresh_recent_topics
 
 from .utils import config_option, get_config
 
@@ -304,3 +305,22 @@ def latest(config_path, topic, category, overall, timestamp, timesince, human):
         results.append(formatter(result.category, result))
 
     click.echo(f"[{','.join(results)}]")
+
+
+@click.command()
+@config_option
+def refresh_view(config_path):
+    """Refresh the materialized view `recent_topics`.
+
+    This command should be run periodically via cron job to keep
+    the materialized view `recent_topics` up to date.
+    """
+    config = get_config(config_path)
+    m.init(
+        config["datanommer_sqlalchemy_url"],
+        alembic_ini=config["alembic_ini"],
+    )
+
+    refresh_recent_topics(m.session)
+
+    click.echo("Recent topics materialized view refreshed successfully")

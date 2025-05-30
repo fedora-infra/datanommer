@@ -56,6 +56,8 @@ from sqlalchemy.orm import (
 )
 from sqlalchemy.sql import operators
 
+from .view import create_view
+
 
 try:
     from psycopg2.errors import UniqueViolation
@@ -104,6 +106,8 @@ def init(uri=None, alembic_ini=None, engine=None, create=False):
         with engine.begin() as connection:
             connection.execute(text("CREATE EXTENSION IF NOT EXISTS timescaledb"))
         DeclarativeBase.metadata.create_all(engine)
+        with engine.begin() as connection:
+            create_view(connection)
         # Loads the alembic configuration and generates the version table, with
         # the most recent revision stamped as head
         if alembic_ini is not None:  # pragma: no cover
