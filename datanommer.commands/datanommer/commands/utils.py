@@ -48,7 +48,11 @@ def iterate_over_messages(query, start, chunk_size):
         chunk_start = start
         first_run = True
         while has_messages:
-            if bar.hidden or not bar.file.isatty():
+            # click < 8.2 (Python < 3.10): use bar.is_hidden
+            # click >= 8.2 (Python >= 3.10): use bar.hidden and the TTY check
+            if (hasattr(bar, "is_hidden") and bar.is_hidden) or (
+                hasattr(bar, "hidden") and (bar.hidden or not bar.file.isatty())
+            ):
                 click.echo(f"Working on {chunk_size} messages sent after {chunk_start}")
             chunk_query = query.where(m.Message.timestamp >= chunk_start).limit(chunk_size)
             if not first_run:

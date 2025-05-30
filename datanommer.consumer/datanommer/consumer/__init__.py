@@ -21,7 +21,7 @@ from fedora_messaging import config
 import datanommer.models as m
 
 
-__version__ = importlib.metadata.version("datanommer.consumer")
+__version__ = importlib.metadata.version("datanommer-consumer")
 
 
 def get_datanommer_sqlalchemy_url():

@@ -28,7 +28,7 @@ import datanommer.models as m
 from .utils import config_option, get_config
 
 
-__version__ = importlib.metadata.version("datanommer.commands")
+__version__ = importlib.metadata.version("datanommer-commands")
 
 log = logging.getLogger("datanommer")
 
