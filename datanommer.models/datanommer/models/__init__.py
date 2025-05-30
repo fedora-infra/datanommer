@@ -65,7 +65,7 @@ except ImportError:  # pragma: no cover
     UniqueViolation = lookup_error("23505")
 
 
-__version__ = importlib.metadata.version("datanommer.models")
+__version__ = importlib.metadata.version("datanommer-models")
 
 
 log = logging.getLogger("datanommer")

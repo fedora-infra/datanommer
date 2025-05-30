@@ -80,6 +80,7 @@ jobs:
     strategy:
       matrix:
         pyver:
+          - py39
           - py310
           - py311
         package:
