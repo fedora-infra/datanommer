@@ -6,6 +6,17 @@ For ``datanommer.commands``
 
 .. towncrier release notes start
 
+v1.4.2
+======
+
+Released on 2025-06-07.
+
+Dependency Changes
+^^^^^^^^^^^^^^^^^^
+
+* Don't require all the message schemas
+
+
 v1.4.1
 ======
 
