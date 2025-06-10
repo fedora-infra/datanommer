@@ -6,6 +6,13 @@ For ``datanommer.models``
 
 .. towncrier release notes start
 
+v1.4.3
+======
+
+Released on 2025-06-10.
+
+No significant changes.
+
 v1.4.2
 ======
 
