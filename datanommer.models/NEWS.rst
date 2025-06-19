@@ -6,6 +6,17 @@ For ``datanommer.models``
 
 .. towncrier release notes start
 
+v1.4.4
+======
+
+Released on 2025-06-19.
+
+Dependency Changes
+^^^^^^^^^^^^^^^^^^
+
+* Relax dependency on psycopg2 (`3ad7e7b <https://github.com/fedora-infra/datanommer/commit/3ad7e7b>`_)
+
+
 v1.4.3
 ======
 
