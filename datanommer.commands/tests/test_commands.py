@@ -517,3 +517,15 @@ def test_latest(datanommer_models, mock_config, mock_init):
     assert json_object[1]["git"]["body"] == {"Message 3": "Message 3"}
     assert json_object[0]["fas"]["body"] == {"Message 2": "Message 2"}
     assert len(json_object) == 2
+
+
+def test_refresh_view(datanommer_models, mock_config, mocker):
+    """Test the refresh_view command."""
+
+    mock_refresh = mocker.patch("datanommer.commands.refresh_recent_topics")
+
+    runner = CliRunner()
+    result = runner.invoke(datanommer.commands.refresh_view, [])
+
+    assert result.exit_code == 0, result.output
+    mock_refresh.assert_called_once_with(m.session)
