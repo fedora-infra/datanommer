@@ -1,0 +1,1 @@
+Add `datanommer-refresh-view` command to refresh the `recent_topics` materialized view, intended to be run periodically via cron job to keep topic view up to date

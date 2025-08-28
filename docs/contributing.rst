@@ -69,6 +69,7 @@ to interact with the datanommer database::
     $ datanommer-latest
     $ datanommer-stats
     $ datanommer-create-db
+    $ datanommer-refresh-view
 
 
 Guidelines
