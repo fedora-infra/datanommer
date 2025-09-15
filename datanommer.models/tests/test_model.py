@@ -499,14 +499,14 @@ def test_grep_defer(datanommer_models):
 
     dm.session.flush()
 
-    total, pages, query = dm.Message.grep(defer=True)
+    _total, _pages, query = dm.Message.grep(defer=True)
     assert isinstance(query, Select)
 
     assert dm.session.scalars(query).all() == dm.Message.grep()[2]
 
 
 def test_grep_no_paging_and_defer(datanommer_models, add_200_messages):
-    total, pages, messages = dm.Message.grep(rows_per_page=0, defer=True)
+    total, pages, _messages = dm.Message.grep(rows_per_page=0, defer=True)
     assert total == 200
     assert pages == 1
 
@@ -514,7 +514,7 @@ def test_grep_no_paging_and_defer(datanommer_models, add_200_messages):
 def test_grep_no_total_if_single_page(datanommer_models, add_200_messages, mocker):
     # Assert we don't query the total of messages if we're getting them all anyway
     scalar_spy = mocker.spy(dm.session, "scalar")
-    total, pages, messages = dm.Message.grep(rows_per_page=0)
+    total, _pages, _messages = dm.Message.grep(rows_per_page=0)
     assert total == 200
     scalar_spy.assert_not_called()
 
