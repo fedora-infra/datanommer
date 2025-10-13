@@ -78,9 +78,8 @@ jobs:
     strategy:
       matrix:
         pyver:
-          - py39
-          - py310
           - py311
+          - py312
         package:
           - models
           - consumer

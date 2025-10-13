@@ -152,8 +152,8 @@ def test_add_timestamp_with_Z(datanommer_models):
     dm.add(example_message)
 
     dbmsg = dm.session.scalar(select(dm.Message))
-    assert dbmsg.timestamp.astimezone(datetime.timezone.utc) == datetime.datetime(
-        2021, 7, 27, 4, 22, 42, tzinfo=datetime.timezone.utc
+    assert dbmsg.timestamp.astimezone(datetime.UTC) == datetime.datetime(
+        2021, 7, 27, 4, 22, 42, tzinfo=datetime.UTC
     )
 
 

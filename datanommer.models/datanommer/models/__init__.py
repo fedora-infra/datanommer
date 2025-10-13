@@ -134,7 +134,7 @@ def add(message):
             log.exception("Failed to parse sent-at timestamp value")
             return
     else:
-        sent_at = datetime.datetime.now(tz=datetime.timezone.utc)
+        sent_at = datetime.datetime.now(tz=datetime.UTC)
 
     # Workaround schemas misbehaving
     try:
@@ -354,7 +354,7 @@ class Message(DeclarativeBase):
     def as_fedora_message_dict(self):
         headers = self.headers or {}
         if "sent-at" not in headers:
-            headers["sent-at"] = self.timestamp.astimezone(datetime.timezone.utc).isoformat()
+            headers["sent-at"] = self.timestamp.astimezone(datetime.UTC).isoformat()
         return dict(
             body=self.msg,
             headers=headers,

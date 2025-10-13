@@ -142,7 +142,7 @@ def test_extract_users_no_users(datanommer_models, mock_config, mock_init):
 
 
 def test_extract_start(datanommer_models, mock_config, mock_init):
-    now = datetime.datetime.now(tz=datetime.timezone.utc)
+    now = datetime.datetime.now(tz=datetime.UTC)
     msg = generate_bodhi_update_complete_message()
     # Set the message to have happenned 3 days ago
     msg._properties.headers["sent-at"] = (now - datetime.timedelta(days=3)).isoformat()
