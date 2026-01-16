@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "datanommer.consumer"
-version = "1.4.4"
+version = "1.5.0"
 description = "Consumer for datanommer"
 authors = [
   "Fedora Infrastructure <admin@fedoraproject.org>"
@@ -59,11 +59,6 @@ all_bullets = true
   showcontent = true
 
   [[tool.towncrier.type]]
-  directory = "dependency"
-  name = "Dependency Changes"
-  showcontent = true
-
-  [[tool.towncrier.type]]
   directory = "feature"
   name = "Features"
   showcontent = true
@@ -74,13 +69,18 @@ all_bullets = true
   showcontent = true
 
   [[tool.towncrier.type]]
-  directory = "dev"
-  name = "Development Improvements"
+  directory = "dependency"
+  name = "Dependency Changes"
   showcontent = true
 
   [[tool.towncrier.type]]
   directory = "docs"
   name = "Documentation Improvements"
+  showcontent = true
+
+  [[tool.towncrier.type]]
+  directory = "dev"
+  name = "Development Improvements"
   showcontent = true
 
   [[tool.towncrier.type]]

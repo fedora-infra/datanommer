@@ -6,6 +6,31 @@ For ``datanommer.commands``
 
 .. towncrier release notes start
 
+v1.5.0
+======
+
+Released on 2026-01-16.
+
+Features
+^^^^^^^^
+
+* Add `datanommer-refresh-view` command to refresh the `recent_topics` materialized view, intended to be run periodically via cron job to keep topic view up to date (`#1434 <https://github.com/fedora-infra/datanommer/issues/1434>`_)
+
+Dependency Changes
+^^^^^^^^^^^^^^^^^^
+
+* Drop support for Python 3.9 & 3.10, add support for 3.12 (`879a8bb <https://github.com/fedora-infra/datanommer/commit/879a8bb>`_)
+
+Contributors
+^^^^^^^^^^^^
+
+Many thanks to the contributors of bug reports, pull requests, and pull request
+reviews for this release:
+
+* Akashdeep Dhar
+* Aurélien Bompard
+* Shounak Dey
+
 v1.4.4
 ======
 

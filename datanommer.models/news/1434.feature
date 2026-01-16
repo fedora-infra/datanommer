@@ -1,1 +1,0 @@
-Add materialized view `recent_topics` that provides efficient querying of recent message topics with aggregated message counts and sorting capabilities
