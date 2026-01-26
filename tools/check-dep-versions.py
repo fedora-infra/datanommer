@@ -5,7 +5,6 @@ from collections import defaultdict
 
 import toml
 
-
 SUBPROJECTS = ["commands", "consumer", "models"]
 SUPPORTED_LOCK_VERSION = "1.1"
 

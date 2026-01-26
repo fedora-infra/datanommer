@@ -2,7 +2,6 @@ from sqlalchemy import DDL, func, select, text
 from sqlalchemy.ext import compiler
 from sqlalchemy.schema import DDLElement
 
-
 TIME_INTERVAL = "1 year"
 
 

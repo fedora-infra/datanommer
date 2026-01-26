@@ -24,7 +24,6 @@ from sqlalchemy.orm import declarative_base, relationship, Session
 
 import datanommer.models as dm
 
-
 CHUNK_SIZE = 5000
 
 OldBase = declarative_base()

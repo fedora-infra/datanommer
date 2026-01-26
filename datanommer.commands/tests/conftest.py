@@ -2,7 +2,6 @@ import pytest
 
 import datanommer.commands
 
-
 pytest_plugins = "datanommer.models.testing"
 
 
