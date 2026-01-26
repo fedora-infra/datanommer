@@ -6,7 +6,6 @@ from sqlalchemy.orm import scoped_session
 
 import datanommer.models as dm
 
-
 postgresql_proc = factories.postgresql_proc(
     postgres_options="-c shared_preload_libraries=timescaledb -c timescaledb.telemetry_level=off",
 )

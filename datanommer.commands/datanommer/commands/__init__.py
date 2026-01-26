@@ -28,7 +28,6 @@ from datanommer.models.view import refresh_recent_topics
 
 from .utils import config_option, get_config
 
-
 __version__ = importlib.metadata.version("datanommer-commands")
 
 log = logging.getLogger("datanommer")

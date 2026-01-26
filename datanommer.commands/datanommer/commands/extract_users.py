@@ -10,7 +10,6 @@ import datanommer.models as m
 
 from .utils import CHUNK_SIZE, config_option, get_config, iterate_over_messages
 
-
 log = logging.getLogger(__name__)
 
 USERNAMES_SKIP_TOPICS = [

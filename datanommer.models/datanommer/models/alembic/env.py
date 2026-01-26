@@ -25,7 +25,6 @@ from sqlalchemy import engine_from_config, pool
 # target_metadata = mymodel.Base.metadata
 from datanommer.models import DeclarativeBase
 
-
 target_metadata = DeclarativeBase.metadata
 
 

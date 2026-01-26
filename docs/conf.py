@@ -15,7 +15,6 @@ import importlib.metadata
 import os
 import sys
 
-
 SUBMODULES = ("models", "commands")
 
 topdir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))

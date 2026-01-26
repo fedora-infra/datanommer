@@ -58,7 +58,6 @@ from sqlalchemy.sql import operators
 
 from .view import create_view
 
-
 try:
     from psycopg2.errors import UniqueViolation
 except ImportError:  # pragma: no cover

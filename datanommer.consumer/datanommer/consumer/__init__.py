@@ -20,7 +20,6 @@ from fedora_messaging import config
 
 import datanommer.models as m
 
-
 __version__ = importlib.metadata.version("datanommer-consumer")
 
 

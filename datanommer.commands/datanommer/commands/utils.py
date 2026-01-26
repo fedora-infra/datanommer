@@ -7,7 +7,6 @@ from sqlalchemy import func
 
 import datanommer.models as m
 
-
 # Go trough messages these many at a time
 CHUNK_SIZE = 10000
 log = logging.getLogger(__name__)
