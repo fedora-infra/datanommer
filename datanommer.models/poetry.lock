@@ -3410,15 +3410,15 @@ test = ["covdefaults (>=2.3)", "coverage (>=7.2.7)", "coverage-enable-subprocess
 
 [[package]]
 name = "webhook-to-fedora-messaging-messages"
-version = "1.4.1"
+version = "1.5.0"
 description = "A schema package for messages sent by Webhook To Fedora Messaging"
 optional = true
 python-versions = "<4.0,>=3.9"
 groups = ["main"]
 markers = "extra == \"schemas\""
 files = [
-    {file = "webhook_to_fedora_messaging_messages-1.4.1-py3-none-any.whl", hash = "sha256:786fd2e14983853ceb1e19d459808dd6e1edf0da2d090c2ec545592a269c8d0e"},
-    {file = "webhook_to_fedora_messaging_messages-1.4.1.tar.gz", hash = "sha256:f933e3d65d02a727c49f40caed1ab325338d74681d1501ab1c5183a553489208"},
+    {file = "webhook_to_fedora_messaging_messages-1.5.0-py3-none-any.whl", hash = "sha256:40c02f9545dfa00a38f000c7eb687a8db7fcec366827913f17acda7d82fd1f5a"},
+    {file = "webhook_to_fedora_messaging_messages-1.5.0.tar.gz", hash = "sha256:ce4bfbb38642e00f0ce5fcff389f5806f91db0b0f9a7a3944525d4c445ee69c2"},
 ]
 
 [package.dependencies]
