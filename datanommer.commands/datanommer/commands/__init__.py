@@ -321,5 +321,6 @@ def refresh_view(config_path):
     )
 
     refresh_recent_topics(m.session)
+    m.session.commit()
 
     click.echo("Recent topics materialized view refreshed successfully")
